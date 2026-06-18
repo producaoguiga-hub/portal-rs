@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Importador — Portal R&S</title>
+<style>
+  body { font-family: sans-serif; padding: 2rem; max-width: 700px; margin: 0 auto; background: #f5f5f3; }
+  h2 { margin-bottom: .5rem; }
+  p { color: #555; font-size: 14px; }
+  .btn { padding: 12px 24px; font-size: 15px; cursor: pointer; background: #378ADD; color: white; border: none; border-radius: 8px; margin-top: 1rem; }
+  .btn:disabled { background: #999; cursor: not-allowed; }
+  #log { margin-top: 1.5rem; padding: 1rem; background: #1c1c1a; border-radius: 8px; font-size: 12px; font-family: monospace; max-height: 500px; overflow-y: auto; white-space: pre-wrap; color: #ccc; }
+  .ok { color: #97C459; }
+  .err { color: #F09595; }
+  .info { color: #85B7EB; }
+  #resumo { margin-top: 1rem; background: white; border-radius: 8px; padding: 1rem; font-size: 13px; border: 1px solid #ddd; }
+</style>
+</head>
+<body>
+<h2>Importador de Dados — Portal R&S</h2>
+<p>Insere turmas, candidatos e custos no Supabase de uma só vez. <strong>Execute apenas uma vez.</strong></p>
+<div id="resumo">
+  <strong>Resumo:</strong> 9 turmas · 46 candidatos · 45 registros de custo
+</div>
+<button class="btn" id="btn" onclick="importar()">▶ Iniciar Importação</button>
+<div id="log"></div>
+
+<script>
+const SUPA_URL = 'https://gahrfavjcdgwjmlsajeo.supabase.co/rest/v1';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaHJmYXZqY2Rnd2ptbHNhamVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTQzNzYsImV4cCI6MjA5NzM3MDM3Nn0.I5ozH_hPb4DT-PerlWwtpMKwBMXZnCQeNLu5rDs3tKY';
+const H = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+const logEl = document.getElementById('log');
+function log(msg, type='') { logEl.innerHTML += `<span class="${type}">${msg}</span>\n`; logEl.scrollTop = logEl.scrollHeight; }
+
+async function ins(table, data) {
+  const r = await fetch(`${SUPA_URL}/${table}`, { method: 'POST', headers: H, body: JSON.stringify(data) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+function pd(s) {
+  if (!s) return null;
+  s = s.trim();
+  if (!s || s === 'N/A' || s === 'N/A ') return null;
+  const p = s.split('/');
+  if (p.length !== 3) return null;
+  let [d, m, y] = p;
+  d = d.replace(/\D/g,'').slice(-2).padStart(2,'0');
+  m = m.replace(/\D/g,'').slice(-2).padStart(2,'0');
+  y = y.replace(/\D/g,'');
+  if (y.length > 4) y = y.slice(-4);
+  if (!d || !m || y.length < 4) return null;
+  return `${y}-${m}-${d}`;
+}
+
+// ── TURMAS ───────────────────────────────────────────────────
+const turmasData = [
+  { nome:'Turma 2.2023', periodo:'Jul/2023', recrutador:'Ello' },
+  { nome:'Turma 3.2023', periodo:'Out/2023', recrutador:'Ello' },
+  { nome:'Turma 4.2023', periodo:'Dez/2023', recrutador:'Perbras' },
+  { nome:'Turma 1.2024', periodo:'Fev/2024', recrutador:'Perbras' },
+  { nome:'Turma 2.2024', periodo:'Abr/2024', recrutador:'Ello' },
+  { nome:'Turma 3.2024', periodo:'Jun/2024', recrutador:'Perbras' },
+  { nome:'Turma 4.2024', periodo:'Dez/2024', recrutador:'Perbras' },
+  { nome:'Turma 1.2025', periodo:'Set/2025', recrutador:'Perbras' },
+  { nome:'Turma 1.2026', periodo:'Jan/2026', recrutador:'Perbras' },
+];
+
+// ── TIMELINE (aba6) ──────────────────────────────────────────
+const tl = {
+  'Artur Soldati':         { c:'09/01/2024',tri:'10/01/2024',ent:'11/01/2024',per:'24/01/2024',gest:'26/01/2024',psi:'02/02/2024',exa:'06/02/2024',doc:'02/02/2024',pre:'01/04/2024',pas:'01/04/2024',ini:'16/04/2024' },
+  'Claudinei Nepomuceno':  { c:'20/02/2024',tri:'13/02/2024',ent:'14/02/2024',per:'21/02/2024',gest:'28/02/2024',psi:'03/03/2024',exa:'18/03/2024',doc:'28/02/2024',pre:'27/03/2024',pas:'01/04/2024',ini:'16/04/2024' },
+  'Rodrigo Monteiro':      { c:'29/01/2024',tri:'29/01/2024',ent:'20/02/2024',per:'21/02/2024',gest:'28/02/2024',psi:'03/03/2024',exa:'29/02/2024',doc:'29/02/2024',pre:'01/04/2024',pas:null,ini:'08/04/2024' },
+  'Hélio Fontes':          { c:'09/01/2024',tri:'10/01/2024',ent:'11/01/2024',per:'24/01/2024',gest:'29/01/2024',psi:'05/02/2024',exa:'06/02/2024',doc:'31/01/2024',pre:'25/03/2024',pas:'01/04/2024',ini:'16/04/2024' },
+  'Amanda Ramos':          { c:'23/04/2024',tri:'25/04/2024',ent:'26/04/2024',per:'08/05/2024',gest:'10/05/2024',psi:'21/05/2024',exa:'17/05/2024',doc:'20/05/2024',pre:'24/05/2024',pas:'28/05/2024',ini:'08/06/2024' },
+  'Gabriela Cruz':         { c:'22/04/2024',tri:'25/04/2024',ent:'26/04/2024',per:'08/05/2024',gest:'10/05/2024',psi:'21/05/2024',exa:null,        doc:'21/05/2024',pre:'24/05/2024',pas:'28/05/2024',ini:'08/06/2024' },
+  'Renata Moreira':        { c:'30/04/2024',tri:'30/04/2024',ent:'03/05/2024',per:'08/05/2024',gest:'10/05/2024',psi:'21/05/2024',exa:'14/05/2024',doc:'17/05/2024',pre:'23/05/2024',pas:'28/05/2024',ini:'08/06/2024' },
+  'Laís Soares':           { c:'13/05/2024',tri:'21/05/2024',ent:'29/05/2024',per:'31/05/2024',gest:'04/06/2024',psi:'06/06/2024',exa:'05/06/2024',doc:'04/06/2024',pre:'11/06/2024',pas:'10/06/2024',ini:'17/06/2024' },
+  'Lydianne Santana':      { c:'03/05/2024',tri:'20/05/2024',ent:'29/05/2024',per:'31/05/2024',gest:'04/06/2024',psi:'06/06/2024',exa:'05/06/2024',doc:'06/06/2024',pre:'11/06/2024',pas:'10/06/2024',ini:'17/06/2024' },
+  'Régis Rosca':           { c:'07/11/2024',tri:'08/11/2024',ent:'08/11/2024',per:'12/11/2024',gest:'11/11/2024',psi:'13/11/2024',exa:'13/11/2024',doc:'12/11/2024',pre:'15/11/2024',pas:'26/11/2024',ini:'02/12/2024' },
+  'Rodrigo Sena':          { c:'16/09/2024',tri:'16/09/2024',ent:'16/09/2024',per:'01/10/2024',gest:'09/10/2024',psi:'16/10/2024',exa:'28/10/2024',doc:'01/11/2024',pre:'15/11/2024',pas:'26/11/2024',ini:'02/12/2024' },
+  'Taís Souza':            { c:'16/09/2024',tri:'17/09/2024',ent:'17/09/2024',per:'30/09/2024',gest:'12/11/2024',psi:'14/11/2024',exa:'13/11/2024',doc:'12/11/2024',pre:'15/11/2024',pas:'26/11/2024',ini:'02/12/2024' },
+  'Elcio Oliveira':        { c:'16/10/2024',tri:'25/10/2024',ent:'28/10/2024',per:null,        gest:'06/11/2024',psi:'11/11/2024',exa:'11/11/2024',doc:'14/11/2024',pre:'14/11/2024',pas:null,ini:'02/12/2024' },
+  'Gabriel Tonette':       { c:'24/09/2024',tri:'24/09/2024',ent:'28/10/2024',per:'12/11/2024',gest:'07/11/2024',psi:'11/11/2024',exa:'12/11/2024',doc:'12/11/2024',pre:'15/11/2024',pas:null,ini:'02/12/2024' },
+  'Igor Ramos':            { c:'07/11/2024',tri:'08/11/2024',ent:'08/11/2024',per:'12/11/2024',gest:'12/11/2024',psi:'14/11/2024',exa:'13/11/2024',doc:'13/11/2024',pre:'15/11/2024',pas:null,ini:'02/12/2024' },
+  'Verônica Chaves':       { c:'06/05/2024',tri:null,ent:null,per:null,gest:null,psi:'16/01/2025',exa:'17/01/2025',doc:null,pre:null,pas:null,ini:'13/02/2025' },
+  'Juliana Muraiviechi':   { c:'28/10/2024',tri:null,ent:null,per:null,gest:null,psi:'08/07/2025',exa:'08/07/2025',doc:null,pre:'11/02/2025',pas:null,ini:'14/07/2025' },
+  'Winicius Goersch':      { c:'16/06/2025',tri:null,ent:null,per:null,gest:null,psi:'15/07/2025',exa:'04/08/2025',doc:'06/08/2025',pre:'11/08/2025',pas:null,ini:'01/09/2025' },
+  'Alexsandro Paiva':      { c:'05/06/2025',tri:'03/07/2025',ent:null,per:null,gest:null,psi:'08/07/2025',exa:'10/07/2025',doc:'28/08/2025',pre:'11/08/2025',pas:null,ini:'01/09/2025' },
+  'Ana Martins':           { c:'14/06/2025',tri:'31/07/2025',ent:null,per:null,gest:null,psi:'04/08/2025',exa:'04/08/2025',doc:'08/08/2025',pre:'11/08/2025',pas:null,ini:'01/09/2025' },
+  'Danilo Côgo':           { c:'07/08/2025',tri:null,ent:null,per:null,gest:null,psi:'26/08/2025',exa:'26/08/2025',doc:'23/08/2025',pre:'28/08/2025',pas:null,ini:'01/09/2025' },
+  'Niedja Rayana':         { c:'02/12/2025',tri:null,ent:null,per:null,gest:null,psi:'04/12/2025',exa:'04/12/2025',doc:'02/12/2025',pre:'13/12/2025',pas:null,ini:'05/01/2026' },
+  'Jessica Vasques':       { c:'10/11/2025',tri:null,ent:null,per:null,gest:null,psi:'04/12/2025',exa:'04/12/2025',doc:null,pre:'13/12/2025',pas:null,ini:'05/01/2026' },
+  'Igor França':           { c:'30/07/2025',tri:null,ent:null,per:null,gest:null,psi:'21/11/2025',exa:'25/11/2025',doc:'19/11/2025',pre:'13/12/2025',pas:null,ini:'05/01/2026' },
+};
+
+function applyTL(nome) {
+  const t = tl[nome];
+  if (!t) return {};
+  return {
+    tl_captacao: pd(t.c), tl_triagem: pd(t.tri), tl_entrevista: pd(t.ent),
+    tl_perbras: pd(t.per), tl_gestao_cultura: pd(t.gest), tl_av_psi: pd(t.psi),
+    tl_exames: pd(t.exa), tl_documentos: pd(t.doc), tl_pre_contrato: pd(t.pre),
+    tl_passagens: pd(t.pas), tl_inicio: pd(t.ini)
+  };
+}
+
+// ── CANDIDATOS (aba1) ────────────────────────────────────────
+const candidatosRaw = [
+  ['Edgar Castardeli','Desligado','Gestor Administrativo','Turma 2.2023','ES','Ello Vagas','Ello','Faesa','Particular','C','Y','Masculino','2023-07-17'],
+  ['Pedro Silva','Ativo','Gestor Técnico','Turma 2.2023','MG','Ello Vagas','Ello','Uvv','Particular','S','Y','Masculino','2023-07-17'],
+  ['Debora Santana','Desligado','Gestor Administrativo','Turma 2.2023','ES','Ello Vagas','Ello','Ufes','Federal','I','Z','Feminino','2023-07-17'],
+  ['Mariana Lima','Desligado','Gestor Técnico','Turma 2.2023','RJ','Ello Vagas','Ello','Censa','Particular','C','Y','Feminino','2023-07-17'],
+  ['André Amorim','Desligado','Gestor Técnico','Turma 2.2023','ES','Ello Vagas','Ello','Ufes','Federal','S','Y','Masculino','2023-07-17'],
+  ['Ana Isabel','Ativo','Gestor Administrativo','Turma 2.2023','ES','Ello Vagas','Ello','Ufrr','Federal','S','Y','Feminino','2023-07-17'],
+  ['Leonardo Cruz','Ativo','Gestor Administrativo','Turma 2.2023','RJ','Ello Vagas','Ello','Estácio','Particular','S','Y','Masculino','2023-07-17'],
+  ['Hugo Carvalho','Desligado','Gestor Técnico','Turma 2.2023','RJ','Ello Vagas','Ello','Censa','Particular','S','Y','Masculino','2023-07-17'],
+  ['Eduardo Sampaio','Desligado','Gestor Técnico','Turma 3.2023','ES','Ello Vagas','Ello','Ifes','Federal','I','Z','Masculino','2023-10-09'],
+  ['Brendha Estácio','Desligado','Gestor Técnico','Turma 3.2023','ES','Ello Vagas','Ello','Ifes','Federal','I','Z','Feminino','2023-10-09'],
+  ['Caroline Lopes','Desligado','Gestor Administrativo','Turma 3.2023','MG','Ello Vagas','Ello','Ufop','Federal','D','Y','Feminino','2023-10-09'],
+  ['Manuella Batista','Ativo','Gestor Técnico','Turma 3.2023','PE','Ello Vagas','Ello','Ufpe','Federal','D','Y','Feminino','2023-10-09'],
+  ['Hugo Sampaio','Ativo','Gestor Administrativo','Turma 3.2023','RJ','Ello Vagas','Ello','UFF','Federal','D','Z','Masculino','2023-10-09'],
+  ['Igor Medeiros','Ativo','Gestor Administrativo','Turma 3.2023','RN','Ello Vagas','Ello','Ufersa','Federal','C','Y','Masculino','2023-10-09'],
+  ['Samuel Andrade','Desligado','Gestor Administrativo','Turma 3.2023','MG','Ello Vagas','Ello','PUC','Particular','C','Z','Masculino','2023-10-09'],
+  ['Thiago Barreto','Ativo','Gestor Técnico','Turma 4.2023','MG','Ello Vagas','Ello','Fivj','Particular','I','Y','Masculino','2023-12-11'],
+  ['Gabriela Ávila','Ativo','Gestor Técnico','Turma 4.2023','SP','Linkedin','Perbras','Ufjv','Federal','D','Y','Feminino','2023-12-11'],
+  ['Vinícius Barbosa','Ativo','Gestor Técnico','Turma 4.2023','ES','Linkedin','Perbras','Ifes','Federal','C','Z','Masculino','2023-12-11'],
+  ['Ítalo Rodrigues','Desligado','Gestor Administrativo','Turma 4.2023','RJ','Ello Vagas','Ello','Cefet','Federal','D','Z','Masculino','2023-12-11'],
+  ['Camila Otone','Ativo','Gestor Administrativo','Turma 4.2023','BA','Linkedin','Perbras','Uneb','Estadual','C','Y','Feminino','2023-12-11'],
+  ['Rita Araújo','Ativo','Gestor Administrativo','Turma 1.2024','BA','Linkedin','Perbras','Ufba','Federal','C','Y','Feminino','2024-02-05'],
+  ['Antônio Carneiro','Ativo','Gestor Administrativo','Turma 1.2024','BA','Ello Vagas','Ello','Cnec','Particular','C','X','Masculino','2024-02-05'],
+  ['Artur Soldati','Ativo','Gestor Técnico','Turma 2.2024','MG','Ello Vagas','Ello','Ufop','Federal','C','Z','Masculino','2024-04-16'],
+  ['Claudinei Nepomuceno','Ativo','Gestor Administrativo','Turma 2.2024','MG','Linkedin','Perbras','Unijorge','Particular','C','Z','Masculino','2024-04-16'],
+  ['Rodrigo Monteiro','Ativo','Gestor Técnico','Turma 2.2024','BA','Ello Vagas','Ello','Uninassau','Particular','D','Y','Masculino','2024-04-08'],
+  ['Hélio Fontes','Desligado','Gestor Técnico','Turma 2.2024','PB','Gupy','Perbras','Uninassau','Particular','I','Y','Masculino','2024-04-16'],
+  ['Gabriela Cruz','Ativo','Gestor Administrativo','Turma 3.2024','RN','Linkedin','Perbras','UNP','Particular','D','Y','Feminino','2024-06-02'],
+  ['Amanda Ramos','Desligado','Gestor Administrativo','Turma 3.2024','PB','Linkedin','Perbras','Uninassau','Particular','D','Z','Feminino','2024-06-10'],
+  ['Renata Moreira','Ativo','Gestor Técnico','Turma 3.2024','MG','Ello Vagas','Ello','UFI','Federal','D','Z','Feminino','2024-06-10'],
+  ['Laís Soares','Desligado','Gestor Técnico','Turma 3.2024','AL','Linkedin','Perbras','Unijorge','Particular','I','Y','Feminino','2024-06-10'],
+  ['Lydianne Santana','Desligado','Gestor Administrativo','Turma 3.2024','SE','Linkedin','Perbras','UFSE','Federal','D','Y','Feminino','2024-06-17'],
+  ['Elcio Oliveira','Desligado','Gestor Administrativo','Turma 4.2024','BA','Linkedin','Perbras','Unifacs','Particular','I','Z','Masculino','2024-12-02'],
+  ['Rodrigo Sena','Ativo','Gestor Administrativo','Turma 4.2024','BA','Ello Vagas','Ello','UFBA','Federal','C','Y','Masculino','2024-12-02'],
+  ['Igor Ramos','Ativo','Gestor Técnico','Turma 4.2024','RJ','Linkedin','Perbras','CURJ','Particular','D','Y','Masculino','2024-12-02'],
+  ['Régis Rosca','Desligado','Gestor Técnico','Turma 4.2024','RS','Linkedin','Perbras','Furg','Federal','C','Z','Masculino','2024-12-02'],
+  ['Gabriel Tonette','Desligado','Gestor Técnico','Turma 4.2024','ES','Linkedin','Perbras','Multivix','Particular','I','Y','Masculino','2024-12-02'],
+  ['Taís Souza','Desligado','Gestor Administrativo','Turma 4.2024','CE','Linkedin','Perbras','Multivix','Particular','D','Z','Feminino','2024-12-02'],
+  ['Verônica Chaves','Ativo','Gestor Técnico','Turma 1.2025','AM','Linkedin','Perbras','UEA','Estadual','C','Y','Feminino','2025-02-13'],
+  ['Juliana Muraiviechi','Ativo','Gestor Técnico','Turma 1.2025','BA','Ello Vagas','Ello','Senai','Federal','D','Y','Feminino','2025-07-14'],
+  ['Danilo Côgo','Ativo','Gestor Técnico','Turma 1.2025','ES','Ello Vagas','Ello','Ifes','Federal','D','Y','Masculino','2025-09-01'],
+  ['Alexsandro Paiva','Ativo','Gestor Administrativo','Turma 1.2025','RN','Linkedin','Perbras','UNP','Particular','D','Y','Masculino','2025-09-01'],
+  ['Winicius Goersch','Desligado','Gestor Técnico','Turma 1.2025','ES','Linkedin','Perbras','Ifes','Particular','C','Y','Masculino','2025-09-01'],
+  ['Ana Martins','Ativo','Gestor Técnico','Turma 1.2025','BA','Linkedin','Perbras','Unijorge','Particular','I','Y','Feminino','2025-09-01'],
+  ['Jessica Vasques','Ativo','Gestor Administrativo','Turma 1.2026','BA','Ello Vagas','Ello','UFBA','Federal','I','Y','Feminino','2026-01-05'],
+  ['Niedja Rayana','Desligado','Gestor Administrativo','Turma 1.2026','RN','Linkedin','Perbras','UNOPAR','Particular','D','Y','Feminino','2026-01-05'],
+  ['Igor França','Ativo','Gestor Técnico','Turma 1.2026','PE','Linkedin','Perbras','UFRN','Federal','C','Y','Masculino','2026-01-05'],
+];
+
+const candidatosData = candidatosRaw.map(r => ({
+  nome:r[0], status:r[1], cargo:r[2], turma_nome:r[3], estado:r[4],
+  fonte:r[5], recrutador:r[6], univ:r[7], tipo_univ:r[8],
+  disc:r[9], geracao:r[10], genero:r[11], dt_contr:r[12], dt_desl:null, obs:null,
+  ...applyTL(r[0])
+}));
+
+// ── CUSTOS (aba2) ────────────────────────────────────────────
+// [nome, turma, aso, psi, aereo, trans, andre, hosp, epi, recr, total]
+const custosRaw = [
+  ['Edgar Castardeli','Turma 2.2023',0,150,0,71.42,570,0,409.96,2753.49,3954.87],
+  ['Pedro Silva','Turma 2.2023',0,150,0,71.42,570,5610,409.96,2753.49,9564.87],
+  ['Debora Santana','Turma 2.2023',0,150,0,71.42,570,4380,409.96,2753.49,8334.87],
+  ['Mariana Lima','Turma 2.2023',0,150,0,71.42,570,6840,409.96,2753.49,10794.87],
+  ['André Amorim','Turma 2.2023',0,150,0,71.42,570,6430,409.96,2753.49,10384.87],
+  ['Ana Isabel','Turma 2.2023',0,150,0,71.42,570,6380,409.96,2753.49,10334.87],
+  ['Hugo Carvalho','Turma 2.2023',0,150,0,71.42,570,1440,409.96,2753.49,5394.87],
+  ['Eduardo Sampaio','Turma 3.2023',0,150,796.79,71.42,570,3740,132.25,2753.49,8213.95],
+  ['Brendha Estácio','Turma 3.2023',0,150,796.79,71.42,570,1740,132.25,2753.49,6213.95],
+  ['Caroline Lopes','Turma 3.2023',176.90,150,1395.39,71.42,570,1800,132.25,2753.49,7049.45],
+  ['Manuella Batista','Turma 3.2023',190,150,555.64,71.42,570,3950,132.25,2753.49,8372.80],
+  ['Hugo Sampaio','Turma 3.2023',0,150,1234.71,71.42,570,4650,132.25,2753.49,9561.87],
+  ['Igor Medeiros','Turma 3.2023',78.50,150,885.36,71.42,570,3420,132.25,2753.49,8061.02],
+  ['Samuel Andrade','Turma 3.2023',176.90,150,1395.39,71.42,570,7299.90,132.25,2753.49,12549.35],
+  ['Thiago Barreto','Turma 4.2023',148.50,150,1280.62,100,570,3699.90,256.16,2753.49,8958.67],
+  ['Gabriela Ávila','Turma 4.2023',207.29,150,1946.28,100,570,3699.90,256.16,1376.63,8306.26],
+  ['Vinícius Barbosa','Turma 4.2023',0,150,1574.78,100,570,2290,256.16,1376.63,6317.57],
+  ['Ítalo Rodrigues','Turma 4.2023',148.50,150,1280.62,100,570,3699.90,256.16,2753.49,8958.67],
+  ['Camila Otone','Turma 4.2023',137.27,150,0,100,570,1800,256.16,0,3013.43],
+  ['Rita Araújo','Turma 1.2024',137.27,150,0,0,570,1646.58,247.46,0,2751.31],
+  ['Antônio Carneiro','Turma 1.2024',137.27,150,0,0,570,1646.58,247.46,2753.49,5504.80],
+  ['Artur Soldati','Turma 2.2024',175,150,705.19,98.80,570,5699.70,350.70,2753.49,10502.88],
+  ['Claudinei Nepomuceno','Turma 2.2024',213,150,491,98.80,570,5746,350.70,0,7619.50],
+  ['Rodrigo Monteiro','Turma 2.2024',137.27,150,0,0,570,5699.70,350.70,2753.49,9661.16],
+  ['Hélio Fontes','Turma 2.2024',215,150,479.38,98.80,570,1680,350.70,1376.63,4920.51],
+  ['Gabriela Cruz','Turma 3.2024',219.31,150,897.57,222,570,630,262.55,0,2951.43],
+  ['Amanda Ramos','Turma 3.2024',295,150,452.38,121,570,1800,262.55,0,3650.93],
+  ['Renata Moreira','Turma 3.2024',219.31,150,728.54,215.65,570,1800,262.55,2753.49,6699.54],
+  ['Laís Soares','Turma 3.2024',261,150,0,316.80,570,1330,262.55,0,2890.35],
+  ['Lydianne Santana','Turma 3.2024',50,150,0,180.82,570,1800,262.55,0,3013.37],
+  ['Régis Rosca','Turma 4.2024',236,150,0,0,570,0,317.36,0,1273.36],
+  ['Igor Ramos','Turma 4.2024',270.85,150,0,0,570,0,317.36,0,1308.21],
+  ['Taís Souza','Turma 4.2024',163,150,1029.37,0,570,0,317.36,0,2229.73],
+  ['Gabriel Tonette','Turma 4.2024',0,150,0,697.47,570,0,317.36,0,1734.83],
+  ['Elcio Oliveira','Turma 4.2024',137.27,150,0,0,570,1750,317.36,0,2924.63],
+  ['Rodrigo Sena','Turma 4.2024',137.27,150,0,0,570,2100,317.36,2753.49,6028.12],
+  ['Verônica Chaves','Turma 1.2025',0,150,0,0,0,0,0,0,150],
+  ['Juliana Muraiviechi','Turma 1.2025',137.27,150,0,0,440,0,317.36,2753.49,3798.12],
+  ['Danilo Côgo','Turma 1.2025',0,150,1853.42,115.58,630,3840,317.36,2753.49,9659.85],
+  ['Ana Martins','Turma 1.2025',137.27,150,0,45,630,4960,317.36,0,6239.63],
+  ['Alexsandro Paiva','Turma 1.2025',311,150,1477.07,351.20,630,4960,317.36,0,8196.63],
+  ['Winicius Goersch','Turma 1.2025',0,150,1036.32,115.58,630,3840,317.36,0,6089.26],
+  ['Niedja Rayana','Turma 1.2026',257,165,866.37,0,630,2440,336.11,0,4694.48],
+  ['Igor França','Turma 1.2026',268,165,0,0,630,6530,336.11,0,7929.11],
+  ['Jessica Vasques','Turma 1.2026',180.15,165,0,40.12,630,7080,336.11,3038.86,11470.24],
+];
+
+const custosData = custosRaw.map(r => ({
+  candidato:r[0], turma_nome:r[1],
+  aso:r[2], psi:r[3], aereo:r[4], trans:r[5], andre:r[6],
+  hosp:r[7], epi:r[8], recr:r[9], total:r[10]
+}));
+
+// ── IMPORTAÇÃO ───────────────────────────────────────────────
+async function importar() {
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  log('Iniciando importação...', 'info');
+
+  try {
+    log('\n── TURMAS ──────────────────────', 'info');
+    for (const t of turmasData) {
+      try {
+        await ins('turmas', t);
+        log(`  ✓ ${t.nome}`, 'ok');
+      } catch(e) { log(`  ✗ ${t.nome}: ${e.message}`, 'err'); }
+    }
+
+    log('\n── CANDIDATOS ──────────────────', 'info');
+    for (const c of candidatosData) {
+      try {
+        await ins('candidatos', c);
+        log(`  ✓ ${c.nome} (${c.turma_nome} · ${c.status})`, 'ok');
+      } catch(e) { log(`  ✗ ${c.nome}: ${e.message}`, 'err'); }
+    }
+
+    log('\n── CUSTOS ──────────────────────', 'info');
+    for (const c of custosData) {
+      try {
+        await ins('custos', c);
+        log(`  ✓ ${c.candidato} — R$${c.total.toLocaleString('pt-BR')}`, 'ok');
+      } catch(e) { log(`  ✗ ${c.candidato}: ${e.message}`, 'err'); }
+    }
+
+    log('\n✅ IMPORTAÇÃO CONCLUÍDA! Abra o portal para conferir.', 'ok');
+  } catch(e) {
+    log('\n✗ Erro inesperado: ' + e.message, 'err');
+  }
+
+  btn.textContent = '✓ Concluído';
+}
+</script>
+</body>
+</html>
