@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal R&S — Perbras</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f6f6f4; --bg3: #f0efec;
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --blue: #378ADD; --blue-bg: #E6F1FB; --blue-text: #0C447C;
+    --green: #3B6D11; --green-bg: #EAF3DE; --green-text: #27500A;
+    --red: #A32D2D; --red-bg: #FCEBEB; --red-text: #791F1F;
+    --amber-bg: #FAEEDA; --amber-text: #854F0B;
+    --purple: #7F77DD; --purple-bg: #EEEDFE; --purple-text: #3C3489;
+    --radius: 8px; --radius-lg: 12px;
+    --shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2b;
+      --text: #e8e6e0; --text2: #a8a69e; --text3: #6e6c66;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+      --blue: #85B7EB; --blue-bg: #0c2a45; --blue-text: #B5D4F4;
+      --green: #97C459; --green-bg: #1a2e08; --green-text: #C0DD97;
+      --red: #F09595; --red-bg: #3a1010; --red-text: #F7C1C1;
+      --amber-bg: #2e1f05; --amber-text: #FAC775;
+      --purple: #AFA9EC; --purple-bg: #1e1c40; --purple-text: #CECBF6;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; }
+  a { color: var(--blue); }
+
+  /* Layout */
+  .sidebar { position: fixed; top: 0; left: 0; width: 220px; height: 100vh; background: var(--bg); border-right: 0.5px solid var(--border); padding: 1.5rem 1rem; display: flex; flex-direction: column; gap: 4px; z-index: 100; }
+  .sidebar-logo { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 1.5rem; padding: 0 8px; display: flex; align-items: center; gap: 8px; }
+  .sidebar-logo i { color: var(--blue); font-size: 20px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius); cursor: pointer; color: var(--text2); font-size: 13px; border: none; background: none; width: 100%; text-align: left; transition: background .15s; }
+  .nav-item:hover { background: var(--bg2); color: var(--text); }
+  .nav-item.active { background: var(--blue-bg); color: var(--blue-text); font-weight: 500; }
+  .nav-item i { font-size: 18px; flex-shrink: 0; }
+  .main { margin-left: 220px; padding: 2rem; min-height: 100vh; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-title { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 1.5rem; }
+
+  /* Cards */
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
+  .card-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 1rem; }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+  .metric { background: var(--bg2); border-radius: var(--radius); padding: 14px 16px; }
+  .metric .lbl { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .metric .val { font-size: 24px; font-weight: 600; color: var(--text); line-height: 1; }
+  .metric .sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .metric.m-g .val { color: var(--green); }
+  .metric.m-r .val { color: var(--red); }
+  .metric.m-b .val { color: var(--blue); }
+  .chart-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-bottom: 1rem; }
+  .chart-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 1rem; }
+
+  /* Tabela */
+  .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 0.5px solid var(--border); background: var(--bg); box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--bg2); color: var(--text2); font-weight: 500; text-align: left; padding: 10px 12px; border-bottom: 0.5px solid var(--border); font-size: 11px; white-space: nowrap; position: sticky; top: 0; }
+  td { padding: 10px 12px; border-bottom: 0.5px solid var(--border); color: var(--text); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg2); }
+
+  /* Badge */
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 5px; font-size: 11px; font-weight: 500; }
+  .b-g { background: var(--green-bg); color: var(--green-text); }
+  .b-r { background: var(--red-bg); color: var(--red-text); }
+  .b-b { background: var(--blue-bg); color: var(--blue-text); }
+  .b-a { background: var(--amber-bg); color: var(--amber-text); }
+  .b-p { background: var(--purple-bg); color: var(--purple-text); }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+  .toolbar select, .toolbar input[type=text] { font-size: 13px; padding: 7px 10px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); }
+  .btn { padding: 7px 14px; font-size: 13px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .15s; }
+  .btn:hover { background: var(--bg2); }
+  .btn-primary { background: var(--blue-bg); color: var(--blue-text); border-color: transparent; font-weight: 500; }
+  .btn-primary:hover { filter: brightness(0.95); }
+  .btn-danger { color: var(--red); border-color: var(--red-bg); }
+  .btn-danger:hover { background: var(--red-bg); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .icon-btn { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 16px; padding: 4px 6px; border-radius: 5px; }
+  .icon-btn:hover { color: var(--text); background: var(--bg2); }
+  .icon-btn.del { color: var(--red); }
+  .icon-btn.del:hover { background: var(--red-bg); }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: flex-start; justify-content: center; padding: 2rem 1rem; overflow-y: auto; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg); border-radius: var(--radius-lg); border: 0.5px solid var(--border); padding: 1.75rem; width: 100%; max-width: 680px; box-shadow: 0 8px 32px rgba(0,0,0,0.16); }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 1.25rem; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 0.5px solid var(--border); }
+  .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: .5rem; }
+  .fg { display: flex; flex-direction: column; gap: 5px; }
+  .fg label { font-size: 12px; color: var(--text2); font-weight: 500; }
+  .fg input, .fg select, .fg textarea { font-size: 13px; padding: 8px 10px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); transition: border-color .15s; }
+  .fg input:focus, .fg select:focus, .fg textarea:focus { outline: none; border-color: var(--blue); }
+  .fg textarea { resize: vertical; min-height: 72px; font-family: inherit; }
+  .span2 { grid-column: span 2; }
+  .span3 { grid-column: span 3; }
+  .section-label { grid-column: span 3; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; padding-top: 12px; margin-top: 4px; border-top: 0.5px solid var(--border); }
+
+  /* Ficha candidato */
+  .ficha-header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; }
+  .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--blue-bg); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; color: var(--blue-text); flex-shrink: 0; }
+  .ficha-nome { font-size: 17px; font-weight: 600; }
+  .ficha-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .ficha-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .fi .fi-l { font-size: 11px; color: var(--text3); }
+  .fi .fi-v { font-size: 13px; font-weight: 500; color: var(--text); margin-top: 2px; }
+  .tl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .tl-step { border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+  .tl-step.done { border-color: #5DCAA5; background: #E1F5EE; }
+  .tl-step .sn { font-size: 11px; font-weight: 500; color: var(--text3); }
+  .tl-step.done .sn { color: #0F6E56; }
+  .tl-step .sd { font-size: 13px; color: var(--text); margin-top: 3px; }
+  .tl-step.done .sd { color: #085041; }
+  .obs-box { background: var(--bg2); border-radius: var(--radius); padding: 12px; font-size: 13px; line-height: 1.6; min-height: 44px; }
+
+  /* Toast */
+  #toast { position: fixed; bottom: 24px; right: 24px; background: #27500A; color: #EAF3DE; padding: 10px 18px; border-radius: 8px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  #toast.show { opacity: 1; }
+
+  /* Loading */
+  .loading { text-align: center; padding: 3rem; color: var(--text3); font-size: 13px; }
+  .empty { text-align: center; padding: 3rem; color: var(--text3); font-size: 13px; }
+  .link-name { background: none; border: none; cursor: pointer; color: var(--blue); font-size: 13px; font-weight: 500; padding: 0; text-align: left; }
+
+  /* Legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; font-size: 12px; color: var(--text2); }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .sw { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* Avg etapas */
+  .avg-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .avg-item { background: var(--bg2); border-radius: var(--radius); padding: 10px 12px; }
+  .avg-item .al { font-size: 11px; color: var(--text2); }
+  .avg-item .av { font-size: 18px; font-weight: 600; color: var(--text); }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 60px; }
+    .sidebar-logo span, .nav-item span { display: none; }
+    .main { margin-left: 60px; }
+    .metric-grid { grid-template-columns: 1fr 1fr; }
+    .chart-row, .chart-row3 { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .span2, .span3 { grid-column: span 2; }
+    .section-label { grid-column: span 2; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo"><i class="ti ti-chart-bar"></i><span>Portal R&S</span></div>
+  <button class="nav-item active" onclick="goPage('visao',this)"><i class="ti ti-layout-dashboard"></i><span>Visão geral</span></button>
+  <button class="nav-item" onclick="goPage('candidatos',this)"><i class="ti ti-users"></i><span>Candidatos</span></button>
+  <button class="nav-item" onclick="goPage('custos',this)"><i class="ti ti-currency-dollar"></i><span>Custos</span></button>
+  <button class="nav-item" onclick="goPage('turmas',this)"><i class="ti ti-school"></i><span>Turmas</span></button>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- VISÃO GERAL -->
+  <div class="page active" id="page-visao">
+    <div class="page-title">Visão geral</div>
+    <div class="metric-grid" id="kpis"><div class="loading">Carregando...</div></div>
+    <div class="chart-row">
+      <div class="card"><div class="card-title">Retenção por turma</div><div style="position:relative;height:220px"><canvas id="cTurma"></canvas></div></div>
+      <div class="card"><div class="card-title">Gênero</div><div class="legend" id="lgG"></div><div style="position:relative;height:180px"><canvas id="cGenero"></canvas></div></div>
+    </div>
+    <div class="chart-row3">
+      <div class="card"><div class="card-title">Fonte de captação</div><div class="legend" id="lgF"></div><div style="position:relative;height:160px"><canvas id="cFonte"></canvas></div></div>
+      <div class="card"><div class="card-title">Perfil DISC</div><div style="position:relative;height:160px"><canvas id="cDisc"></canvas></div></div>
+      <div class="card"><div class="card-title">Tipo de universidade</div><div class="legend" id="lgU"></div><div style="position:relative;height:160px"><canvas id="cUniv"></canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Tempo médio por etapa do processo (dias)</div>
+      <div class="avg-grid" id="avgEtapas"></div>
+    </div>
+  </div>
+
+  <!-- CANDIDATOS -->
+  <div class="page" id="page-candidatos">
+    <div class="page-title">Candidatos</div>
+    <div class="toolbar">
+      <select id="fT" onchange="renderCandidatos()"><option value="">Todas as turmas</option></select>
+      <select id="fS" onchange="renderCandidatos()"><option value="">Todos os status</option><option>Ativo</option><option>Desligado</option></select>
+      <select id="fC" onchange="renderCandidatos()"><option value="">Todos os cargos</option><option>Gestor Técnico</option><option>Gestor Administrativo</option></select>
+      <button class="btn btn-primary" onclick="abrirModal('candidato')"><i class="ti ti-plus"></i> Novo candidato</button>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Nome</th><th>Cargo</th><th>Turma</th><th>UF</th><th>Fonte</th><th>DISC</th><th>Status</th><th>Contratação</th><th>Desligamento</th><th></th></tr></thead>
+      <tbody id="tbCand"></tbody></table>
+      <div id="emptyCand" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum candidato encontrado</div>
+    </div>
+  </div>
+
+  <!-- CUSTOS -->
+  <div class="page" id="page-custos">
+    <div class="page-title">Custos</div>
+    <div class="toolbar">
+      <select id="fCT" onchange="renderCustos()"><option value="">Todas as turmas</option></select>
+      <button class="btn btn-primary" onclick="abrirModal('custo')"><i class="ti ti-plus"></i> Registrar custo</button>
+    </div>
+    <div class="metric-grid" id="kpisCusto"></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Candidato</th><th>Turma</th><th>ASO</th><th>Av.Psi</th><th>Aéreo</th><th>Transfer</th><th>Hospedagem</th><th>EPI</th><th>Recrutamento</th><th>Andre Silva</th><th>Total</th><th></th></tr></thead>
+      <tbody id="tbCusto"></tbody></table>
+      <div id="emptyCusto" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum custo cadastrado</div>
+    </div>
+  </div>
+
+  <!-- TURMAS -->
+  <div class="page" id="page-turmas">
+    <div class="page-title">Turmas</div>
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="abrirModal('turma')"><i class="ti ti-plus"></i> Nova turma</button>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Turma</th><th>Período</th><th>Recrutador</th><th>Admitidos</th><th>Ativos</th><th>Turnover</th><th>Custo total</th><th>Tempo médio processo</th><th></th></tr></thead>
+      <tbody id="tbTurma"></tbody></table>
+      <div id="emptyTurma" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma turma cadastrada</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL CANDIDATO -->
+<div class="modal-overlay" id="mCand">
+  <div class="modal">
+    <div class="modal-title" id="mCandTitulo">Novo candidato</div>
+    <!-- FICHA (view) -->
+    <div id="fichaView" style="display:none">
+      <div class="ficha-header">
+        <div class="avatar" id="fichaAvatar"></div>
+        <div><div class="ficha-nome" id="fichaNome"></div><div class="ficha-sub" id="fichaSub"></div></div>
+      </div>
+      <div class="ficha-grid" id="fichaGrid"></div>
+      <div class="card-title" style="margin-bottom:8px">Linha do tempo</div>
+      <div class="tl-grid" id="fichaTL"></div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:1rem" id="fichaDias"></div>
+      <div class="card-title" style="margin-bottom:6px">Observações</div>
+      <div class="obs-box" id="fichaObs"></div>
+      <div class="modal-footer">
+        <button class="btn" onclick="fecharModal('mCand')">Fechar</button>
+        <button class="btn btn-primary" onclick="editarFicha()"><i class="ti ti-edit"></i> Editar</button>
+      </div>
+    </div>
+    <!-- FORMULÁRIO -->
+    <div id="formCand">
+      <div class="form-grid">
+        <div class="fg span2"><label>Nome completo</label><input id="fNome" type="text" placeholder="Ex: João Silva"></div>
+        <div class="fg"><label>Status</label><select id="fStatus"><option>Ativo</option><option>Desligado</option></select></div>
+        <div class="fg"><label>Cargo</label><select id="fCargo"><option>Gestor Técnico</option><option>Gestor Administrativo</option></select></div>
+        <div class="fg"><label>Turma</label><select id="fTurma"></select></div>
+        <div class="fg"><label>Estado (UF)</label><input id="fEstado" type="text" maxlength="2" placeholder="BA"></div>
+        <div class="fg"><label>Fonte de captação</label><select id="fFonte"><option>Ello Vagas</option><option>Linkedin</option><option>Gupy</option><option>Indicação</option><option>Outro</option></select></div>
+        <div class="fg"><label>Recrutador</label><select id="fRecr"><option>Ello</option><option>Perbras</option></select></div>
+        <div class="fg"><label>Universidade</label><input id="fUniv" type="text"></div>
+        <div class="fg"><label>Tipo de universidade</label><select id="fTUniv"><option>Federal</option><option>Particular</option><option>Estadual</option></select></div>
+        <div class="fg"><label>Perfil DISC</label><select id="fDisc"><option>D</option><option>I</option><option>S</option><option>C</option></select></div>
+        <div class="fg"><label>Geração</label><select id="fGer"><option>X</option><option>Y</option><option>Z</option></select></div>
+        <div class="fg"><label>Gênero</label><select id="fGen"><option>Masculino</option><option>Feminino</option></select></div>
+        <div class="section-label">Datas</div>
+        <div class="fg"><label>Data de contratação</label><input id="fDtContr" type="date"></div>
+        <div class="fg"><label>Data de desligamento</label><input id="fDtDesl" type="date"></div>
+        <div class="fg"></div>
+        <div class="section-label">Linha do tempo do processo</div>
+        <div class="fg"><label>Captação</label><input id="tl0" type="date"></div>
+        <div class="fg"><label>Triagem</label><input id="tl1" type="date"></div>
+        <div class="fg"><label>Entrevista (grupo)</label><input id="tl2" type="date"></div>
+        <div class="fg"><label>Apresentação Perbras</label><input id="tl3" type="date"></div>
+        <div class="fg"><label>Situação Gestão/Cultura</label><input id="tl4" type="date"></div>
+        <div class="fg"><label>Av. Psicológica</label><input id="tl5" type="date"></div>
+        <div class="fg"><label>Exames médicos</label><input id="tl6" type="date"></div>
+        <div class="fg"><label>Documentos</label><input id="tl7" type="date"></div>
+        <div class="fg"><label>Pré-contrato</label><input id="tl8" type="date"></div>
+        <div class="fg"><label>Passagens</label><input id="tl9" type="date"></div>
+        <div class="fg"><label>Início</label><input id="tl10" type="date"></div>
+        <div class="fg"></div>
+        <div class="section-label">Observações</div>
+        <div class="fg span3"><label>Observações</label><textarea id="fObs" placeholder="Anotações sobre o candidato..."></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="fecharModal('mCand')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarCandidato()"><i class="ti ti-check"></i> Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CUSTO -->
+<div class="modal-overlay" id="mCusto">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title">Registrar custo</div>
+    <div class="form-grid">
+      <div class="fg"><label>Candidato</label><select id="fcCand"></select></div>
+      <div class="fg"><label>Turma</label><select id="fcTurma"></select></div>
+      <div class="fg"><label>ASO (R$)</label><input id="fcAso" type="number" step="0.01" value="0"></div>
+      <div class="fg"><label>Av. Psicológica (R$)</label><input id="fcPsi" type="number" step="0.01" value="150"></div>
+      <div class="fg"><label>Passagem aérea (R$)</label><input id="fcAereo" type="number" step="0.01" value="0"></div>
+      <div class="fg"><label>Transfer (R$)</label><input id="fcTrans" type="number" step="0.01" value="0"></div>
+      <div class="fg"><label>Hospedagem (R$)</label><input id="fcHosp" type="number" step="0.01" value="0"></div>
+      <div class="fg"><label>EPI (R$)</label><input id="fcEpi" type="number" step="0.01" value="0"></div>
+      <div class="fg"><label>Recrutamento/Terceiros (R$)</label><input id="fcRecr" type="number" step="0.01" value="0"></div>
+      <div class="fg"><label>Andre Silva (R$)</label><input id="fcAndre" type="number" step="0.01" value="570"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mCusto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCusto()"><i class="ti ti-check"></i> Salvar custo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TURMA -->
+<div class="modal-overlay" id="mTurma">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">Nova turma</div>
+    <div class="form-grid" style="grid-template-columns:1fr 1fr">
+      <div class="fg span2"><label>Nome da turma</label><input id="ftNome" type="text" placeholder="Ex: Turma 2.2026"></div>
+      <div class="fg"><label>Período de início</label><input id="ftPer" type="text" placeholder="Ex: Mar/2026"></div>
+      <div class="fg"><label>Recrutador</label><select id="ftRecr"><option>Ello</option><option>Perbras</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mTurma')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarTurma()"><i class="ti ti-check"></i> Salvar turma</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SUPABASE CONFIG
+// ============================================================
+const SUPA_URL = 'https://gahrfavjcdgwjmlsajeo.supabase.co/rest/v1';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaHJmYXZqY2Rnd2ptbHNhamVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTQzNzYsImV4cCI6MjA5NzM3MDM3Nn0.I5ozH_hPb4DT-PerlWwtpMKwBMXZnCQeNLu5rDs3tKY';
+
+const headers = {
+  'apikey': SUPA_KEY,
+  'Authorization': 'Bearer ' + SUPA_KEY,
+  'Content-Type': 'application/json',
+  'Prefer': 'return=representation'
+};
+
+async function dbGet(table, params='') {
+  const r = await fetch(`${SUPA_URL}/${table}?order=created_at.asc${params}`, { headers });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbInsert(table, data) {
+  const r = await fetch(`${SUPA_URL}/${table}`, { method:'POST', headers, body: JSON.stringify(data) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbUpdate(table, id, data) {
+  const r = await fetch(`${SUPA_URL}/${table}?id=eq.${id}`, { method:'PATCH', headers, body: JSON.stringify(data) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbDelete(table, id) {
+  const r = await fetch(`${SUPA_URL}/${table}?id=eq.${id}`, { method:'DELETE', headers });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let candidatos=[], custos=[], turmas=[], editId=null, viewId=null, charts={};
+const ETAPAS = ['Captação','Triagem','Entrevista','Apres. Perbras','Gest./Cultura','Av. Psi','Exames','Documentos','Pré-contrato','Passagens','Início'];
+const TL_FIELDS = ['tl_captacao','tl_triagem','tl_entrevista','tl_perbras','tl_gestao_cultura','tl_av_psi','tl_exames','tl_documentos','tl_pre_contrato','tl_passagens','tl_inicio'];
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  try {
+    [turmas, candidatos, custos] = await Promise.all([
+      dbGet('turmas'),
+      dbGet('candidatos'),
+      dbGet('custos')
+    ]);
+    populateSels();
+    renderAll();
+  } catch(e) {
+    toast('Erro ao carregar dados: ' + e.message, true);
+  }
+}
+
+function populateSels() {
+  ['fT','fCT'].forEach(id => {
+    const el = document.getElementById(id); if(!el) return;
+    const v = el.value;
+    el.innerHTML = '<option value="">Todas as turmas</option>';
+    turmas.forEach(t => { const o = document.createElement('option'); o.value=t.nome; o.textContent=t.nome; el.appendChild(o); });
+    if(v) el.value = v;
+  });
+  const fTF = document.getElementById('fTurma');
+  if(fTF) { fTF.innerHTML=''; turmas.forEach(t => { const o=document.createElement('option'); o.value=t.nome; o.textContent=t.nome; fTF.appendChild(o); }); }
+  const fcC = document.getElementById('fcCand');
+  if(fcC) { fcC.innerHTML=''; candidatos.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=c.nome; fcC.appendChild(o); }); }
+  const fcT = document.getElementById('fcTurma');
+  if(fcT) { fcT.innerHTML=''; turmas.forEach(t => { const o=document.createElement('option'); o.value=t.nome; o.textContent=t.nome; fcT.appendChild(o); }); }
+}
+
+function renderAll() { renderCharts(); renderCandidatos(); renderCustos(); renderTurmas(); }
+
+// ============================================================
+// NAVEGAÇÃO
+// ============================================================
+function goPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function fmt(d) { if(!d) return '—'; const p=d.split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d; }
+function dias(a,b) { if(!a||!b) return null; return Math.round((new Date(b)-new Date(a))/(864e5)); }
+function initials(n) { const p=n.trim().split(' '); return (p[0][0]+(p[p.length-1][0]||'')).toUpperCase(); }
+function cnt(arr,k) { return arr.reduce((a,c)=>{ a[c[k]]=(a[c[k]]||0)+1; return a; },{}); }
+function mkLeg(id,labels,colors) { const el=document.getElementById(id); if(!el) return; el.innerHTML=labels.map((l,i)=>`<span><span class="sw" style="background:${colors[i]}"></span>${l}</span>`).join(''); }
+function dc(id) { if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+function toast(m, err=false) {
+  const t=document.getElementById('toast');
+  t.textContent=m; t.style.background=err?'#791F1F':'#27500A';
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
+}
+function r$(id) { return document.getElementById(id); }
+
+// ============================================================
+// CHARTS
+// ============================================================
+function renderCharts() {
+  const tn = turmas.map(t=>t.nome.replace('Turma ',''));
+  const atD = turmas.map(t=>candidatos.filter(c=>c.turma_nome===t.nome&&c.status==='Ativo').length);
+  const dsD = turmas.map(t=>candidatos.filter(c=>c.turma_nome===t.nome&&c.status==='Desligado').length);
+  dc('cTurma');
+  charts['cTurma']=new Chart(r$('cTurma'),{type:'bar',data:{labels:tn,datasets:[{label:'Ativos',data:atD,backgroundColor:'#378ADD',borderRadius:3,stack:'s'},{label:'Desligados',data:dsD,backgroundColor:'#E24B4A',borderRadius:3,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});
+
+  const masc=candidatos.filter(c=>c.genero==='Masculino').length, fem=candidatos.length-masc;
+  mkLeg('lgG',['Masculino','Feminino'],['#378ADD','#D4537E']);
+  dc('cGenero');
+  charts['cGenero']=new Chart(r$('cGenero'),{type:'doughnut',data:{labels:['Masculino','Feminino'],datasets:[{data:[masc,fem],backgroundColor:['#378ADD','#D4537E'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}});
+
+  const fC=cnt(candidatos,'fonte'); const fK=Object.keys(fC); const fV=fK.map(k=>fC[k]);
+  const fCols=['#378ADD','#7F77DD','#1D9E75','#EF9F27'];
+  mkLeg('lgF',fK,fCols);
+  dc('cFonte');
+  charts['cFonte']=new Chart(r$('cFonte'),{type:'doughnut',data:{labels:fK,datasets:[{data:fV,backgroundColor:fCols.slice(0,fK.length),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false}}}});
+
+  const dC=cnt(candidatos,'disc'); const dK=Object.keys(dC).sort(); const dV=dK.map(k=>dC[k]);
+  const dMap={D:'#E24B4A',I:'#7F77DD',S:'#D4537E',C:'#378ADD'};
+  dc('cDisc');
+  charts['cDisc']=new Chart(r$('cDisc'),{type:'bar',data:{labels:dK,datasets:[{data:dV,backgroundColor:dK.map(k=>dMap[k]||'#888'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});
+
+  const uC=cnt(candidatos,'tipo_univ'); const uK=Object.keys(uC); const uV=uK.map(k=>uC[k]);
+  mkLeg('lgU',uK,['#3B6D11','#854F0B','#185FA5']);
+  dc('cUniv');
+  charts['cUniv']=new Chart(r$('cUniv'),{type:'doughnut',data:{labels:uK,datasets:[{data:uV,backgroundColor:['#3B6D11','#854F0B','#185FA5'].slice(0,uK.length),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false}}}});
+
+  // Tempo médio por etapa
+  const medias = TL_FIELDS.map((f,i) => {
+    if(i===0) return null;
+    const prev=TL_FIELDS[i-1];
+    const diffs=candidatos.map(c=>c[prev]&&c[f]?dias(c[prev],c[f]):null).filter(d=>d!=null&&d>=0);
+    return diffs.length?Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length):null;
+  });
+  r$('avgEtapas').innerHTML=ETAPAS.slice(1).map((e,i)=>`<div class="avg-item"><div class="al">${e}</div><div class="av">${medias[i+1]!=null?medias[i+1]+'d':'—'}</div></div>`).join('');
+
+  const total=candidatos.length, ativos=candidatos.filter(c=>c.status==='Ativo').length, desl=candidatos.filter(c=>c.status==='Desligado').length;
+  const ctot=custos.reduce((a,c)=>a+parseFloat(c.total||0),0);
+  r$('kpis').innerHTML=`
+    <div class="metric"><div class="lbl">Total admitidos</div><div class="val">${total}</div><div class="sub">todas as turmas</div></div>
+    <div class="metric m-g"><div class="lbl">Ativos</div><div class="val">${ativos}</div><div class="sub">${total>0?Math.round(ativos/total*100):0}% de retenção</div></div>
+    <div class="metric m-r"><div class="lbl">Desligados</div><div class="val">${desl}</div><div class="sub">turnover ${total>0?Math.round(desl/total*100):0}%</div></div>
+    <div class="metric m-b"><div class="lbl">Custo médio/admitido</div><div class="val">R$${total>0?Math.round(ctot/total).toLocaleString('pt-BR'):0}</div><div class="sub">${custos.length} registros</div></div>`;
+}
+
+// ============================================================
+// CANDIDATOS
+// ============================================================
+function renderCandidatos() {
+  const tf=r$('fT').value, sf=r$('fS').value, cf=r$('fC').value;
+  const f=candidatos.filter(c=>(!tf||c.turma_nome===tf)&&(!sf||c.status===sf)&&(!cf||c.cargo===cf));
+  r$('emptyCand').style.display=f.length?'none':'block';
+  r$('tbCand').innerHTML=f.map(c=>`<tr>
+    <td><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></td>
+    <td style="color:var(--text2)">${(c.cargo||'').replace('Gestor ','')}</td>
+    <td>${(c.turma_nome||'').replace('Turma ','')}</td>
+    <td>${c.estado||'—'}</td><td>${c.fonte||'—'}</td>
+    <td><span class="badge b-b">${c.disc||'—'}</span></td>
+    <td><span class="badge ${c.status==='Ativo'?'b-g':'b-r'}">${c.status||'—'}</span></td>
+    <td>${fmt(c.dt_contr)}</td><td>${c.dt_desl?fmt(c.dt_desl):'—'}</td>
+    <td style="white-space:nowrap">
+      <button class="icon-btn" onclick="editarCandidato('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+      <button class="icon-btn del" onclick="excluirCandidato('${c.id}','${c.nome.replace("'","\\'")}')"><i class="ti ti-trash"></i></button>
+    </td>
+  </tr>`).join('');
+}
+
+function verCandidato(id) {
+  const c=candidatos.find(x=>x.id===id); if(!c) return;
+  viewId=id;
+  r$('fichaView').style.display='block'; r$('formCand').style.display='none';
+  r$('mCandTitulo').textContent='Ficha do candidato';
+  r$('fichaAvatar').textContent=initials(c.nome);
+  r$('fichaNome').textContent=c.nome;
+  r$('fichaSub').textContent=(c.cargo||'')+(c.turma_nome?' · '+c.turma_nome:'');
+  r$('fichaGrid').innerHTML=[
+    ['Status',`<span class="badge ${c.status==='Ativo'?'b-g':'b-r'}">${c.status||'—'}</span>`],
+    ['Gênero',c.genero||'—'],['UF',c.estado||'—'],
+    ['Fonte',c.fonte||'—'],['DISC',`<span class="badge b-b">${c.disc||'—'}</span>`],['Geração',c.geracao||'—'],
+    ['Tipo Univ.',c.tipo_univ||'—'],['Universidade',c.univ||'—'],['Recrutador',c.recrutador||'—'],
+    ['Contratação',fmt(c.dt_contr)],['Desligamento',c.dt_desl?fmt(c.dt_desl):'—'],['',''],
+  ].map(([l,v])=>`<div class="fi"><div class="fi-l">${l}</div><div class="fi-v">${v}</div></div>`).join('');
+  r$('fichaTL').innerHTML=TL_FIELDS.map((f,i)=>{
+    const done=!!c[f]; return `<div class="tl-step${done?' done':''}"><div class="sn">${i+1}. ${ETAPAS[i]}</div><div class="sd">${c[f]?fmt(c[f]):'—'}</div></div>`;
+  }).join('');
+  const d0=c[TL_FIELDS[0]], d10=c[TL_FIELDS[10]];
+  const tot=dias(d0,d10);
+  r$('fichaDias').innerHTML=tot!=null?`Duração total: <strong>${tot} dias</strong> (${fmt(d0)} → ${fmt(d10)})`:'';
+  r$('fichaObs').textContent=c.obs||'Nenhuma observação registrada.';
+  r$('mCand').classList.add('open');
+}
+
+function editarFicha() { editarCandidato(viewId); }
+
+function editarCandidato(id) {
+  const c=candidatos.find(x=>x.id===id); if(!c) return;
+  editId=id; viewId=null;
+  r$('fichaView').style.display='none'; r$('formCand').style.display='block';
+  r$('mCandTitulo').textContent='Editar candidato';
+  populateSels();
+  r$('fNome').value=c.nome||''; r$('fStatus').value=c.status||'Ativo';
+  r$('fCargo').value=c.cargo||'Gestor Técnico'; r$('fTurma').value=c.turma_nome||'';
+  r$('fEstado').value=c.estado||''; r$('fFonte').value=c.fonte||'Ello Vagas';
+  r$('fRecr').value=c.recrutador||'Ello'; r$('fUniv').value=c.univ||'';
+  r$('fTUniv').value=c.tipo_univ||'Federal'; r$('fDisc').value=c.disc||'C';
+  r$('fGer').value=c.geracao||'Y'; r$('fGen').value=c.genero||'Masculino';
+  r$('fDtContr').value=c.dt_contr||''; r$('fDtDesl').value=c.dt_desl||'';
+  r$('fObs').value=c.obs||'';
+  TL_FIELDS.forEach((f,i)=>{ r$('tl'+i).value=c[f]||''; });
+  r$('mCand').classList.add('open');
+}
+
+async function salvarCandidato() {
+  const nome=r$('fNome').value.trim(); if(!nome){alert('Informe o nome');return;}
+  const data={
+    nome, status:r$('fStatus').value, cargo:r$('fCargo').value,
+    turma_nome:r$('fTurma').value, estado:r$('fEstado').value.toUpperCase(),
+    fonte:r$('fFonte').value, recrutador:r$('fRecr').value,
+    univ:r$('fUniv').value, tipo_univ:r$('fTUniv').value,
+    disc:r$('fDisc').value, geracao:r$('fGer').value, genero:r$('fGen').value,
+    dt_contr:r$('fDtContr').value||null, dt_desl:r$('fDtDesl').value||null,
+    obs:r$('fObs').value
+  };
+  TL_FIELDS.forEach((f,i)=>{ data[f]=r$('tl'+i).value||null; });
+  try {
+    if(editId) { await dbUpdate('candidatos',editId,data); toast('Candidato atualizado!'); }
+    else { await dbInsert('candidatos',data); toast('Candidato cadastrado!'); }
+    fecharModal('mCand'); editId=null;
+    candidatos=await dbGet('candidatos'); populateSels(); renderAll();
+  } catch(e){ toast('Erro: '+e.message,true); }
+}
+
+async function excluirCandidato(id,nome) {
+  if(!confirm(`Excluir ${nome}?`)) return;
+  try { await dbDelete('candidatos',id); toast('Excluído.'); candidatos=await dbGet('candidatos'); populateSels(); renderAll(); }
+  catch(e){toast('Erro: '+e.message,true);}
+}
+
+// ============================================================
+// CUSTOS
+// ============================================================
+function renderCustos() {
+  const tf=r$('fCT').value;
+  const f=custos.filter(c=>!tf||c.turma_nome===tf);
+  const total=f.reduce((a,c)=>a+parseFloat(c.total||0),0);
+  const med=f.length?total/f.length:0;
+  r$('kpisCusto').innerHTML=`
+    <div class="metric"><div class="lbl">Registros</div><div class="val">${f.length}</div></div>
+    <div class="metric m-b"><div class="lbl">Custo total</div><div class="val">R$${Math.round(total).toLocaleString('pt-BR')}</div></div>
+    <div class="metric m-g"><div class="lbl">Custo médio</div><div class="val">R$${Math.round(med).toLocaleString('pt-BR')}</div></div>
+    <div class="metric"><div class="lbl">Maior custo</div><div class="val">R$${f.length?Math.round(Math.max(...f.map(c=>parseFloat(c.total||0)))).toLocaleString('pt-BR'):0}</div></div>`;
+  r$('emptyCusto').style.display=f.length?'none':'block';
+  r$('tbCusto').innerHTML=f.map(c=>`<tr>
+    <td style="font-weight:500">${c.candidato}</td>
+    <td>${(c.turma_nome||'').replace('Turma ','')}</td>
+    <td>R$${parseFloat(c.aso||0).toFixed(0)}</td>
+    <td>R$${parseFloat(c.psi||0).toFixed(0)}</td>
+    <td>R$${parseFloat(c.aereo||0).toFixed(0)}</td>
+    <td>R$${parseFloat(c.trans||0).toFixed(0)}</td>
+    <td>R$${parseFloat(c.hosp||0).toFixed(0)}</td>
+    <td>R$${parseFloat(c.epi||0).toFixed(0)}</td>
+    <td>R$${parseFloat(c.recr||0).toFixed(0)}</td>
+    <td>R$${parseFloat(c.andre||0).toFixed(0)}</td>
+    <td style="font-weight:500">R$${parseFloat(c.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+    <td><button class="icon-btn del" onclick="excluirCusto('${c.id}')"><i class="ti ti-trash"></i></button></td>
+  </tr>`).join('');
+}
+
+async function salvarCusto() {
+  const cid=r$('fcCand').value; const cand=candidatos.find(x=>x.id===cid); if(!cand){alert('Selecione um candidato');return;}
+  const aso=+r$('fcAso').value||0, psi=+r$('fcPsi').value||0, aereo=+r$('fcAereo').value||0;
+  const trans=+r$('fcTrans').value||0, hosp=+r$('fcHosp').value||0, epi=+r$('fcEpi').value||0;
+  const recr=+r$('fcRecr').value||0, andre=+r$('fcAndre').value||0;
+  const total=aso+psi+aereo+trans+hosp+epi+recr+andre;
+  try {
+    await dbInsert('custos',{candidato:cand.nome,turma_nome:r$('fcTurma').value,aso,psi,aereo,trans,hosp,epi,recr,andre,total});
+    toast('Custo cadastrado!'); fecharModal('mCusto');
+    custos=await dbGet('custos'); renderAll();
+  } catch(e){toast('Erro: '+e.message,true);}
+}
+
+async function excluirCusto(id) {
+  if(!confirm('Excluir registro?')) return;
+  try { await dbDelete('custos',id); toast('Excluído.'); custos=await dbGet('custos'); renderAll(); }
+  catch(e){toast('Erro: '+e.message,true);}
+}
+
+// ============================================================
+// TURMAS
+// ============================================================
+function renderTurmas() {
+  r$('emptyTurma').style.display=turmas.length?'none':'block';
+  r$('tbTurma').innerHTML=turmas.map((t,i)=>{
+    const adm=candidatos.filter(c=>c.turma_nome===t.nome).length;
+    const atv=candidatos.filter(c=>c.turma_nome===t.nome&&c.status==='Ativo').length;
+    const to=adm>0?Math.round((adm-atv)/adm*100):0;
+    const ct=custos.filter(c=>c.turma_nome===t.nome).reduce((a,c)=>a+parseFloat(c.total||0),0);
+    const tCands=candidatos.filter(c=>c.turma_nome===t.nome&&c[TL_FIELDS[0]]&&c[TL_FIELDS[10]]);
+    const ds=tCands.map(c=>dias(c[TL_FIELDS[0]],c[TL_FIELDS[10]])).filter(d=>d!=null&&d>0);
+    const med=ds.length?Math.round(ds.reduce((a,b)=>a+b,0)/ds.length):null;
+    return `<tr>
+      <td style="font-weight:500">${t.nome}</td>
+      <td>${t.periodo||'—'}</td><td>${t.recrutador||'—'}</td>
+      <td>${adm}</td><td>${atv}</td>
+      <td><span class="badge ${to>40?'b-r':to>20?'b-a':'b-g'}">${to}%</span></td>
+      <td>${ct>0?'R$'+Math.round(ct).toLocaleString('pt-BR'):'—'}</td>
+      <td>${med!=null?med+'d':'—'}</td>
+      <td><button class="icon-btn del" onclick="excluirTurma('${t.id}','${t.nome}')"><i class="ti ti-trash"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function salvarTurma() {
+  const nome=r$('ftNome').value.trim(); if(!nome){alert('Informe o nome da turma');return;}
+  try {
+    await dbInsert('turmas',{nome,periodo:r$('ftPer').value,recrutador:r$('ftRecr').value});
+    toast('Turma cadastrada!'); fecharModal('mTurma');
+    turmas=await dbGet('turmas'); populateSels(); renderAll();
+  } catch(e){toast('Erro: '+e.message,true);}
+}
+
+async function excluirTurma(id,nome) {
+  if(!confirm(`Excluir ${nome}?`)) return;
+  try { await dbDelete('turmas',id); toast('Turma excluída.'); turmas=await dbGet('turmas'); populateSels(); renderAll(); }
+  catch(e){toast('Erro: '+e.message,true);}
+}
+
+// ============================================================
+// MODAIS
+// ============================================================
+function abrirModal(tipo) {
+  if(tipo==='candidato') {
+    editId=null; viewId=null;
+    r$('fichaView').style.display='none'; r$('formCand').style.display='block';
+    r$('mCandTitulo').textContent='Novo candidato';
+    ['fNome','fEstado','fUniv','fDtContr','fDtDesl','fObs'].forEach(id=>r$(id).value='');
+    for(let i=0;i<11;i++) r$('tl'+i).value='';
+    populateSels();
+    r$('mCand').classList.add('open');
+  } else if(tipo==='custo') {
+    populateSels(); r$('mCusto').classList.add('open');
+  } else if(tipo==='turma') {
+    r$('ftNome').value=''; r$('ftPer').value='';
+    r$('mTurma').classList.add('open');
+  }
+}
+
+function fecharModal(id) {
+  r$(id).classList.remove('open'); editId=null; viewId=null;
+}
+
+// Fechar ao clicar fora
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click', e=>{ if(e.target===o) fecharModal(o.id); });
+});
+
+init();
+</script>
+</body>
+</html>
