@@ -189,6 +189,20 @@
   <!-- VISÃO GERAL -->
   <div class="page active" id="page-visao">
     <div class="page-title">Visão geral</div>
+    <div class="toolbar">
+      <select id="vfTurma" onchange="renderCharts()"><option value="">Todas as turmas</option></select>
+      <select id="vfStatus" onchange="renderCharts()">
+        <option value="">Todos os status</option>
+        <option>Ativo</option>
+        <option>Desligado</option>
+      </select>
+      <select id="vfCargo" onchange="renderCharts()">
+        <option value="">Todos os cargos</option>
+        <option>Gestor Técnico</option>
+        <option>Gestor Administrativo</option>
+      </select>
+      <button class="btn" onclick="limparFiltrosVisao()"><i class="ti ti-x"></i> Limpar</button>
+    </div>
     <div class="metric-grid" id="kpis"><div class="loading">Carregando...</div></div>
     <div class="chart-row">
       <div class="card"><div class="card-title">Retenção por turma</div><div style="position:relative;height:220px"><canvas id="cTurma"></canvas></div></div>
@@ -413,7 +427,7 @@ async function init() {
 }
 
 function populateSels() {
-  ['fT','fCT'].forEach(id => {
+  ['fT','fCT','vfTurma'].forEach(id => {
     const el = document.getElementById(id); if(!el) return;
     const v = el.value;
     el.innerHTML = '<option value="">Todas as turmas</option>';
@@ -459,50 +473,63 @@ function r$(id) { return document.getElementById(id); }
 // ============================================================
 // CHARTS
 // ============================================================
+function limparFiltrosVisao() {
+  ['vfTurma','vfStatus','vfCargo'].forEach(id=>{ const el=r$(id); if(el) el.value=''; });
+  renderCharts();
+}
+
 function renderCharts() {
-  const tn = turmas.map(t=>t.nome.replace('Turma ',''));
-  const atD = turmas.map(t=>candidatos.filter(c=>c.turma_nome===t.nome&&c.status==='Ativo').length);
-  const dsD = turmas.map(t=>candidatos.filter(c=>c.turma_nome===t.nome&&c.status==='Desligado').length);
+  const tf=(r$('vfTurma')||{}).value||'';
+  const sf=(r$('vfStatus')||{}).value||'';
+  const cf=(r$('vfCargo')||{}).value||'';
+  const cands=candidatos.filter(c=>(!tf||c.turma_nome===tf)&&(!sf||c.status===sf)&&(!cf||c.cargo===cf));
+  const candNames=new Set(cands.map(c=>c.nome));
+  const filtCustos=custos.filter(c=>(!tf||c.turma_nome===tf)&&(!sf&&!cf||candNames.has(c.candidato)));
+  const filtTurmas=tf?turmas.filter(t=>t.nome===tf):turmas;
+
+  const tn=filtTurmas.map(t=>t.nome.replace('Turma ',''));
+  const atD=filtTurmas.map(t=>cands.filter(c=>c.turma_nome===t.nome&&c.status==='Ativo').length);
+  const dsD=filtTurmas.map(t=>cands.filter(c=>c.turma_nome===t.nome&&c.status==='Desligado').length);
   dc('cTurma');
   charts['cTurma']=new Chart(r$('cTurma'),{type:'bar',data:{labels:tn,datasets:[{label:'Ativos',data:atD,backgroundColor:'#1A88FF',borderRadius:3,stack:'s'},{label:'Desligados',data:dsD,backgroundColor:'#FF8F1F',borderRadius:3,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});
 
-  const masc=candidatos.filter(c=>c.genero==='Masculino').length, fem=candidatos.length-masc;
+  const masc=cands.filter(c=>c.genero==='Masculino').length, fem=cands.length-masc;
   mkLeg('lgG',['Masculino','Feminino'],['#1A88FF','#2ED7ED']);
   dc('cGenero');
   charts['cGenero']=new Chart(r$('cGenero'),{type:'doughnut',data:{labels:['Masculino','Feminino'],datasets:[{data:[masc,fem],backgroundColor:['#1A88FF','#2ED7ED'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}});
 
-  const fC=cnt(candidatos,'fonte'); const fK=Object.keys(fC); const fV=fK.map(k=>fC[k]);
+  const fC=cnt(cands,'fonte'); const fK=Object.keys(fC); const fV=fK.map(k=>fC[k]);
   const fCols=['#1A88FF','#2ED7ED','#BCFF48','#FF8F1F'];
   mkLeg('lgF',fK,fCols);
   dc('cFonte');
   charts['cFonte']=new Chart(r$('cFonte'),{type:'doughnut',data:{labels:fK,datasets:[{data:fV,backgroundColor:fCols.slice(0,fK.length),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false}}}});
 
-  const dC=cnt(candidatos,'disc'); const dK=Object.keys(dC).sort(); const dV=dK.map(k=>dC[k]);
+  const dC=cnt(cands,'disc'); const dK=Object.keys(dC).sort(); const dV=dK.map(k=>dC[k]);
   const dMap={D:'#FF8F1F',I:'#2ED7ED',S:'#1A88FF',C:'#BCFF48'};
   dc('cDisc');
   charts['cDisc']=new Chart(r$('cDisc'),{type:'bar',data:{labels:dK,datasets:[{data:dV,backgroundColor:dK.map(k=>dMap[k]||'#888'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});
 
-  const uC=cnt(candidatos,'tipo_univ'); const uK=Object.keys(uC); const uV=uK.map(k=>uC[k]);
+  const uC=cnt(cands,'tipo_univ'); const uK=Object.keys(uC); const uV=uK.map(k=>uC[k]);
   mkLeg('lgU',uK,['#BCFF48','#FF8F1F','#1A88FF']);
   dc('cUniv');
   charts['cUniv']=new Chart(r$('cUniv'),{type:'doughnut',data:{labels:uK,datasets:[{data:uV,backgroundColor:['#BCFF48','#FF8F1F','#1A88FF'].slice(0,uK.length),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false}}}});
 
-  // Tempo médio por etapa
-  const medias = TL_FIELDS.map((f,i) => {
+  const medias=TL_FIELDS.map((f,i)=>{
     if(i===0) return null;
     const prev=TL_FIELDS[i-1];
-    const diffs=candidatos.map(c=>c[prev]&&c[f]?dias(c[prev],c[f]):null).filter(d=>d!=null&&d>=0);
+    const diffs=cands.map(c=>c[prev]&&c[f]?dias(c[prev],c[f]):null).filter(d=>d!=null&&d>=0);
     return diffs.length?Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length):null;
   });
   r$('avgEtapas').innerHTML=ETAPAS.slice(1).map((e,i)=>`<div class="avg-item"><div class="al">${e}</div><div class="av">${medias[i+1]!=null?medias[i+1]+'d':'—'}</div></div>`).join('');
 
-  const total=candidatos.length, ativos=candidatos.filter(c=>c.status==='Ativo').length, desl=candidatos.filter(c=>c.status==='Desligado').length;
-  const ctot=custos.reduce((a,c)=>a+parseFloat(c.total||0),0);
+  const total=cands.length, ativos=cands.filter(c=>c.status==='Ativo').length, desl=cands.filter(c=>c.status==='Desligado').length;
+  const ctot=filtCustos.reduce((a,c)=>a+parseFloat(c.total||0),0);
+  const sub=tf||sf||cf?'filtro aplicado':'todas as turmas';
   r$('kpis').innerHTML=`
-    <div class="metric"><div class="lbl">Total admitidos</div><div class="val">${total}</div><div class="sub">todas as turmas</div></div>
+    <div class="metric"><div class="lbl">Total admitidos</div><div class="val">${total}</div><div class="sub">${sub}</div></div>
     <div class="metric m-g"><div class="lbl">Ativos</div><div class="val">${ativos}</div><div class="sub">${total>0?Math.round(ativos/total*100):0}% de retenção</div></div>
     <div class="metric m-r"><div class="lbl">Desligados</div><div class="val">${desl}</div><div class="sub">turnover ${total>0?Math.round(desl/total*100):0}%</div></div>
-    <div class="metric m-b"><div class="lbl">Custo médio/admitido</div><div class="val">R$${total>0?Math.round(ctot/total).toLocaleString('pt-BR'):0}</div><div class="sub">${custos.length} registros</div></div>`;
+    <div class="metric m-b"><div class="lbl">Custo médio/admitido</div><div class="val">R$${total>0?Math.round(ctot/total).toLocaleString('pt-BR'):0}</div><div class="sub">${filtCustos.length} registros</div></div>`;
 }
 
 // ============================================================
