@@ -155,9 +155,46 @@
   .avg-item .al { font-size: 11px; color: var(--text2); }
   .avg-item .av { font-size: 18px; font-weight: 600; color: var(--text); }
 
+  /* Timeline page */
+  .tl-tabs { display: flex; gap: 3px; margin-bottom: 1.5rem; background: var(--bg2); padding: 4px; border-radius: var(--radius); width: fit-content; }
+  .tl-tab { padding: 7px 20px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); background: none; transition: all .15s; }
+  .tl-tab.active { background: #BCFF48; color: #091C28; font-weight: 700; }
+
+  /* Individual visual timeline */
+  .pt-header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .pt-name { font-size: 16px; font-weight: 600; }
+  .pt-sub { font-size: 13px; color: var(--text2); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+  .pt-stats { margin-left: auto; text-align: right; }
+  .pt-stats .lbl { font-size: 11px; color: var(--text3); }
+  .pt-stats .val { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.1; }
+  .pt-scroll { overflow-x: auto; padding-bottom: 8px; }
+  .pt-stages { display: flex; align-items: flex-start; min-width: max-content; padding: .75rem 0; }
+  .pt-stage { display: flex; flex-direction: column; align-items: center; width: 82px; }
+  .pt-node { width: 14px; height: 14px; border-radius: 50%; background: var(--bg3); border: 2px solid var(--border2); margin-bottom: 6px; flex-shrink: 0; transition: background .2s; }
+  .pt-stage.done .pt-node { background: #BCFF48; border-color: #BCFF48; }
+  .pt-lbl { font-size: 10px; font-weight: 500; color: var(--text2); text-align: center; line-height: 1.3; }
+  .pt-dt { font-size: 10px; color: var(--text3); margin-top: 2px; text-align: center; }
+  .pt-stage.done .pt-dt { color: var(--text); font-weight: 500; }
+  .pt-conn { flex: 1; display: flex; flex-direction: column; align-items: center; padding-top: 5px; min-width: 32px; }
+  .pt-conn .pt-days { font-size: 10px; color: var(--text3); white-space: nowrap; margin-bottom: 3px; }
+  .pt-conn .pt-line { width: 100%; height: 2px; background: var(--border2); }
+  .pt-conn.done .pt-line { background: #BCFF48; }
+  .pt-conn.done .pt-days { color: #2a6200; font-weight: 600; }
+
+  /* Consolidated turma table */
+  .tl-table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 0.5px solid var(--border); box-shadow: var(--shadow); }
+  .tl-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; background: var(--bg); }
+  .tl-table th { background: var(--bg2); color: var(--text2); font-weight: 500; text-align: left; padding: 9px 10px; border-bottom: 0.5px solid var(--border); font-size: 11px; position: sticky; top: 0; }
+  .tl-table td { padding: 8px 10px; border-bottom: 0.5px solid var(--border); color: var(--text); }
+  .tl-table tr:last-child td { border-bottom: none; }
+  .tl-table tr:hover td { background: var(--bg2); }
+  .tl-cell-ok { background: rgba(188,255,72,0.12); font-weight: 500; }
+  .tl-avg-row td { background: var(--bg2) !important; color: var(--text2); font-style: italic; font-weight: 500; }
+  .tl-avg-row td:first-child { font-weight: 700; color: var(--text); }
+
   @media (max-width: 900px) {
     .sidebar { width: 60px; }
-    .sidebar-logo span, .nav-item span { display: none; }
+    .sidebar-logo span, .sidebar-subtitle, .nav-item span { display: none; }
     .main { margin-left: 60px; }
     .metric-grid { grid-template-columns: 1fr 1fr; }
     .chart-row, .chart-row3 { grid-template-columns: 1fr; }
@@ -181,6 +218,7 @@
   <button class="nav-item" onclick="goPage('candidatos',this)"><i class="ti ti-users"></i><span>Candidatos</span></button>
   <button class="nav-item" onclick="goPage('custos',this)"><i class="ti ti-currency-dollar"></i><span>Custos</span></button>
   <button class="nav-item" onclick="goPage('turmas',this)"><i class="ti ti-school"></i><span>Turmas</span></button>
+  <button class="nav-item" onclick="goPage('timeline',this)"><i class="ti ti-timeline"></i><span>Linha do tempo</span></button>
 </nav>
 
 <!-- MAIN -->
@@ -260,6 +298,32 @@
       <table><thead><tr><th>Turma</th><th>Período</th><th>Recrutador</th><th>Admitidos</th><th>Ativos</th><th>Turnover</th><th>Custo total</th><th>Tempo médio processo</th><th></th></tr></thead>
       <tbody id="tbTurma"></tbody></table>
       <div id="emptyTurma" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma turma cadastrada</div>
+    </div>
+  </div>
+
+  <!-- LINHA DO TEMPO -->
+  <div class="page" id="page-timeline">
+    <div class="page-title">Linha do tempo</div>
+    <div class="tl-tabs">
+      <button class="tl-tab active" onclick="switchTLTab('individual',this)"><i class="ti ti-user"></i> Por candidato</button>
+      <button class="tl-tab" onclick="switchTLTab('turma',this)"><i class="ti ti-users"></i> Por turma</button>
+    </div>
+
+    <!-- Individual -->
+    <div id="tl-individual">
+      <div class="toolbar">
+        <select id="tlFT" onchange="populateTLCands()"><option value="">Todas as turmas</option></select>
+        <select id="tlFC" onchange="renderTLIndividual()"><option value="">— Selecione um candidato —</option></select>
+      </div>
+      <div id="tlIndView"><div class="empty" style="margin-top:2rem"><i class="ti ti-timeline" style="font-size:28px;display:block;margin-bottom:8px"></i>Selecione um candidato para ver sua linha do tempo</div></div>
+    </div>
+
+    <!-- Por turma -->
+    <div id="tl-turma" style="display:none">
+      <div class="toolbar">
+        <select id="tlFTurma" onchange="renderTLTurma()"><option value="">— Selecione uma turma —</option></select>
+      </div>
+      <div id="tlTurmaView"><div class="empty" style="margin-top:2rem"><i class="ti ti-layout-grid" style="font-size:28px;display:block;margin-bottom:8px"></i>Selecione uma turma para ver o consolidado</div></div>
     </div>
   </div>
 
@@ -442,7 +506,7 @@ function populateSels() {
   if(fcT) { fcT.innerHTML=''; turmas.forEach(t => { const o=document.createElement('option'); o.value=t.nome; o.textContent=t.nome; fcT.appendChild(o); }); }
 }
 
-function renderAll() { renderCharts(); renderCandidatos(); renderCustos(); renderTurmas(); }
+function renderAll() { renderCharts(); renderCandidatos(); renderCustos(); renderTurmas(); initTimeline(); }
 
 // ============================================================
 // NAVEGAÇÃO
@@ -742,6 +806,157 @@ function fecharModal(id) {
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click', e=>{ if(e.target===o) fecharModal(o.id); });
 });
+
+// ============================================================
+// LINHA DO TEMPO
+// ============================================================
+function switchTLTab(tab, btn) {
+  document.querySelectorAll('.tl-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  r$('tl-individual').style.display = tab==='individual'?'block':'none';
+  r$('tl-turma').style.display      = tab==='turma'?'block':'none';
+}
+
+function initTimeline() {
+  [r$('tlFT'), r$('tlFTurma')].forEach(el=>{
+    if(!el) return;
+    const v=el.value;
+    el.innerHTML='<option value="">'+( el.id==='tlFT'?'Todas as turmas':'— Selecione uma turma —')+'</option>';
+    turmas.forEach(t=>{ const o=document.createElement('option'); o.value=t.nome; o.textContent=t.nome; el.appendChild(o); });
+    if(v) el.value=v;
+  });
+  populateTLCands();
+}
+
+function populateTLCands() {
+  const tf=r$('tlFT').value;
+  const el=r$('tlFC');
+  const prev=el.value;
+  el.innerHTML='<option value="">— Selecione um candidato —</option>';
+  candidatos.filter(c=>!tf||c.turma_nome===tf)
+    .sort((a,b)=>a.nome.localeCompare(b.nome))
+    .forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.nome+' ('+c.turma_nome.replace('Turma ','')+')'; el.appendChild(o); });
+  if(prev) el.value=prev;
+  renderTLIndividual();
+}
+
+function renderTLIndividual() {
+  const cid=r$('tlFC').value;
+  const view=r$('tlIndView');
+  if(!cid){ view.innerHTML='<div class="empty" style="margin-top:2rem"><i class="ti ti-timeline" style="font-size:28px;display:block;margin-bottom:8px"></i>Selecione um candidato</div>'; return; }
+  const c=candidatos.find(x=>x.id===cid);
+  if(!c) return;
+
+  const stages=TL_FIELDS.map((f,i)=>({ name:ETAPAS[i], date:c[f], done:!!c[f] }));
+  const d0=c[TL_FIELDS[0]], d10=c[TL_FIELDS[10]];
+  const totalDias=dias(d0,d10);
+  const doneCount=stages.filter(s=>s.done).length;
+
+  let html=`<div class="card" style="margin-bottom:1rem">
+    <div class="pt-header">
+      <div class="avatar">${initials(c.nome)}</div>
+      <div>
+        <div class="pt-name">${c.nome}</div>
+        <div class="pt-sub">${c.turma_nome} · ${(c.cargo||'').replace('Gestor ','')} <span class="badge ${c.status==='Ativo'?'b-g':'b-r'}">${c.status}</span></div>
+      </div>
+      <div class="pt-stats">
+        <div class="lbl">Etapas concluídas</div>
+        <div class="val">${doneCount}<span style="font-size:13px;color:var(--text3)">/${stages.length}</span></div>
+        ${totalDias!=null?`<div class="lbl" style="margin-top:4px">${totalDias} dias no total</div>`:''}
+      </div>
+    </div>
+    <div class="pt-scroll"><div class="pt-stages">`;
+
+  stages.forEach((s,i)=>{
+    const prev=i>0?stages[i-1]:null;
+    const d=prev&&prev.date&&s.date?dias(prev.date,s.date):null;
+    if(i>0){
+      const bothDone=prev.done&&s.done;
+      html+=`<div class="pt-conn ${bothDone?'done':''}">
+        <div class="pt-days">${d!=null&&d>=0?'+'+d+'d':'—'}</div>
+        <div class="pt-line"></div>
+      </div>`;
+    }
+    html+=`<div class="pt-stage ${s.done?'done':''}">
+      <div class="pt-node"></div>
+      <div class="pt-lbl">${s.name}</div>
+      <div class="pt-dt">${s.date?fmt(s.date):'—'}</div>
+    </div>`;
+  });
+
+  html+=`</div></div></div>`;
+
+  // Cards das etapas
+  html+=`<div class="tl-grid">`;
+  stages.forEach((s,i)=>{
+    const prev=i>0?stages[i-1]:null;
+    const d=prev&&prev.date&&s.date?dias(prev.date,s.date):null;
+    html+=`<div class="tl-step ${s.done?'done':''}">
+      <div class="sn">${i+1}. ${s.name}</div>
+      <div class="sd">${s.date?fmt(s.date):'—'}</div>
+      ${d!=null&&d>=0?`<div style="font-size:10px;margin-top:3px;opacity:.7">+${d}d desde etapa anterior</div>`:''}
+    </div>`;
+  });
+  html+=`</div>`;
+  view.innerHTML=html;
+}
+
+function renderTLTurma() {
+  const tf=r$('tlFTurma').value;
+  const view=r$('tlTurmaView');
+  if(!tf){ view.innerHTML='<div class="empty" style="margin-top:2rem"><i class="ti ti-layout-grid" style="font-size:28px;display:block;margin-bottom:8px"></i>Selecione uma turma</div>'; return; }
+
+  const cands=candidatos.filter(c=>c.turma_nome===tf);
+  if(!cands.length){ view.innerHTML='<div class="empty">Nenhum candidato nesta turma</div>'; return; }
+
+  // KPIs rápidos da turma
+  const comTL=cands.filter(c=>c[TL_FIELDS[0]]&&c[TL_FIELDS[10]]);
+  const tots=comTL.map(c=>dias(c[TL_FIELDS[0]],c[TL_FIELDS[10]])).filter(d=>d!=null&&d>0);
+  const avgTot=tots.length?Math.round(tots.reduce((a,b)=>a+b,0)/tots.length):null;
+  const ativos=cands.filter(c=>c.status==='Ativo').length;
+
+  let html=`<div class="metric-grid" style="margin-bottom:1rem">
+    <div class="metric"><div class="lbl">Candidatos</div><div class="val">${cands.length}</div></div>
+    <div class="metric m-g"><div class="lbl">Ativos</div><div class="val">${ativos}</div><div class="sub">${Math.round(ativos/cands.length*100)}% retenção</div></div>
+    <div class="metric m-r"><div class="lbl">Desligados</div><div class="val">${cands.length-ativos}</div></div>
+    <div class="metric m-b"><div class="lbl">Tempo médio processo</div><div class="val">${avgTot!=null?avgTot+'d':'—'}</div><div class="sub">${comTL.length} com dados completos</div></div>
+  </div>`;
+
+  // Tabela consolidada
+  html+=`<div class="tl-table-wrap"><table class="tl-table"><thead><tr>
+    <th>Candidato</th><th>Status</th>
+    ${ETAPAS.map(e=>`<th>${e}</th>`).join('')}
+    <th>Total</th>
+  </tr></thead><tbody>`;
+
+  cands.forEach(c=>{
+    const tot=dias(c[TL_FIELDS[0]],c[TL_FIELDS[10]]);
+    html+=`<tr>
+      <td style="font-weight:500;min-width:150px">${c.nome}</td>
+      <td><span class="badge ${c.status==='Ativo'?'b-g':'b-r'}">${c.status}</span></td>
+      ${TL_FIELDS.map(f=>`<td class="${c[f]?'tl-cell-ok':''}">${c[f]?fmt(c[f]):'—'}</td>`).join('')}
+      <td style="font-weight:700">${tot!=null?tot+'d':'—'}</td>
+    </tr>`;
+  });
+
+  // Linha de médias (dias entre etapas)
+  const avgEtapa=TL_FIELDS.map((f,i)=>{
+    if(i===0) return null;
+    const prev=TL_FIELDS[i-1];
+    const diffs=cands.map(c=>c[prev]&&c[f]?dias(c[prev],c[f]):null).filter(d=>d!=null&&d>=0);
+    return diffs.length?Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length):null;
+  });
+
+  html+=`<tr class="tl-avg-row">
+    <td>Média dias/etapa</td><td>—</td>
+    <td>—</td>
+    ${avgEtapa.slice(1).map(d=>`<td>${d!=null?'+'+d+'d':'—'}</td>`).join('')}
+    <td>${avgTot!=null?avgTot+'d':'—'}</td>
+  </tr>`;
+
+  html+=`</tbody></table></div>`;
+  view.innerHTML=html;
+}
 
 init();
 </script>
