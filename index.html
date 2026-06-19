@@ -65,7 +65,7 @@
   .metric.m-r .val { color: var(--red); }
   .metric.m-b .val { color: var(--blue); }
   .chart-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-bottom: 1rem; }
-  .chart-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 1rem; }
+  .chart-row3 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 1rem; }
 
   /* Tabela */
   .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 0.5px solid var(--border); background: var(--bg); box-shadow: var(--shadow); }
@@ -250,6 +250,7 @@
       <div class="card"><div class="card-title">Fonte de captação</div><div class="legend" id="lgF"></div><div style="position:relative;height:160px"><canvas id="cFonte"></canvas></div></div>
       <div class="card"><div class="card-title">Perfil DISC</div><div style="position:relative;height:160px"><canvas id="cDisc"></canvas></div></div>
       <div class="card"><div class="card-title">Tipo de universidade</div><div class="legend" id="lgU"></div><div style="position:relative;height:160px"><canvas id="cUniv"></canvas></div></div>
+      <div class="card"><div class="card-title">Recrutador (Perbras x Ello)</div><div class="legend" id="lgR"></div><div style="position:relative;height:160px"><canvas id="cRecr"></canvas></div></div>
     </div>
     <div class="card">
       <div class="card-title">Tempo médio por etapa do processo (dias)</div>
@@ -354,7 +355,7 @@
     <div id="formCand">
       <div class="form-grid">
         <div class="fg span2"><label>Nome completo</label><input id="fNome" type="text" placeholder="Ex: João Silva"></div>
-        <div class="fg"><label>Status</label><select id="fStatus"><option>Ativo</option><option>Desligado</option></select></div>
+        <div class="fg"><label>Status</label><select id="fStatus" onchange="toggleMotivo()"><option>Ativo</option><option>Desligado</option></select></div>
         <div class="fg"><label>Cargo</label><select id="fCargo"><option>Gestor Técnico</option><option>Gestor Administrativo</option></select></div>
         <div class="fg"><label>Turma</label><select id="fTurma"></select></div>
         <div class="fg"><label>Estado (UF)</label><input id="fEstado" type="text" maxlength="2" placeholder="BA"></div>
@@ -369,6 +370,29 @@
         <div class="fg"><label>Data de contratação</label><input id="fDtContr" type="date"></div>
         <div class="fg"><label>Data de desligamento</label><input id="fDtDesl" type="date"></div>
         <div class="fg"></div>
+        <div class="fg span3" id="fMotivoCont" style="display:none">
+          <label>Motivo da Saída</label>
+          <select id="fMotivo">
+            <option value="">— Selecione —</option>
+            <optgroup label="Por iniciativa do funcionário">
+              <option>Proposta melhor de Cargo e Salário</option>
+              <option>Proposta de voltar para sua região de Origem</option>
+              <option>Necessidade profissional do Cônjuge</option>
+              <option>Problema de Saúde pessoal ou familiar</option>
+              <option>Não adaptação ao modelo de negócio</option>
+              <option>Dificuldade de Relacionamento com os pares</option>
+              <option>Sobrecarga ou dificuldade com a Rotina</option>
+            </optgroup>
+            <optgroup label="Por iniciativa da Empresa">
+              <option>Incompatibilidade do Perfil</option>
+              <option>Problemas de relacionamento</option>
+              <option>Decisão do Diretor</option>
+              <option>Diminuição de Contratos</option>
+              <option>Compliance</option>
+              <option>Baixa performance / Resultado</option>
+            </optgroup>
+          </select>
+        </div>
         <div class="section-label">Linha do tempo do processo</div>
         <div class="fg"><label>Captação</label><input id="tl0" type="date"></div>
         <div class="fg"><label>Triagem</label><input id="tl1" type="date"></div>
@@ -537,6 +561,12 @@ function r$(id) { return document.getElementById(id); }
 // ============================================================
 // CHARTS
 // ============================================================
+function toggleMotivo() {
+  const desl=r$('fStatus').value==='Desligado';
+  r$('fMotivoCont').style.display=desl?'':'none';
+  if(!desl) r$('fMotivo').value='';
+}
+
 function limparFiltrosVisao() {
   ['vfTurma','vfStatus','vfCargo'].forEach(id=>{ const el=r$(id); if(el) el.value=''; });
   renderCharts();
@@ -577,6 +607,12 @@ function renderCharts() {
   mkLeg('lgU',uK,['#BCFF48','#FF8F1F','#1A88FF']);
   dc('cUniv');
   charts['cUniv']=new Chart(r$('cUniv'),{type:'doughnut',data:{labels:uK,datasets:[{data:uV,backgroundColor:['#BCFF48','#FF8F1F','#1A88FF'].slice(0,uK.length),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false}}}});
+
+  const rMap={'Perbras':'#BCFF48','Ello':'#1A88FF'};
+  const rC=cnt(cands,'recrutador'); const rK=Object.keys(rC); const rV=rK.map(k=>rC[k]);
+  mkLeg('lgR',rK,rK.map(k=>rMap[k]||'#8a9fad'));
+  dc('cRecr');
+  charts['cRecr']=new Chart(r$('cRecr'),{type:'doughnut',data:{labels:rK,datasets:[{data:rV,backgroundColor:rK.map(k=>rMap[k]||'#8a9fad'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false}}}});
 
   const medias=TL_FIELDS.map((f,i)=>{
     if(i===0) return null;
@@ -631,7 +667,8 @@ function verCandidato(id) {
     ['Gênero',c.genero||'—'],['UF',c.estado||'—'],
     ['Fonte',c.fonte||'—'],['DISC',`<span class="badge b-b">${c.disc||'—'}</span>`],['Geração',c.geracao||'—'],
     ['Tipo Univ.',c.tipo_univ||'—'],['Universidade',c.univ||'—'],['Recrutador',c.recrutador||'—'],
-    ['Contratação',fmt(c.dt_contr)],['Desligamento',c.dt_desl?fmt(c.dt_desl):'—'],['',''],
+    ['Contratação',fmt(c.dt_contr)],['Desligamento',c.dt_desl?fmt(c.dt_desl):'—'],
+    c.status==='Desligado'?['Motivo da Saída',c.motivo_saida||'—']:['',''],
   ].map(([l,v])=>`<div class="fi"><div class="fi-l">${l}</div><div class="fi-v">${v}</div></div>`).join('');
   r$('fichaTL').innerHTML=TL_FIELDS.map((f,i)=>{
     const done=!!c[f]; return `<div class="tl-step${done?' done':''}"><div class="sn">${i+1}. ${ETAPAS[i]}</div><div class="sd">${c[f]?fmt(c[f]):'—'}</div></div>`;
@@ -658,6 +695,7 @@ function editarCandidato(id) {
   r$('fTUniv').value=c.tipo_univ||'Federal'; r$('fDisc').value=c.disc||'C';
   r$('fGer').value=c.geracao||'Y'; r$('fGen').value=c.genero||'Masculino';
   r$('fDtContr').value=c.dt_contr||''; r$('fDtDesl').value=c.dt_desl||'';
+  r$('fMotivo').value=c.motivo_saida||''; toggleMotivo();
   r$('fObs').value=c.obs||'';
   TL_FIELDS.forEach((f,i)=>{ r$('tl'+i).value=c[f]||''; });
   r$('mCand').classList.add('open');
@@ -672,6 +710,7 @@ async function salvarCandidato() {
     univ:r$('fUniv').value, tipo_univ:r$('fTUniv').value,
     disc:r$('fDisc').value, geracao:r$('fGer').value, genero:r$('fGen').value,
     dt_contr:r$('fDtContr').value||null, dt_desl:r$('fDtDesl').value||null,
+    motivo_saida:r$('fMotivo').value||null,
     obs:r$('fObs').value
   };
   TL_FIELDS.forEach((f,i)=>{ data[f]=r$('tl'+i).value||null; });
@@ -787,6 +826,7 @@ function abrirModal(tipo) {
     r$('fichaView').style.display='none'; r$('formCand').style.display='block';
     r$('mCandTitulo').textContent='Novo candidato';
     ['fNome','fEstado','fUniv','fDtContr','fDtDesl','fObs'].forEach(id=>r$(id).value='');
+    r$('fMotivo').value=''; r$('fMotivoCont').style.display='none';
     for(let i=0;i<11;i++) r$('tl'+i).value='';
     populateSels();
     r$('mCand').classList.add('open');
