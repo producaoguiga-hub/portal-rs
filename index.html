@@ -256,21 +256,56 @@
       <div class="card-title">Tempo médio por etapa do processo (dias)</div>
       <div class="avg-grid" id="avgEtapas"></div>
     </div>
+    <div class="card" id="cardMotivos">
+      <div class="card-title">Motivos de desligamento</div>
+      <div style="position:relative;height:280px"><canvas id="cMotivos"></canvas></div>
+    </div>
   </div>
 
   <!-- CANDIDATOS -->
   <div class="page" id="page-candidatos">
     <div class="page-title">Candidatos</div>
-    <div class="toolbar">
-      <select id="fT" onchange="renderCandidatos()"><option value="">Todas as turmas</option></select>
-      <select id="fS" onchange="renderCandidatos()"><option value="">Todos os status</option><option>Ativo</option><option>Desligado</option></select>
-      <select id="fC" onchange="renderCandidatos()"><option value="">Todos os cargos</option><option>Gestor Técnico</option><option>Gestor Administrativo</option></select>
-      <button class="btn btn-primary" onclick="abrirModal('candidato')"><i class="ti ti-plus"></i> Novo candidato</button>
+    <div class="tl-tabs" style="margin-bottom:1rem">
+      <button class="tl-tab active" onclick="switchCandTab('lista',this)"><i class="ti ti-list"></i> Lista</button>
+      <button class="tl-tab" onclick="switchCandTab('turnover',this)"><i class="ti ti-chart-bar"></i> Turnover</button>
     </div>
-    <div class="table-wrap">
-      <table><thead><tr><th>Nome</th><th>Cargo</th><th>Turma</th><th>UF</th><th>Fonte</th><th>DISC</th><th>Status</th><th>Contratação</th><th>Desligamento</th><th></th></tr></thead>
-      <tbody id="tbCand"></tbody></table>
-      <div id="emptyCand" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum candidato encontrado</div>
+    <!-- Lista -->
+    <div id="candListaView">
+      <div class="toolbar">
+        <select id="fT" onchange="renderCandidatos()"><option value="">Todas as turmas</option></select>
+        <select id="fS" onchange="renderCandidatos()"><option value="">Todos os status</option><option>Ativo</option><option>Desligado</option></select>
+        <select id="fC" onchange="renderCandidatos()"><option value="">Todos os cargos</option><option>Gestor Técnico</option><option>Gestor Administrativo</option></select>
+        <button class="btn btn-primary" onclick="abrirModal('candidato')"><i class="ti ti-plus"></i> Novo candidato</button>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nome</th><th>Cargo</th><th>Turma</th><th>UF</th><th>Fonte</th><th>DISC</th><th>Status</th><th>Contratação</th><th>Desligamento</th><th></th></tr></thead>
+        <tbody id="tbCand"></tbody></table>
+        <div id="emptyCand" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum candidato encontrado</div>
+      </div>
+    </div>
+    <!-- Turnover -->
+    <div id="candTurnoverView" style="display:none">
+      <div class="metric-grid" id="tvKPIs" style="margin-bottom:1rem"></div>
+      <div class="chart-row" style="margin-bottom:1rem">
+        <div class="card">
+          <div class="card-title">Motivos de saída</div>
+          <div style="position:relative;height:280px"><canvas id="tvMotivos"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Por iniciativa</div>
+          <div class="legend" id="tvLgInit"></div>
+          <div style="position:relative;height:240px"><canvas id="tvIniciativa"></canvas></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-title">Desligamentos por turma</div>
+        <div style="position:relative;height:180px"><canvas id="tvTurma"></canvas></div>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nome</th><th>Turma</th><th>Cargo</th><th>Data desl.</th><th>Motivo da Saída</th></tr></thead>
+        <tbody id="tvTabela"></tbody></table>
+        <div id="tvEmpty" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum desligado registrado</div>
+      </div>
     </div>
   </div>
 
@@ -614,6 +649,16 @@ function renderCharts() {
   dc('cRecr');
   charts['cRecr']=new Chart(r$('cRecr'),{type:'doughnut',data:{labels:rK,datasets:[{data:rV,backgroundColor:rK.map(k=>rMap[k]||'#8a9fad'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false}}}});
 
+  const deslM=cands.filter(c=>c.status==='Desligado'&&c.motivo_saida);
+  if(deslM.length){
+    r$('cardMotivos').style.display='';
+    const pmCnt={};deslM.forEach(c=>{pmCnt[c.motivo_saida]=(pmCnt[c.motivo_saida]||0)+1;});
+    const pmK=Object.keys(pmCnt).sort((a,b)=>pmCnt[b]-pmCnt[a]);
+    const pmV=pmK.map(k=>pmCnt[k]);
+    dc('cMotivos');
+    charts['cMotivos']=new Chart(r$('cMotivos'),{type:'bar',data:{labels:pmK,datasets:[{data:pmV,backgroundColor:'#FF8F1F',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  }else{r$('cardMotivos').style.display='none';dc('cMotivos');}
+
   const medias=TL_FIELDS.map((f,i)=>{
     if(i===0) return null;
     const prev=TL_FIELDS[i-1];
@@ -635,6 +680,54 @@ function renderCharts() {
 // ============================================================
 // CANDIDATOS
 // ============================================================
+function switchCandTab(tab,el) {
+  document.querySelectorAll('#page-candidatos .tl-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  r$('candListaView').style.display=tab==='lista'?'':'none';
+  r$('candTurnoverView').style.display=tab==='turnover'?'':'none';
+  if(tab==='turnover') renderTurnover();
+}
+
+function renderTurnover() {
+  const desl=candidatos.filter(c=>c.status==='Desligado');
+  const total=candidatos.length;
+  const tvPct=total>0?Math.round(desl.length/total*100):0;
+  const tempos=desl.map(c=>c.dt_contr&&c.dt_desl?dias(c.dt_contr,c.dt_desl):null).filter(d=>d!=null&&d>=0);
+  const tMedio=tempos.length?Math.round(tempos.reduce((a,b)=>a+b,0)/tempos.length):null;
+  const piFuncionario=['Proposta melhor de Cargo e Salário','Proposta de voltar para sua região de Origem','Necessidade profissional do Cônjuge','Problema de Saúde pessoal ou familiar','Não adaptação ao modelo de negócio','Dificuldade de Relacionamento com os pares','Sobrecarga ou dificuldade com a Rotina'];
+  const piEmpresa=['Incompatibilidade do Perfil','Problemas de relacionamento','Decisão do Diretor','Diminuição de Contratos','Compliance','Baixa performance / Resultado'];
+  const cFunc=desl.filter(c=>piFuncionario.includes(c.motivo_saida)).length;
+  const cEmp=desl.filter(c=>piEmpresa.includes(c.motivo_saida)).length;
+  r$('tvKPIs').innerHTML=`
+    <div class="metric m-r"><div class="lbl">Desligados</div><div class="val">${desl.length}</div><div class="sub">de ${total} admitidos</div></div>
+    <div class="metric"><div class="lbl">Turnover</div><div class="val">${tvPct}%</div><div class="sub">taxa geral</div></div>
+    <div class="metric m-b"><div class="lbl">Tempo médio</div><div class="val">${tMedio!=null?tMedio+'d':'—'}</div><div class="sub">até desligamento</div></div>
+    <div class="metric"><div class="lbl">Por iniciativa</div><div class="val">${cFunc}&nbsp;/&nbsp;${cEmp}</div><div class="sub">funcionário / empresa</div></div>`;
+  // Motivos horizontal bar
+  const mCnt={};desl.forEach(c=>{if(c.motivo_saida)mCnt[c.motivo_saida]=(mCnt[c.motivo_saida]||0)+1;});
+  const mK=Object.keys(mCnt).sort((a,b)=>mCnt[b]-mCnt[a]);
+  const mV=mK.map(k=>mCnt[k]);
+  dc('tvMotivos');
+  if(mK.length){charts['tvMotivos']=new Chart(r$('tvMotivos'),{type:'bar',data:{labels:mK,datasets:[{data:mV,backgroundColor:'#1A88FF',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}}});}
+  // Por iniciativa doughnut
+  mkLeg('tvLgInit',['Funcionário','Empresa'],['#1A88FF','#FF8F1F']);
+  dc('tvIniciativa');
+  charts['tvIniciativa']=new Chart(r$('tvIniciativa'),{type:'doughnut',data:{labels:['Funcionário','Empresa'],datasets:[{data:[cFunc,cEmp],backgroundColor:['#1A88FF','#FF8F1F'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}});
+  // Desligamentos por turma
+  const tNomes=[...new Set(desl.map(c=>c.turma_nome).filter(Boolean))].sort();
+  const tVals=tNomes.map(t=>desl.filter(c=>c.turma_nome===t).length);
+  dc('tvTurma');
+  if(tNomes.length){charts['tvTurma']=new Chart(r$('tvTurma'),{type:'bar',data:{labels:tNomes.map(t=>t.replace('Turma ','')),datasets:[{label:'Desligados',data:tVals,backgroundColor:'#FF8F1F',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});}
+  // Tabela
+  r$('tvEmpty').style.display=desl.length?'none':'block';
+  r$('tvTabela').innerHTML=desl.slice().sort((a,b)=>(b.dt_desl||'').localeCompare(a.dt_desl||'')).map(c=>`<tr>
+    <td><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></td>
+    <td>${(c.turma_nome||'').replace('Turma ','')}</td>
+    <td style="color:var(--text2)">${(c.cargo||'').replace('Gestor ','')}</td>
+    <td>${c.dt_desl?fmt(c.dt_desl):'—'}</td>
+    <td>${c.motivo_saida||'<span style="color:var(--text3)">—</span>'}</td></tr>`).join('');
+}
+
 function renderCandidatos() {
   const tf=r$('fT').value, sf=r$('fS').value, cf=r$('fC').value;
   const f=candidatos.filter(c=>(!tf||c.turma_nome===tf)&&(!sf||c.status===sf)&&(!cf||c.cargo===cf));
