@@ -116,7 +116,8 @@
 
   /* Ficha candidato */
   .ficha-header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; }
-  .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--blue-bg); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; color: var(--blue-text); flex-shrink: 0; }
+  .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--blue-bg); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; color: var(--blue-text); flex-shrink: 0; overflow: hidden; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
   .ficha-nome { font-size: 17px; font-weight: 600; }
   .ficha-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
   .ficha-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
@@ -388,8 +389,16 @@
     </div>
     <!-- FORMULÁRIO -->
     <div id="formCand">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:1rem">
+        <div class="avatar" id="fFotoAvatar" style="width:72px;height:72px;font-size:22px;cursor:pointer" onclick="r$('fFotoInput').click()" title="Clique para trocar a foto">
+          <img id="fFotoPreview" style="display:none">
+          <span id="fFotoInitials"></span>
+        </div>
+        <span style="font-size:11px;color:var(--text3)">Clique para adicionar foto</span>
+        <input type="file" id="fFotoInput" accept="image/*" style="display:none" onchange="previewFoto(this)">
+      </div>
       <div class="form-grid">
-        <div class="fg span2"><label>Nome completo</label><input id="fNome" type="text" placeholder="Ex: João Silva"></div>
+        <div class="fg span2"><label>Nome completo</label><input id="fNome" type="text" placeholder="Ex: João Silva" oninput="if(!r$('fFotoInput').files[0])r$('fFotoInitials').textContent=initials(this.value)"></div>
         <div class="fg"><label>Status</label><select id="fStatus" onchange="toggleMotivo()"><option>Ativo</option><option>Desligado</option></select></div>
         <div class="fg"><label>Cargo</label><select id="fCargo"><option>Gestor Técnico</option><option>Gestor Administrativo</option></select></div>
         <div class="fg"><label>Turma</label><select id="fTurma"></select></div>
@@ -496,6 +505,7 @@
 // SUPABASE CONFIG
 // ============================================================
 const SUPA_URL = 'https://gahrfavjcdgwjmlsajeo.supabase.co/rest/v1';
+const SUPA_STORAGE = 'https://gahrfavjcdgwjmlsajeo.supabase.co/storage/v1';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaHJmYXZqY2Rnd2ptbHNhamVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTQzNzYsImV4cCI6MjA5NzM3MDM3Nn0.I5ozH_hPb4DT-PerlWwtpMKwBMXZnCQeNLu5rDs3tKY';
 
 const headers = {
@@ -596,6 +606,29 @@ function r$(id) { return document.getElementById(id); }
 // ============================================================
 // CHARTS
 // ============================================================
+function previewFoto(input) {
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    r$('fFotoPreview').src=e.target.result;
+    r$('fFotoPreview').style.display='block';
+    r$('fFotoInitials').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadFoto(file) {
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z]/g,'');
+  const path=Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
+  const res=await fetch(`${SUPA_STORAGE}/object/avatars/${path}`,{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+SUPA_KEY,'x-upsert':'true','Content-Type':file.type},
+    body:file
+  });
+  if(!res.ok) throw new Error(await res.text());
+  return `${SUPA_STORAGE}/object/public/avatars/${path}`;
+}
+
 function toggleMotivo() {
   const desl=r$('fStatus').value==='Desligado';
   r$('fMotivoCont').style.display=desl?'':'none';
@@ -721,7 +754,7 @@ function renderTurnover() {
   // Tabela
   r$('tvEmpty').style.display=desl.length?'none':'block';
   r$('tvTabela').innerHTML=desl.slice().sort((a,b)=>(b.dt_desl||'').localeCompare(a.dt_desl||'')).map(c=>`<tr>
-    <td><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></td>
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${c.foto_url?`<img src="${c.foto_url}">`:`${initials(c.nome)}`}</div><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></div></td>
     <td>${(c.turma_nome||'').replace('Turma ','')}</td>
     <td style="color:var(--text2)">${(c.cargo||'').replace('Gestor ','')}</td>
     <td>${c.dt_desl?fmt(c.dt_desl):'—'}</td>
@@ -733,7 +766,7 @@ function renderCandidatos() {
   const f=candidatos.filter(c=>(!tf||c.turma_nome===tf)&&(!sf||c.status===sf)&&(!cf||c.cargo===cf));
   r$('emptyCand').style.display=f.length?'none':'block';
   r$('tbCand').innerHTML=f.map(c=>`<tr>
-    <td><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></td>
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${c.foto_url?`<img src="${c.foto_url}">`:`${initials(c.nome)}`}</div><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></div></td>
     <td style="color:var(--text2)">${(c.cargo||'').replace('Gestor ','')}</td>
     <td>${(c.turma_nome||'').replace('Turma ','')}</td>
     <td>${c.estado||'—'}</td><td>${c.fonte||'—'}</td>
@@ -752,7 +785,7 @@ function verCandidato(id) {
   viewId=id;
   r$('fichaView').style.display='block'; r$('formCand').style.display='none';
   r$('mCandTitulo').textContent='Ficha do candidato';
-  r$('fichaAvatar').textContent=initials(c.nome);
+  r$('fichaAvatar').innerHTML=c.foto_url?`<img src="${c.foto_url}">`:`${initials(c.nome)}`;
   r$('fichaNome').textContent=c.nome;
   r$('fichaSub').textContent=(c.cargo||'')+(c.turma_nome?' · '+c.turma_nome:'');
   r$('fichaGrid').innerHTML=[
@@ -790,12 +823,18 @@ function editarCandidato(id) {
   r$('fDtContr').value=c.dt_contr||''; r$('fDtDesl').value=c.dt_desl||'';
   r$('fMotivo').value=c.motivo_saida||''; toggleMotivo();
   r$('fObs').value=c.obs||'';
+  r$('fFotoInput').value='';
+  if(c.foto_url){r$('fFotoPreview').src=c.foto_url;r$('fFotoPreview').style.display='block';r$('fFotoInitials').style.display='none';}
+  else{r$('fFotoPreview').style.display='none';r$('fFotoInitials').style.display='';r$('fFotoInitials').textContent=initials(c.nome);}
   TL_FIELDS.forEach((f,i)=>{ r$('tl'+i).value=c[f]||''; });
   r$('mCand').classList.add('open');
 }
 
 async function salvarCandidato() {
   const nome=r$('fNome').value.trim(); if(!nome){alert('Informe o nome');return;}
+  let foto_url=editId?(candidatos.find(c=>c.id===editId)||{}).foto_url||null:null;
+  const fFile=r$('fFotoInput').files[0];
+  if(fFile){try{foto_url=await uploadFoto(fFile);}catch(e){toast('Erro no upload da foto: '+e.message);return;}}
   const data={
     nome, status:r$('fStatus').value, cargo:r$('fCargo').value,
     turma_nome:r$('fTurma').value, estado:r$('fEstado').value.toUpperCase(),
@@ -804,7 +843,7 @@ async function salvarCandidato() {
     disc:r$('fDisc').value, geracao:r$('fGer').value, genero:r$('fGen').value,
     dt_contr:r$('fDtContr').value||null, dt_desl:r$('fDtDesl').value||null,
     motivo_saida:r$('fMotivo').value||null,
-    obs:r$('fObs').value
+    foto_url, obs:r$('fObs').value
   };
   TL_FIELDS.forEach((f,i)=>{ data[f]=r$('tl'+i).value||null; });
   try {
@@ -920,6 +959,8 @@ function abrirModal(tipo) {
     r$('mCandTitulo').textContent='Novo candidato';
     ['fNome','fEstado','fUniv','fDtContr','fDtDesl','fObs'].forEach(id=>r$(id).value='');
     r$('fMotivo').value=''; r$('fMotivoCont').style.display='none';
+    r$('fFotoInput').value=''; r$('fFotoPreview').src=''; r$('fFotoPreview').style.display='none';
+    r$('fFotoInitials').style.display=''; r$('fFotoInitials').textContent='';
     for(let i=0;i<11;i++) r$('tl'+i).value='';
     populateSels();
     r$('mCand').classList.add('open');
