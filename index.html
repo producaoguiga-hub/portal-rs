@@ -749,8 +749,9 @@ function renderTurnover() {
   // Desligamentos por turma
   const tNomes=[...new Set(desl.map(c=>c.turma_nome).filter(Boolean))].sort();
   const tVals=tNomes.map(t=>desl.filter(c=>c.turma_nome===t).length);
+  const tTotal=tNomes.map(t=>candidatos.filter(c=>c.turma_nome===t).length);
   dc('tvTurma');
-  if(tNomes.length){charts['tvTurma']=new Chart(r$('tvTurma'),{type:'bar',data:{labels:tNomes.map(t=>t.replace('Turma ','')),datasets:[{label:'Desligados',data:tVals,backgroundColor:'#FF8F1F',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});}
+  if(tNomes.length){charts['tvTurma']=new Chart(r$('tvTurma'),{type:'bar',data:{labels:tNomes.map(t=>t.replace('Turma ','')),datasets:[{label:'Total admitidos',data:tTotal,backgroundColor:'rgba(26,136,255,0.15)',borderRadius:3},{label:'Desligados',data:tVals,backgroundColor:'#FF8F1F',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:10},boxWidth:10,padding:8}}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});}
   // Tabela
   r$('tvEmpty').style.display=desl.length?'none':'block';
   r$('tvTabela').innerHTML=desl.slice().sort((a,b)=>(b.dt_desl||'').localeCompare(a.dt_desl||'')).map(c=>`<tr>
@@ -886,8 +887,25 @@ function renderCustos() {
     <td>R$${parseFloat(c.recr||0).toFixed(0)}</td>
     <td>R$${parseFloat(c.andre||0).toFixed(0)}</td>
     <td style="font-weight:500">R$${parseFloat(c.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-    <td><button class="icon-btn del" onclick="excluirCusto('${c.id}')"><i class="ti ti-trash"></i></button></td>
+    <td style="white-space:nowrap">
+      <button class="icon-btn" onclick="editarCusto('${c.id}')" title="Editar"><i class="ti ti-pencil"></i></button>
+      <button class="icon-btn del" onclick="excluirCusto('${c.id}')" title="Excluir"><i class="ti ti-trash"></i></button>
+    </td>
   </tr>`).join('');
+}
+
+let editCustoId=null;
+
+function editarCusto(id) {
+  const c=custos.find(x=>x.id===id); if(!c) return;
+  editCustoId=id;
+  r$('mCusto').querySelector('.modal-title').textContent='Editar custo';
+  r$('fcCand').value=candidatos.find(x=>x.nome===c.candidato)?.id||'';
+  r$('fcTurma').value=c.turma_nome||'';
+  r$('fcAso').value=c.aso||0; r$('fcPsi').value=c.psi||0; r$('fcAereo').value=c.aereo||0;
+  r$('fcTrans').value=c.trans||0; r$('fcHosp').value=c.hosp||0; r$('fcEpi').value=c.epi||0;
+  r$('fcRecr').value=c.recr||0; r$('fcAndre').value=c.andre||0;
+  r$('mCusto').classList.add('open');
 }
 
 async function salvarCusto() {
@@ -897,8 +915,14 @@ async function salvarCusto() {
   const recr=+r$('fcRecr').value||0, andre=+r$('fcAndre').value||0;
   const total=aso+psi+aereo+trans+hosp+epi+recr+andre;
   try {
-    await dbInsert('custos',{candidato:cand.nome,turma_nome:r$('fcTurma').value,aso,psi,aereo,trans,hosp,epi,recr,andre,total});
-    toast('Custo cadastrado!'); fecharModal('mCusto');
+    if(editCustoId){
+      await dbUpdate('custos',editCustoId,{candidato:cand.nome,turma_nome:r$('fcTurma').value,aso,psi,aereo,trans,hosp,epi,recr,andre,total});
+      toast('Custo atualizado!');
+    } else {
+      await dbInsert('custos',{candidato:cand.nome,turma_nome:r$('fcTurma').value,aso,psi,aereo,trans,hosp,epi,recr,andre,total});
+      toast('Custo cadastrado!');
+    }
+    fecharModal('mCusto');
     custos=await dbGet('custos'); renderAll();
   } catch(e){toast('Erro: '+e.message,true);}
 }
@@ -965,6 +989,10 @@ function abrirModal(tipo) {
     populateSels();
     r$('mCand').classList.add('open');
   } else if(tipo==='custo') {
+    editCustoId=null;
+    r$('mCusto').querySelector('.modal-title').textContent='Registrar custo';
+    ['fcAso','fcPsi','fcAereo','fcTrans','fcHosp','fcEpi','fcRecr'].forEach(id=>r$(id).value=0);
+    r$('fcAndre').value=570;
     populateSels(); r$('mCusto').classList.add('open');
   } else if(tipo==='turma') {
     r$('ftNome').value=''; r$('ftPer').value='';
@@ -973,7 +1001,7 @@ function abrirModal(tipo) {
 }
 
 function fecharModal(id) {
-  r$(id).classList.remove('open'); editId=null; viewId=null;
+  r$(id).classList.remove('open'); editId=null; viewId=null; editCustoId=null;
 }
 
 // Fechar ao clicar fora
