@@ -303,7 +303,7 @@
         <div style="position:relative;height:180px"><canvas id="tvTurma"></canvas></div>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>Nome</th><th>Turma</th><th>Cargo</th><th>Data desl.</th><th>Motivo da Saída</th></tr></thead>
+        <table><thead><tr><th>Nome</th><th>Turma</th><th>Cargo</th><th>Data desl.</th><th>Permanência</th><th>Motivo da Saída</th></tr></thead>
         <tbody id="tvTabela"></tbody></table>
         <div id="tvEmpty" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum desligado registrado</div>
       </div>
@@ -592,6 +592,8 @@ function goPage(id, btn) {
 // ============================================================
 function fmt(d) { if(!d) return '—'; const p=d.split('-'); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d; }
 function dias(a,b) { if(!a||!b) return null; return Math.round((new Date(b)-new Date(a))/(864e5)); }
+function mesesEntre(a,b) { if(!a||!b) return null; const da=new Date(a),db=new Date(b); const m=(db.getFullYear()-da.getFullYear())*12+(db.getMonth()-da.getMonth())+(db.getDate()<da.getDate()?-1:0); return m<0?0:m; }
+function fmtPerm(m) { if(m==null) return '—'; if(m<1) return '<1 mês'; const a=Math.floor(m/12),r=m%12; if(a===0) return r+(r===1?' mês':' meses'); return a+'a'+(r?' '+r+'m':''); }
 function initials(n) { const p=n.trim().split(' '); return (p[0][0]+(p[p.length-1][0]||'')).toUpperCase(); }
 function cnt(arr,k) { return arr.reduce((a,c)=>{ a[c[k]]=(a[c[k]]||0)+1; return a; },{}); }
 function mkLeg(id,labels,colors) { const el=document.getElementById(id); if(!el) return; el.innerHTML=labels.map((l,i)=>`<span><span class="sw" style="background:${colors[i]}"></span>${l}</span>`).join(''); }
@@ -725,16 +727,16 @@ function renderTurnover() {
   const desl=candidatos.filter(c=>c.status==='Desligado');
   const total=candidatos.length;
   const tvPct=total>0?Math.round(desl.length/total*100):0;
-  const tempos=desl.map(c=>c.dt_contr&&c.dt_desl?dias(c.dt_contr,c.dt_desl):null).filter(d=>d!=null&&d>=0);
-  const tMedio=tempos.length?Math.round(tempos.reduce((a,b)=>a+b,0)/tempos.length):null;
   const piFuncionario=['Proposta melhor de Cargo e Salário','Proposta de voltar para sua região de Origem','Necessidade profissional do Cônjuge','Problema de Saúde pessoal ou familiar','Não adaptação ao modelo de negócio','Dificuldade de Relacionamento com os pares','Sobrecarga ou dificuldade com a Rotina'];
   const piEmpresa=['Incompatibilidade do Perfil','Problemas de relacionamento','Decisão do Diretor','Diminuição de Contratos','Compliance','Baixa performance / Resultado'];
   const cFunc=desl.filter(c=>piFuncionario.includes(c.motivo_saida)).length;
   const cEmp=desl.filter(c=>piEmpresa.includes(c.motivo_saida)).length;
+  const perms=desl.map(c=>mesesEntre(c.dt_contr,c.dt_desl)).filter(p=>p!=null);
+  const permMedia=perms.length?Math.round(perms.reduce((a,b)=>a+b,0)/perms.length):null;
   r$('tvKPIs').innerHTML=`
     <div class="metric m-r"><div class="lbl">Desligados</div><div class="val">${desl.length}</div><div class="sub">de ${total} admitidos</div></div>
     <div class="metric"><div class="lbl">Turnover</div><div class="val">${tvPct}%</div><div class="sub">taxa geral</div></div>
-    <div class="metric m-b"><div class="lbl">Tempo médio</div><div class="val">${tMedio!=null?tMedio+'d':'—'}</div><div class="sub">até desligamento</div></div>
+    <div class="metric m-g"><div class="lbl">Permanência média</div><div class="val">${fmtPerm(permMedia)}</div><div class="sub">${perms.length} com dados</div></div>
     <div class="metric"><div class="lbl">Por iniciativa</div><div class="val">${cFunc}&nbsp;/&nbsp;${cEmp}</div><div class="sub">funcionário / empresa</div></div>`;
   // Motivos horizontal bar
   const mCnt={};desl.forEach(c=>{if(c.motivo_saida)mCnt[c.motivo_saida]=(mCnt[c.motivo_saida]||0)+1;});
@@ -751,15 +753,16 @@ function renderTurnover() {
   const tVals=tNomes.map(t=>desl.filter(c=>c.turma_nome===t).length);
   const tTotal=tNomes.map(t=>candidatos.filter(c=>c.turma_nome===t).length);
   dc('tvTurma');
-  if(tNomes.length){charts['tvTurma']=new Chart(r$('tvTurma'),{type:'bar',data:{labels:tNomes.map(t=>t.replace('Turma ','')),datasets:[{label:'Total admitidos',data:tTotal,backgroundColor:'rgba(26,136,255,0.22)',borderRadius:3,order:2,barPercentage:1.0,categoryPercentage:1.0},{label:'Desligados',data:tVals,backgroundColor:'#FF8F1F',borderRadius:3,order:1,barPercentage:0.55,categoryPercentage:1.0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:10},boxWidth:10,padding:8}}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});}
+  if(tNomes.length){charts['tvTurma']=new Chart(r$('tvTurma'),{type:'bar',data:{labels:tNomes.map(t=>t.replace('Turma ','')),datasets:[{label:'Total admitidos',data:tTotal,backgroundColor:'rgba(26,136,255,0.28)',borderRadius:4,grouped:false,barPercentage:0.9,categoryPercentage:1.0},{label:'Desligados',data:tVals,backgroundColor:'#FF8F1F',borderRadius:4,grouped:false,barPercentage:0.5,categoryPercentage:1.0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:10},boxWidth:10,padding:8}}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});}
   // Tabela
   r$('tvEmpty').style.display=desl.length?'none':'block';
-  r$('tvTabela').innerHTML=desl.slice().sort((a,b)=>(b.dt_desl||'').localeCompare(a.dt_desl||'')).map(c=>`<tr>
+  r$('tvTabela').innerHTML=desl.slice().sort((a,b)=>(b.dt_desl||'').localeCompare(a.dt_desl||'')).map(c=>{const perm=mesesEntre(c.dt_contr,c.dt_desl);return`<tr>
     <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${c.foto_url?`<img src="${c.foto_url}">`:`${initials(c.nome)}`}</div><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></div></td>
     <td>${(c.turma_nome||'').replace('Turma ','')}</td>
     <td style="color:var(--text2)">${(c.cargo||'').replace('Gestor ','')}</td>
     <td>${c.dt_desl?fmt(c.dt_desl):'—'}</td>
-    <td>${c.motivo_saida||'<span style="color:var(--text3)">—</span>'}</td></tr>`).join('');
+    <td style="color:var(--text2);white-space:nowrap">${fmtPerm(perm)}</td>
+    <td>${c.motivo_saida||'<span style="color:var(--text3)">—</span>'}</td></tr>`}).join('');
 }
 
 function renderCandidatos() {
