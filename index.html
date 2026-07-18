@@ -751,7 +751,7 @@ function renderTurnover() {
   const tVals=tNomes.map(t=>desl.filter(c=>c.turma_nome===t).length);
   const tTotal=tNomes.map(t=>candidatos.filter(c=>c.turma_nome===t).length);
   dc('tvTurma');
-  if(tNomes.length){charts['tvTurma']=new Chart(r$('tvTurma'),{type:'bar',data:{labels:tNomes.map(t=>t.replace('Turma ','')),datasets:[{label:'Total admitidos',data:tTotal,backgroundColor:'rgba(26,136,255,0.15)',borderRadius:3},{label:'Desligados',data:tVals,backgroundColor:'#FF8F1F',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:10},boxWidth:10,padding:8}}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});}
+  if(tNomes.length){charts['tvTurma']=new Chart(r$('tvTurma'),{type:'bar',data:{labels:tNomes.map(t=>t.replace('Turma ','')),datasets:[{label:'Total admitidos',data:tTotal,backgroundColor:'rgba(26,136,255,0.22)',borderRadius:3,order:2,barPercentage:1.0,categoryPercentage:1.0},{label:'Desligados',data:tVals,backgroundColor:'#FF8F1F',borderRadius:3,order:1,barPercentage:0.55,categoryPercentage:1.0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:10},boxWidth:10,padding:8}}},scales:{x:{grid:{display:false}},y:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}}}}});}
   // Tabela
   r$('tvEmpty').style.display=desl.length?'none':'block';
   r$('tvTabela').innerHTML=desl.slice().sort((a,b)=>(b.dt_desl||'').localeCompare(a.dt_desl||'')).map(c=>`<tr>
