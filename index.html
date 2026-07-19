@@ -332,7 +332,7 @@
       <button class="btn btn-primary" onclick="abrirModal('turma')"><i class="ti ti-plus"></i> Nova turma</button>
     </div>
     <div class="table-wrap">
-      <table><thead><tr><th>Turma</th><th>Período</th><th>Recrutador</th><th>Admitidos</th><th>Ativos</th><th>Turnover</th><th>Custo total</th><th>Tempo médio processo</th><th></th></tr></thead>
+      <table><thead><tr><th>Turma</th><th>Período</th><th>Admitidos</th><th>Ativos</th><th>Turnover</th><th>Custo total</th><th>Tempo médio processo</th><th></th></tr></thead>
       <tbody id="tbTurma"></tbody></table>
       <div id="emptyTurma" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma turma cadastrada</div>
     </div>
@@ -490,8 +490,7 @@
     <div class="modal-title">Nova turma</div>
     <div class="form-grid" style="grid-template-columns:1fr 1fr">
       <div class="fg span2"><label>Nome da turma</label><input id="ftNome" type="text" placeholder="Ex: Turma 2.2026"></div>
-      <div class="fg"><label>Período de início</label><input id="ftPer" type="text" placeholder="Ex: Mar/2026"></div>
-      <div class="fg"><label>Recrutador</label><select id="ftRecr"><option>Ello</option><option>Perbras</option></select></div>
+      <div class="fg span2"><label>Período de início</label><input id="ftPer" type="text" placeholder="Ex: Mar/2026"></div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="fecharModal('mTurma')">Cancelar</button>
@@ -951,7 +950,7 @@ function renderTurmas() {
     const med=ds.length?Math.round(ds.reduce((a,b)=>a+b,0)/ds.length):null;
     return `<tr>
       <td style="font-weight:500">${t.nome}</td>
-      <td>${t.periodo||'—'}</td><td>${t.recrutador||'—'}</td>
+      <td>${t.periodo||'—'}</td>
       <td>${adm}</td><td>${atv}</td>
       <td><span class="badge ${to>40?'b-r':to>20?'b-a':'b-g'}">${to}%</span></td>
       <td>${ct>0?'R$'+Math.round(ct).toLocaleString('pt-BR'):'—'}</td>
@@ -964,7 +963,7 @@ function renderTurmas() {
 async function salvarTurma() {
   const nome=r$('ftNome').value.trim(); if(!nome){alert('Informe o nome da turma');return;}
   try {
-    await dbInsert('turmas',{nome,periodo:r$('ftPer').value,recrutador:r$('ftRecr').value});
+    await dbInsert('turmas',{nome,periodo:r$('ftPer').value});
     toast('Turma cadastrada!'); fecharModal('mTurma');
     turmas=await dbGet('turmas'); populateSels(); renderAll();
   } catch(e){toast('Erro: '+e.message,true);}
