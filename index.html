@@ -65,7 +65,7 @@
   .metric.m-r .val { color: var(--red); }
   .metric.m-b .val { color: var(--blue); }
   .chart-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; margin-bottom: 1rem; }
-  .chart-row3 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 1rem; }
+  .chart-row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 1rem; }
 
   /* Tabela */
   .table-wrap { overflow-x: auto; border-radius: var(--radius-lg); border: 0.5px solid var(--border); background: var(--bg); box-shadow: var(--shadow); }
@@ -251,7 +251,11 @@
       <div class="card"><div class="card-title">Fonte de captação</div><div class="legend" id="lgF"></div><div style="position:relative;height:160px"><canvas id="cFonte"></canvas></div></div>
       <div class="card"><div class="card-title">Perfil DISC</div><div style="position:relative;height:160px"><canvas id="cDisc"></canvas></div></div>
       <div class="card"><div class="card-title">Tipo de universidade</div><div class="legend" id="lgU"></div><div style="position:relative;height:160px"><canvas id="cUniv"></canvas></div></div>
-      <div class="card"><div class="card-title">Recrutador (Perbras x Ello)</div><div class="legend" id="lgR"></div><div style="position:relative;height:160px"><canvas id="cRecr"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">Ello vs Perbras</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px" id="recrKPIs"></div>
+      <div style="position:relative;height:110px"><canvas id="cRecr"></canvas></div>
     </div>
     <div class="card">
       <div class="card-title">Tempo médio por etapa do processo (dias)</div>
@@ -678,11 +682,32 @@ function renderCharts() {
   dc('cUniv');
   charts['cUniv']=new Chart(r$('cUniv'),{type:'doughnut',data:{labels:uK,datasets:[{data:uV,backgroundColor:['#BCFF48','#FF8F1F','#1A88FF'].slice(0,uK.length),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false}}}});
 
-  const rMap={'Perbras':'#BCFF48','Ello':'#1A88FF'};
-  const rC=cnt(cands,'recrutador'); const rK=Object.keys(rC); const rV=rK.map(k=>rC[k]);
-  mkLeg('lgR',rK,rK.map(k=>rMap[k]||'#8a9fad'));
+  const rCols={'Ello':'#1A88FF','Perbras':'#BCFF48'};
+  r$('recrKPIs').innerHTML=['Ello','Perbras'].map(r=>{
+    const rc=cands.filter(c=>c.recrutador===r);
+    const ra=rc.filter(c=>c.status==='Ativo').length;
+    const rd=rc.length-ra;
+    const ret=rc.length?Math.round(ra/rc.length*100):0;
+    const rNames=new Set(rc.map(c=>c.nome));
+    const rCusto=filtCustos.filter(c=>rNames.has(c.candidato)).reduce((a,c)=>a+(+c.recr||0),0);
+    const avgC=rc.length?Math.round(rCusto/rc.length):0;
+    const col=rCols[r]||'#888';
+    const retCol=ret>=55?'#2EA86A':ret>=40?'#E07020':'#E05050';
+    return `<div style="border:1.5px solid var(--border);border-radius:8px;padding:12px 14px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+        <span style="width:9px;height:9px;border-radius:50%;background:${col};display:inline-block;flex-shrink:0"></span>
+        <span style="font-weight:700;font-size:13px">${r}</span>
+        <span style="font-size:11px;color:var(--text2);margin-left:auto">${rc.length} candidatos</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center">
+        <div><div style="font-size:20px;font-weight:800;color:${retCol}">${ret}%</div><div style="font-size:10px;color:var(--text2)">retenção</div></div>
+        <div><div style="font-size:20px;font-weight:800;color:#1A88FF">${ra}</div><div style="font-size:10px;color:var(--text2)">ativos</div></div>
+        <div><div style="font-size:15px;font-weight:700">R$${avgC.toLocaleString('pt-BR')}</div><div style="font-size:10px;color:var(--text2)">custo recr./p.</div></div>
+      </div>
+    </div>`;
+  }).join('');
   dc('cRecr');
-  charts['cRecr']=new Chart(r$('cRecr'),{type:'doughnut',data:{labels:rK,datasets:[{data:rV,backgroundColor:rK.map(k=>rMap[k]||'#8a9fad'),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:false}}}});
+  charts['cRecr']=new Chart(r$('cRecr'),{type:'bar',data:{labels:['Ello','Perbras'],datasets:[{label:'Ativos',data:['Ello','Perbras'].map(r=>cands.filter(c=>c.recrutador===r&&c.status==='Ativo').length),backgroundColor:'#1A88FF',borderRadius:3,stack:'s'},{label:'Desligados',data:['Ello','Perbras'].map(r=>cands.filter(c=>c.recrutador===r&&c.status==='Desligado').length),backgroundColor:'#FF8F1F',borderRadius:3,stack:'s'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:10},boxWidth:10,padding:8}}},scales:{x:{stacked:true,grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:5,font:{size:10}}},y:{stacked:true,grid:{display:false},ticks:{font:{size:12,weight:'600'}}}}}});
 
   const deslM=cands.filter(c=>c.status==='Desligado'&&c.motivo_saida);
   if(deslM.length){
