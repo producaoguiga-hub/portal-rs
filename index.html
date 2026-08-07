@@ -559,19 +559,20 @@ async function init() {
 }
 
 function populateSels() {
+  const uniqTurmas=turmas.filter((t,i,a)=>a.findIndex(x=>x.nome===t.nome)===i);
   ['fT','fCT','vfTurma'].forEach(id => {
     const el = document.getElementById(id); if(!el) return;
     const v = el.value;
     el.innerHTML = '<option value="">Todas as turmas</option>';
-    turmas.forEach(t => { const o = document.createElement('option'); o.value=t.nome; o.textContent=t.nome; el.appendChild(o); });
+    uniqTurmas.forEach(t => { const o = document.createElement('option'); o.value=t.nome; o.textContent=t.nome; el.appendChild(o); });
     if(v) el.value = v;
   });
   const fTF = document.getElementById('fTurma');
-  if(fTF) { fTF.innerHTML=''; turmas.forEach(t => { const o=document.createElement('option'); o.value=t.nome; o.textContent=t.nome; fTF.appendChild(o); }); }
+  if(fTF) { fTF.innerHTML=''; uniqTurmas.forEach(t => { const o=document.createElement('option'); o.value=t.nome; o.textContent=t.nome; fTF.appendChild(o); }); }
   const fcC = document.getElementById('fcCand');
   if(fcC) { fcC.innerHTML=''; candidatos.forEach(c => { const o=document.createElement('option'); o.value=c.id; o.textContent=c.nome; fcC.appendChild(o); }); }
   const fcT = document.getElementById('fcTurma');
-  if(fcT) { fcT.innerHTML=''; turmas.forEach(t => { const o=document.createElement('option'); o.value=t.nome; o.textContent=t.nome; fcT.appendChild(o); }); }
+  if(fcT) { fcT.innerHTML=''; uniqTurmas.forEach(t => { const o=document.createElement('option'); o.value=t.nome; o.textContent=t.nome; fcT.appendChild(o); }); }
 }
 
 function renderAll() { renderCharts(); renderCandidatos(); renderCustos(); renderTurmas(); initTimeline(); }
@@ -648,7 +649,7 @@ function renderCharts() {
   const cands=candidatos.filter(c=>(!tf||c.turma_nome===tf)&&(!sf||c.status===sf)&&(!cf||c.cargo===cf));
   const candNames=new Set(cands.map(c=>c.nome));
   const filtCustos=custos.filter(c=>(!tf||c.turma_nome===tf)&&(!sf&&!cf||candNames.has(c.candidato)));
-  const filtTurmas=tf?turmas.filter(t=>t.nome===tf):turmas;
+  const filtTurmas=(tf?turmas.filter(t=>t.nome===tf):turmas).filter((t,i,a)=>a.findIndex(x=>x.nome===t.nome)===i);
 
   const tn=filtTurmas.map(t=>t.nome.replace('Turma ',''));
   const atD=filtTurmas.map(t=>cands.filter(c=>c.turma_nome===t.nome&&c.status==='Ativo').length);
