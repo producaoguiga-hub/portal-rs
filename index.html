@@ -778,7 +778,12 @@ function renderAnalise() {
     const l2=mF&&pF&&mF.v!==pF.v
       ?`Em captação, <b>${mF.v}</b> entrega a melhor permanência (${mF.r}%) contra ${pF.r}% do <b>${pF.v}</b>; em recrutador, <b>${melhorRecr}</b> supera ${piorRecr}.`
       :'Ainda não há dados suficientes por fonte para identificar padrões.';
-    r$('anInsight').innerHTML=l1+'<br>'+l2;
+    const mCnt={};candidatos.filter(c=>c.status==='Desligado'&&c.motivo_saida).forEach(c=>{mCnt[c.motivo_saida]=(mCnt[c.motivo_saida]||0)+1;});
+    const topM=Object.entries(mCnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const l3=topM.length
+      ?`Os principais motivos de desligamento são: ${topM.map((m,i)=>`<b>${m[0]}</b> (${m[1]})`).join(', ')}.`
+      :'Ainda não há motivos de saída registrados.';
+    r$('anInsight').innerHTML=l1+'<br>'+l2+'<br>'+l3;
   })();
   // --- Ello vs Perbras KPIs ---
   const rCols={'Ello':'#1A88FF','Perbras':'#BCFF48'};
