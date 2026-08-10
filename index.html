@@ -312,6 +312,7 @@
     <!-- Análise -->
     <div id="candAnaliseView" style="display:none">
       <div id="anInsight" style="background:var(--blue-bg);border-left:3px solid var(--blue-text);border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:1rem;font-size:13.5px;line-height:1.7;color:var(--text)"></div>
+      <div id="anPersona" class="card" style="margin-bottom:1rem"></div>
       <div class="card" style="margin-bottom:1rem">
         <div class="card-title">Ello vs Perbras — comparativo</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px" id="anRecrKPIs"></div>
@@ -783,7 +784,27 @@ function renderAnalise() {
     const l3=topM.length
       ?`Os principais motivos de desligamento são: ${topM.map((m,i)=>`<b>${m[0]}</b> (${m[1]})`).join(', ')}.`
       :'Ainda não há motivos de saída registrados.';
-    r$('anInsight').innerHTML=l1+'<br>'+l2+'<br>'+l3;
+    const deslNomes=new Set(candidatos.filter(c=>c.status==='Desligado').map(c=>c.nome));
+    const custDesl=custos.filter(c=>deslNomes.has(c.candidato));
+    const custAll=custos.filter(c=>(parseFloat(c.total)||0)>0);
+    const avgD=custDesl.length?custDesl.reduce((s,c)=>s+(parseFloat(c.total)||0),0)/custDesl.length:0;
+    const avgR=custAll.length?custAll.reduce((s,c)=>s+(parseFloat(c.total)||0),0)/custAll.length:0;
+    const ctv=Math.round(avgD+avgR);
+    const fv=v=>'R$ '+Math.round(v).toLocaleString('pt-BR');
+    const nDesl=candidatos.filter(c=>c.status==='Desligado').length;
+    const l4=ctv>0
+      ?`Custo estimado por desligamento: <b>${fv(avgD)}</b> investidos perdidos + <b>${fv(avgR)}</b> para reposição = <b>${fv(ctv)} por turnover</b>. Com ${nDesl} saídas, o impacto acumulado estimado é de <b>${fv(ctv*nDesl)}</b>.`
+      :'Cadastre custos de candidatos para calcular o impacto financeiro do turnover.';
+    r$('anInsight').innerHTML=l1+'<br>'+l2+'<br>'+l3+'<br>'+l4;
+  })();
+  // --- Persona ideal ---
+  (function(){
+    const retP=g=>g.length?Math.round(g.filter(c=>c.status==='Ativo').length/g.length*100):0;
+    const bestOf=(field,minN)=>[...new Set(candidatos.map(c=>c[field]).filter(Boolean))].map(v=>({v,g:candidatos.filter(c=>c[field]===v)})).filter(x=>x.g.length>=minN).map(x=>({v:x.v,r:retP(x.g),n:x.g.length})).sort((a,b)=>b.r-a.r)[0]||null;
+    const dims=[{l:'Gênero',p:bestOf('genero',2)},{l:'Estado',p:bestOf('estado',3)},{l:'Fonte de captação',p:bestOf('fonte',3)},{l:'Cargo',p:bestOf('cargo',2)}].filter(d=>d.p);
+    const chips=dims.map(d=>`<div style="border:1px solid var(--border);border-radius:8px;padding:8px 14px;min-width:100px;text-align:center"><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">${d.l}</div><div style="font-weight:700;font-size:14px">${d.p.v}</div><div style="font-size:11px;color:#2EA86A;font-weight:600;margin-top:3px">${d.p.r}% retenção</div></div>`).join('');
+    const desc=dims.length?`A persona com maior probabilidade de retenção neste processo seletivo é: <b>${dims.map(d=>d.p.v).join(' · ')}</b>.`:'Dados insuficientes para definir a persona ideal.';
+    r$('anPersona').innerHTML=`<div class="card-title">Persona ideal para retenção</div><div style="font-size:12px;color:var(--text2);margin-bottom:14px">Perfil com maior taxa de permanência histórica no processo seletivo</div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px">${chips}</div><div style="font-size:13.5px;line-height:1.6;color:var(--text)">${desc}</div>`;
   })();
   // --- Ello vs Perbras KPIs ---
   const rCols={'Ello':'#1A88FF','Perbras':'#BCFF48'};
