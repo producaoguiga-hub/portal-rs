@@ -230,6 +230,16 @@
   .import-log { margin-top: .75rem; padding: .75rem; background: #091C28; border-radius: 8px; font-size: 11.5px; font-family: ui-monospace, Consolas, monospace; max-height: 260px; overflow-y: auto; white-space: pre-wrap; color: #cfe3ed; }
   .import-log .ok { color: #9ee37d; } .import-log .err { color: #F09595; } .import-log .inf { color: #85B7EB; }
 
+  /* Meu PDI (visão do gestor) */
+  .mp-header { display: flex; align-items: center; gap: 18px; margin-bottom: 1rem; }
+  .mp-header .avatar { width: 68px; height: 68px; font-size: 24px; flex-shrink: 0; cursor: pointer; position: relative; }
+  .mp-header .avatar:hover::after { content: 'Trocar foto'; position: absolute; inset: 0; background: rgba(9,28,40,0.55); color: #fff; font-size: 9px; display: flex; align-items: center; justify-content: center; border-radius: 50%; text-align: center; line-height: 1.3; padding: 4px; }
+  .mp-nome { font-size: 18px; font-weight: 600; }
+  .mp-unidade { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .mp-header .pbar { max-width: 320px; margin-top: 10px; }
+  .mp-header .pbar-sub { font-size: 11px; color: var(--text2); margin-top: 4px; }
+  .mp-alert { background: var(--amber-bg); color: var(--amber-text); border-radius: var(--radius); padding: 12px 16px; font-size: 13px; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+
   /* Login / acesso */
   #loginScreen { display: none; position: fixed; inset: 0; z-index: 500; align-items: center; justify-content: center; background: var(--bg3); padding: 1.5rem; }
   body:not(.authed) #loginScreen { display: flex; }
@@ -287,7 +297,8 @@
   <button class="nav-item admin-only" onclick="goPage('custos',this)"><i class="ti ti-currency-dollar"></i><span>Custos</span></button>
   <button class="nav-item admin-only" onclick="goPage('turmas',this)"><i class="ti ti-school"></i><span>Turmas</span></button>
   <button class="nav-item admin-only" onclick="goPage('timeline',this)"><i class="ti ti-timeline"></i><span>Linha do tempo</span></button>
-  <button class="nav-item" id="navItemPdi" onclick="goPage('pdi',this)"><i class="ti ti-target-arrow"></i><span>PDI Gestores</span></button>
+  <button class="nav-item admin-only" id="navItemPdi" onclick="goPage('pdi',this)"><i class="ti ti-target-arrow"></i><span>PDI Gestores</span></button>
+  <button class="nav-item gestor-only" id="navItemMeuPdi" onclick="goPage('meupdi',this)"><i class="ti ti-target-arrow"></i><span>Meu PDI</span></button>
   <div class="sidebar-foot">
     <div class="sidebar-user" id="sidebarUser"></div>
     <button class="nav-item" onclick="authSignOut()"><i class="ti ti-logout"></i><span>Sair</span></button>
@@ -520,7 +531,22 @@
     <div id="pdiGestoresView" style="display:none">
       <div class="pdi-grid" id="pdiGestoresGrid"></div>
       <div id="pdiEmptyGestores" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum gestor com PDI cadastrado</div>
+      <input type="file" id="gestorFotoInput" accept="image/*" style="display:none" onchange="onGestorFotoSelected(this)">
     </div>
+  </div>
+
+  <!-- MEU PDI (visão do gestor) -->
+  <div class="page" id="page-meupdi">
+    <div class="page-title">Meu PDI</div>
+    <div class="mp-header card" id="mpHeader"></div>
+    <div class="mp-alert" id="mpAlert" style="display:none"></div>
+    <div class="chart-row" style="margin-bottom:1rem">
+      <div class="card"><div class="card-title">Minhas ações por status</div><div class="legend" id="mpLgStatus"></div><div style="position:relative;height:190px"><canvas id="mpCStatus"></canvas></div></div>
+      <div class="metric-grid" id="mpKPIs" style="align-content:start"></div>
+    </div>
+    <div id="mpGroups"></div>
+    <div id="mpEmpty" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma ação de PDI cadastrada ainda</div>
+    <input type="file" id="mpFotoInput" accept="image/*" style="display:none" onchange="uploadMinhaFoto(this)">
   </div>
 
 </main>
@@ -868,6 +894,7 @@ async function init() {
     } catch(e) {
       toast('Erro ao carregar dados: ' + e.message, true);
     }
+    await loadGestorProfiles();
   }
   // PDI carrega separadamente: se a tabela "pdi" ainda não existir no Supabase,
   // o resto do portal continua funcionando normalmente.
@@ -885,7 +912,7 @@ async function init() {
 // BOOTSTRAP (login + perfil + liberação de tela)
 // ============================================================
 async function loadProfile() {
-  const r = await authFetch(`${SUPA_URL}/profiles?id=eq.${session.user.id}&select=role,gestor_nome`);
+  const r = await authFetch(`${SUPA_URL}/profiles?id=eq.${session.user.id}&select=role,gestor_nome,foto_url`);
   if (!r.ok) throw new Error(await r.text());
   const rows = await r.json();
   profile = rows[0] || null;
@@ -896,9 +923,9 @@ function applyRoleUI() {
   document.body.classList.toggle('role-gestor', isGestor);
   r$('sidebarUser').innerHTML = `<span class="role-badge ${isGestor?'gestor':'admin'}">${isGestor?'Gestor':'RH / Admin'}</span><br>${(profile.gestor_nome||session.user.email)}`;
   if (isGestor) {
-    goPage('pdi', r$('navItemPdi'));
-    const tab = document.querySelector('#page-pdi .tl-tab');
-    if (tab) switchPDITab('dash', tab);
+    goPage('meupdi', r$('navItemMeuPdi'));
+  } else {
+    goPage('visao', document.querySelector('.nav-item.admin-only'));
   }
 }
 
@@ -1781,6 +1808,7 @@ function switchPDITab(tab,el) {
 }
 
 function renderPDI() {
+  if (profile && profile.role === 'gestor') { renderMeuPDI(); return; }
   const qfCounts = {
     todos: pdis.length,
     atrasados: pdis.filter(p=>pdiEffectiveStatus(p)==='Atrasado').length,
@@ -1911,9 +1939,12 @@ function renderPDIGestores() {
     const concl = items.filter(p=>pdiEffectiveStatus(p)==='Concluído').length;
     const atrasadas = items.filter(p=>pdiEffectiveStatus(p)==='Atrasado').length;
     const pct = items.length ? Math.round(concl/items.length*100) : 0;
+    const gp = gestorProfiles[g];
+    const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(g);
+    const gNomeEsc = g.replace(/'/g,"\\'");
     return `<div class="pdi-card" onclick="verPDI('${items[0].id}')">
       <div class="pdi-card-head">
-        <div class="avatar">${initials(g)}</div>
+        <div class="avatar" ${gp?`style="cursor:pointer" title="Clique para trocar a foto" onclick="event.stopPropagation();abrirUploadGestorFoto('${gNomeEsc}')"`:''}>${avatarHtml}</div>
         <div><div class="nm">${g}</div><div class="un">${unidade}</div></div>
       </div>
       <div class="pdi-card-stats"><span>${concl}/${items.length} concluídas</span><b>${pct}%</b></div>
@@ -1922,6 +1953,151 @@ function renderPDIGestores() {
       <div class="pdi-mini-list">${items.slice(0,4).map(p=>`<div class="pdi-mini-item"><span class="pdi-dot" style="background:${pdiDotColor(pdiEffectiveStatus(p))}"></span><span class="txt">${p.detalhe_desenvolvimento||p.acao||'Ação PDI'}</span></div>`).join('')}${items.length>4?`<div style="font-size:11px;color:var(--text3)">+${items.length-4} outra${items.length-4!==1?'s':''} ação${items.length-4!==1?'ões':''}</div>`:''}</div>
     </div>`;
   }).join('');
+}
+
+// ============================================================
+// MEU PDI (visão do gestor, só leitura, só os próprios dados)
+// ============================================================
+let meuPdiOpenGroups = new Set();
+
+function meuPdiAlertasPrazo(mine, dias=30) {
+  const hoje = new Date().toISOString().slice(0,10);
+  const limite = new Date(Date.now()+dias*864e5).toISOString().slice(0,10);
+  return mine.filter(p => p.data_termino_programada
+    && p.status_acao !== 'Concluído' && p.status_acao !== 'Descontinuado'
+    && p.data_termino_programada >= hoje && p.data_termino_programada <= limite);
+}
+
+function renderMeuPDI() {
+  const headerEl = r$('mpHeader');
+  if (!headerEl) return;
+  const mine = pdis; // já vem só com as linhas do gestor logado (RLS)
+  const me = (profile && profile.gestor_nome) || (session && session.user.email) || '—';
+  const total = mine.length;
+  const concl = mine.filter(p=>pdiEffectiveStatus(p)==='Concluído').length;
+  const andamento = mine.filter(p=>pdiEffectiveStatus(p)==='Em andamento').length;
+  const atrasadas = mine.filter(p=>pdiEffectiveStatus(p)==='Atrasado').length;
+  const naoIniciadas = mine.filter(p=>(p.status_acao||'Não iniciado')==='Não iniciado').length;
+  const pct = total ? Math.round(concl/total*100) : 0;
+  const unidade = (mine.find(p=>p.unidade)||{}).unidade || '';
+  const foto = profile && profile.foto_url;
+
+  headerEl.innerHTML = `
+    <div class="avatar" onclick="r$('mpFotoInput').click()" title="Clique para trocar a foto">${foto?`<img src="${foto}">`:initials(me)}</div>
+    <div style="flex:1">
+      <div class="mp-nome">${me}</div>
+      <div class="mp-unidade">${unidade}</div>
+      <div class="pbar"><div class="pbar-fill${pct===100?' full':''}" style="width:${pct}%"></div></div>
+      <div class="pbar-sub">${concl}/${total} ações concluídas · ${pct}%</div>
+    </div>`;
+
+  const alertas = meuPdiAlertasPrazo(mine, 30);
+  const alertEl = r$('mpAlert');
+  if (alertas.length) {
+    alertEl.style.display = '';
+    alertEl.innerHTML = `<i class="ti ti-alert-triangle"></i> Você tem <b>${alertas.length}</b> ação${alertas.length!==1?'ões':''} de PDI com prazo nos próximos 30 dias.`;
+  } else {
+    alertEl.style.display = 'none';
+  }
+
+  r$('mpKPIs').innerHTML = `
+    <div class="metric m-g"><div class="lbl">Concluídas</div><div class="val">${concl}</div></div>
+    <div class="metric m-b"><div class="lbl">Em andamento</div><div class="val">${andamento}</div></div>
+    <div class="metric m-r"><div class="lbl">Atrasadas</div><div class="val">${atrasadas}</div></div>
+    <div class="metric"><div class="lbl">Não iniciadas</div><div class="val">${naoIniciadas}</div></div>`;
+
+  const stCnt = {}; mine.forEach(p=>{ const s=pdiEffectiveStatus(p); stCnt[s]=(stCnt[s]||0)+1; });
+  const stK = PDI_STATUS.filter(s=>stCnt[s]); const stV = stK.map(k=>stCnt[k]);
+  const stColors={'Concluído':'#BCFF48','Em andamento':'#1A88FF','Atrasado':'#FF8F1F','Não iniciado':'#8a9fad','Descontinuado':'#7F77DD'};
+  mkLeg('mpLgStatus', stK, stK.map(k=>stColors[k]));
+  dc('mpCStatus');
+  if (stK.length) charts['mpCStatus']=new Chart(r$('mpCStatus'),{type:'doughnut',data:{labels:stK,datasets:[{data:stV,backgroundColor:stK.map(k=>stColors[k]),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}});
+
+  r$('mpEmpty').style.display = total ? 'none' : 'block';
+  const anos = [...new Set(mine.map(p=>p.ano||'Sem ano'))].sort((a,b)=>{ if(a==='Sem ano') return 1; if(b==='Sem ano') return -1; return b-a; });
+  if (!meuPdiOpenGroups.size && anos.length) meuPdiOpenGroups.add(anos[0]);
+  r$('mpGroups').innerHTML = anos.map(ano => {
+    const rows = mine.filter(p=>(p.ano||'Sem ano')===ano).sort((a,b)=>(a.data_inicio||'').localeCompare(b.data_inicio||''));
+    const open = meuPdiOpenGroups.has(ano);
+    return `<div class="pdi-group">
+      <div class="pdi-group-head${open?' open':''}" onclick="toggleMeuPdiGroup('${ano}')"><i class="ti ti-chevron-right"></i> ${ano} <span class="cnt">(${rows.length})</span></div>
+      <div class="pdi-group-body${open?' open':''}">
+        <div class="table-wrap" style="border-radius:0;border:none;box-shadow:none">
+          <table><thead><tr><th>Canal</th><th>Ação</th><th>Detalhe</th><th>Início</th><th>Término prog.</th><th>Status</th></tr></thead>
+          <tbody>${rows.map(meuPdiRowHtml).join('')}</tbody></table>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleMeuPdiGroup(ano) {
+  if (meuPdiOpenGroups.has(ano)) meuPdiOpenGroups.delete(ano); else meuPdiOpenGroups.add(ano);
+  renderMeuPDI();
+}
+
+function meuPdiRowHtml(p) {
+  const st = pdiEffectiveStatus(p);
+  return `<tr>
+    <td><div class="pdi-badges">${pdiSplit(p.canal_mapeamento).map(c=>`<span class="badge b-b">${c}</span>`).join('')||'—'}</div></td>
+    <td>${p.acao||'—'}</td>
+    <td style="max-width:320px;white-space:normal">${p.detalhe_desenvolvimento||'—'}</td>
+    <td>${p.data_inicio?fmt(p.data_inicio):'—'}</td>
+    <td>${p.data_termino_programada?fmt(p.data_termino_programada):'—'}</td>
+    <td><span class="badge ${pdiStatusBadge(st)}">${st}</span></td>
+  </tr>`;
+}
+
+async function uploadMinhaFoto(input) {
+  const file = input.files[0]; if (!file) return;
+  try {
+    const url = await uploadFoto(file);
+    await dbUpdate('profiles', session.user.id, { foto_url: url });
+    profile.foto_url = url;
+    toast('Foto atualizada!');
+    renderMeuPDI();
+  } catch(e) {
+    toast('Erro ao enviar foto: ' + e.message, true);
+  }
+  input.value = '';
+}
+
+// ============================================================
+// FOTOS DOS GESTORES (visão do admin em "Por gestor")
+// ============================================================
+let gestorProfiles = {}; // gestor_nome -> {id, role, gestor_nome, foto_url}
+
+async function loadGestorProfiles() {
+  try {
+    const rows = await dbGet('profiles');
+    gestorProfiles = {};
+    rows.forEach(p => { if (p.gestor_nome) gestorProfiles[p.gestor_nome] = p; });
+  } catch(e) {
+    gestorProfiles = {};
+  }
+}
+
+let pendingFotoGestorNome = null;
+function abrirUploadGestorFoto(nome) {
+  const gp = gestorProfiles[nome];
+  if (!gp) { toast('Esse gestor ainda não tem login cadastrado.', true); return; }
+  pendingFotoGestorNome = nome;
+  r$('gestorFotoInput').click();
+}
+async function onGestorFotoSelected(input) {
+  const file = input.files[0]; if (!file || !pendingFotoGestorNome) return;
+  const gp = gestorProfiles[pendingFotoGestorNome];
+  if (!gp) return;
+  try {
+    const url = await uploadFoto(file);
+    await dbUpdate('profiles', gp.id, { foto_url: url });
+    gp.foto_url = url;
+    toast('Foto atualizada!');
+    renderPDIGestores();
+  } catch(e) {
+    toast('Erro ao enviar foto: ' + e.message, true);
+  }
+  input.value = '';
 }
 
 function verPDI(id) {
