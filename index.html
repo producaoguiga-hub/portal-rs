@@ -255,10 +255,17 @@
   .pdi-rowcard { position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; padding: 13px 18px; border-bottom: 0.5px solid var(--border); cursor: pointer; transition: background .15s; }
   .pdi-rowcard:last-child { border-bottom: none; }
   .pdi-rowcard:hover { background: var(--bg2); }
-  .pdi-rowcard .avatar { width: 34px; height: 34px; font-size: 11px; flex-shrink: 0; }
-  .pdi-rc-who { width: 148px; flex-shrink: 0; }
-  .pdi-rc-who .nm { font-weight: 600; font-size: 12.5px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .pdi-rc-who .un { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pdi-rc-person { display: flex; align-items: center; gap: 9px; width: 172px; flex-shrink: 0; padding: 6px 12px 6px 6px; border-radius: 999px;
+    background: linear-gradient(120deg, rgba(188,255,72,0.30), rgba(46,215,237,0.14)); box-shadow: inset 0 0 0 1px rgba(188,255,72,0.25); }
+  .pdi-rowcard .avatar { width: 34px; height: 34px; font-size: 11px; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(255,255,255,0.7); }
+  .pdi-rc-who { min-width: 0; }
+  .pdi-rc-who .nm { font-weight: 700; font-size: 12.5px; color: #1e4800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pdi-rc-who .un { font-size: 11px; color: #3d6a1f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  @media (prefers-color-scheme: dark) {
+    .pdi-rc-person { background: linear-gradient(120deg, rgba(188,255,72,0.22), rgba(46,215,237,0.14)); box-shadow: inset 0 0 0 1px rgba(188,255,72,0.3); }
+    .pdi-rc-who .nm { color: #DAFF94; }
+    .pdi-rc-who .un { color: #9FCF66; }
+  }
   .pdi-rc-main { flex: 1; min-width: 0; }
   .pdi-rc-main .ttl { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .pdi-rc-main .sub { font-size: 11.5px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -268,7 +275,7 @@
   .pdi-rc-actions { flex-shrink: 0; display: flex; gap: 2px; }
   @media (max-width: 760px) {
     .pdi-rowcard { flex-wrap: wrap; }
-    .pdi-rc-who { width: auto; }
+    .pdi-rc-person { width: auto; }
     .pdi-rc-side { width: auto; align-items: flex-start; text-align: left; margin-left: 48px; }
   }
 
@@ -1981,10 +1988,12 @@ function pdiRowCardHtml(p) {
   ].filter(Boolean).join('');
   const navAttr = `pdiNavForGestor('${(p.gestor_nome||'').replace(/'/g,"\\'")}')`;
   return `<div class="pdi-rowcard" onclick="verPDI('${p.id}', ${navAttr})">
-    <div class="avatar">${avatarHtml}</div>
-    <div class="pdi-rc-who">
-      <div class="nm">${p.gestor_nome||'—'}</div>
-      <div class="un">${p.unidade||'—'}</div>
+    <div class="pdi-rc-person">
+      <div class="avatar">${avatarHtml}</div>
+      <div class="pdi-rc-who">
+        <div class="nm">${p.gestor_nome||'—'}</div>
+        <div class="un">${p.unidade||'—'}</div>
+      </div>
     </div>
     <div class="pdi-rc-main">
       <div class="ttl">${titulo}</div>
