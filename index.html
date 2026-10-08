@@ -122,6 +122,8 @@
 
   /* Ficha candidato */
   .ficha-header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; }
+  .ficha-nav { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .ficha-nav span { font-size: 11.5px; color: var(--text2); min-width: 42px; text-align: center; }
   .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--blue-bg); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; color: var(--blue-text); flex-shrink: 0; overflow: hidden; }
   .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
   .ficha-nome { font-size: 17px; font-weight: 600; }
@@ -234,6 +236,41 @@
   .chip-opt.sel { background: var(--blue-bg); color: var(--blue-text); border-color: transparent; font-weight: 500; }
   .import-log { margin-top: .75rem; padding: .75rem; background: #091C28; border-radius: 8px; font-size: 11.5px; font-family: ui-monospace, Consolas, monospace; max-height: 260px; overflow-y: auto; white-space: pre-wrap; color: #cfe3ed; }
   .import-log .ok { color: #9ee37d; } .import-log .err { color: #F09595; } .import-log .inf { color: #85B7EB; }
+
+  /* Painel de status unificado (sem duplicar "concluídas" em dois cards) */
+  .psp-top { display: flex; align-items: center; gap: 1.75rem; margin-bottom: 1.1rem; }
+  .psp-total { text-align: left; }
+  .psp-total .val { font-size: 32px; font-weight: 800; color: var(--text); line-height: 1; }
+  .psp-total .lbl { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .psp-divider { width: 1px; align-self: stretch; background: var(--border); }
+  .psp-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--bg3); margin-bottom: 1rem; }
+  .psp-bar span { height: 100%; transition: width .6s cubic-bezier(.4,0,.2,1); }
+  .psp-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .psp-chip { display: flex; align-items: center; gap: 8px; padding: 8px 13px; border-radius: 999px; background: var(--bg2); font-size: 12.5px; }
+  .psp-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .psp-chip b { font-weight: 700; color: var(--text); }
+  .psp-chip .pct { color: var(--text3); font-size: 11px; }
+
+  /* Linhas de ação em "Todas as ações" — lista de leitura, não planilha */
+  .pdi-rowcard { position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; padding: 13px 18px; border-bottom: 0.5px solid var(--border); cursor: pointer; transition: background .15s; }
+  .pdi-rowcard:last-child { border-bottom: none; }
+  .pdi-rowcard:hover { background: var(--bg2); }
+  .pdi-rowcard .avatar { width: 34px; height: 34px; font-size: 11px; flex-shrink: 0; }
+  .pdi-rc-who { width: 148px; flex-shrink: 0; }
+  .pdi-rc-who .nm { font-weight: 600; font-size: 12.5px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pdi-rc-who .un { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pdi-rc-main { flex: 1; min-width: 0; }
+  .pdi-rc-main .ttl { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pdi-rc-main .sub { font-size: 11.5px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pdi-rc-main .badges { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .pdi-rc-side { flex-shrink: 0; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; width: 108px; }
+  .pdi-rc-side .dt { font-size: 11px; color: var(--text2); white-space: nowrap; }
+  .pdi-rc-actions { flex-shrink: 0; display: flex; gap: 2px; }
+  @media (max-width: 760px) {
+    .pdi-rowcard { flex-wrap: wrap; }
+    .pdi-rc-who { width: auto; }
+    .pdi-rc-side { width: auto; align-items: flex-start; text-align: left; margin-left: 48px; }
+  }
 
   /* Meu PDI (visão do gestor) */
   @keyframes mpIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -530,10 +567,14 @@
 
     <!-- Painel -->
     <div id="pdiDashView">
-      <div class="metric-grid" id="pdiKPIs"></div>
-      <div class="card">
-        <div class="card-title">Ações por status</div>
-        <div class="metric-grid" id="pdiKPIsStatus" style="margin-bottom:0"></div>
+      <div class="card psp">
+        <div class="psp-top">
+          <div class="psp-total"><div class="val mp-count" id="pspTotal" data-target="0">0</div><div class="lbl">ações de PDI</div></div>
+          <div class="psp-divider"></div>
+          <div class="psp-total"><div class="val mp-count" id="pspGestores" data-target="0">0</div><div class="lbl">gestores com PDI</div></div>
+        </div>
+        <div class="psp-bar" id="pspBar"></div>
+        <div class="psp-chips" id="pspChips"></div>
       </div>
       <div class="chart-row">
         <div class="card"><div class="card-title">Status das ações</div><div class="legend" id="pdiLgStatus"></div><div style="position:relative;height:220px"><canvas id="pdiCStatus"></canvas></div></div>
@@ -720,7 +761,12 @@
     <div id="pdiFichaView" style="display:none">
       <div class="ficha-header">
         <div class="avatar" id="pdiFichaAvatar"></div>
-        <div><div class="ficha-nome" id="pdiFichaNome"></div><div class="ficha-sub" id="pdiFichaSub"></div></div>
+        <div style="flex:1"><div class="ficha-nome" id="pdiFichaNome"></div><div class="ficha-sub" id="pdiFichaSub"></div></div>
+        <div class="ficha-nav" id="pdiFichaNav" style="display:none">
+          <button class="icon-btn" onclick="fichaNavStep(-1)" title="Ação anterior"><i class="ti ti-chevron-left"></i></button>
+          <span id="pdiFichaNavPos"></span>
+          <button class="icon-btn" onclick="fichaNavStep(1)" title="Próxima ação"><i class="ti ti-chevron-right"></i></button>
+        </div>
       </div>
       <div class="ficha-grid" id="pdiFichaGrid"></div>
       <div class="card-title" id="pdiFichaDiagnosticoTitle" style="margin-bottom:6px;display:none">Diagnóstico (autoavaliação)</div>
@@ -1871,28 +1917,27 @@ function renderPDI() {
 function renderPDIDash() {
   const f = pdiFiltered();
   const total=f.length;
-  const concl=f.filter(p=>pdiEffectiveStatus(p)==='Concluído').length;
-  const atrasadas=f.filter(p=>pdiEffectiveStatus(p)==='Atrasado').length;
   const gestoresSet=new Set(f.map(p=>p.gestor_nome).filter(Boolean));
-  r$('pdiKPIs').innerHTML = `
-    <div class="metric"><div class="lbl">Ações de PDI</div><div class="val">${total}</div><div class="sub">${gestoresSet.size} gestor${gestoresSet.size!==1?'es':''}</div></div>
-    <div class="metric m-g"><div class="lbl">Concluídas</div><div class="val">${concl}</div><div class="sub">${total?Math.round(concl/total*100):0}% do total</div></div>
-    <div class="metric m-r"><div class="lbl">Atrasadas</div><div class="val">${atrasadas}</div><div class="sub">${total?Math.round(atrasadas/total*100):0}% do total</div></div>
-    <div class="metric m-b"><div class="lbl">Gestores com PDI</div><div class="val">${gestoresSet.size}</div><div class="sub">no filtro atual</div></div>`;
 
-  // KPIs por status bruto cadastrado (não iniciados / em andamento / concluídos / descontinuados)
-  const rawCnt={'Não iniciado':0,'Em andamento':0,'Concluído':0,'Descontinuado':0};
-  f.forEach(p=>{ const s=p.status_acao||'Não iniciado'; if(rawCnt.hasOwnProperty(s)) rawCnt[s]++; });
-  const pct=n=>total?Math.round(n/total*100):0;
-  r$('pdiKPIsStatus').innerHTML = `
-    <div class="metric"><div class="lbl">Não iniciados</div><div class="val">${rawCnt['Não iniciado']}</div><div class="sub">${pct(rawCnt['Não iniciado'])}%</div></div>
-    <div class="metric m-b"><div class="lbl">Em andamento</div><div class="val">${rawCnt['Em andamento']}</div><div class="sub">${pct(rawCnt['Em andamento'])}%</div></div>
-    <div class="metric m-g"><div class="lbl">Concluídos</div><div class="val">${rawCnt['Concluído']}</div><div class="sub">${pct(rawCnt['Concluído'])}%</div></div>
-    <div class="metric m-r"><div class="lbl">Descontinuados</div><div class="val">${rawCnt['Descontinuado']}</div><div class="sub">${pct(rawCnt['Descontinuado'])}%</div></div>`;
-
+  // Uma única contagem por status (efetivo: considera atraso de prazo), usada
+  // no painel numérico, na barra segmentada e no gráfico de rosca — sem duplicar
+  // "concluídas" em cards separados como antes.
   const stCnt={}; f.forEach(p=>{ const s=pdiEffectiveStatus(p); stCnt[s]=(stCnt[s]||0)+1; });
-  const stK=PDI_STATUS.filter(s=>stCnt[s]); const stV=stK.map(k=>stCnt[k]);
   const stColors={'Concluído':'#BCFF48','Em andamento':'#1A88FF','Atrasado':'#FF8F1F','Não iniciado':'#8a9fad','Descontinuado':'#7F77DD'};
+  const pct=n=>total?Math.round(n/total*100):0;
+
+  r$('pspTotal').dataset.target = total;
+  r$('pspGestores').dataset.target = gestoresSet.size;
+  animateCounts(document.getElementById('pdiDashView'));
+
+  r$('pspBar').innerHTML = PDI_STATUS.filter(s=>stCnt[s]).map(s =>
+    `<span style="width:${pct(stCnt[s])}%;background:${stColors[s]}" title="${s}: ${stCnt[s]}"></span>`
+  ).join('');
+  r$('pspChips').innerHTML = PDI_STATUS.filter(s=>stCnt[s]).map(s =>
+    `<span class="psp-chip"><span class="dot" style="background:${stColors[s]}"></span>${s}: <b>${stCnt[s]}</b><span class="pct">${pct(stCnt[s])}%</span></span>`
+  ).join('') || '<span style="color:var(--text3);font-size:12.5px">Nenhuma ação no filtro atual.</span>';
+
+  const stK=PDI_STATUS.filter(s=>stCnt[s]); const stV=stK.map(k=>stCnt[k]);
   mkLeg('pdiLgStatus', stK, stK.map(k=>stColors[k]));
   dc('pdiCStatus');
   charts['pdiCStatus']=new Chart(r$('pdiCStatus'),{type:'doughnut',data:{labels:stK,datasets:[{data:stV,backgroundColor:stK.map(k=>stColors[k]),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}});
@@ -1922,26 +1967,39 @@ function renderPDIDash() {
   charts['pdiCAcao']=new Chart(r$('pdiCAcao'),{type:'bar',data:{labels:acK,datasets:[{data:acV,backgroundColor:'#BCFF48',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
 }
 
-function pdiRowHtml(p) {
+function pdiRowCardHtml(p) {
   const st = pdiEffectiveStatus(p);
-  return `<tr>
-    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:26px;height:26px;font-size:10px;flex-shrink:0">${initials(p.gestor_nome||'?')}</div><button class="link-name" onclick="verPDI('${p.id}')">${p.gestor_nome||'—'}</button></div></td>
-    <td style="color:var(--text2)">${p.unidade||'—'}</td>
-    <td><div class="pdi-badges">${pdiSplit(p.canal_mapeamento).map(c=>`<span class="badge b-b">${c}</span>`).join('')||'—'}</div></td>
-    <td><span class="badge b-b">${p.origem_acao||'—'}</span></td>
-    <td>${p.competencia_desenvolvimento?`<span class="badge b-b">${p.competencia_desenvolvimento}</span>`:'—'}</td>
-    <td>${p.tipo_necessidade?`<span class="badge b-p">${p.tipo_necessidade}</span>`:'—'}</td>
-    <td>${p.direcao_crescimento?`<span class="badge b-g">${p.direcao_crescimento}</span>`:'—'}</td>
-    <td>${p.acao||'—'}</td>
-    <td style="max-width:200px;white-space:normal">${p.detalhe_desenvolvimento||'—'}</td>
-    <td>${p.data_inicio?fmt(p.data_inicio):'—'}</td>
-    <td>${p.data_termino_programada?fmt(p.data_termino_programada):'—'}</td>
-    <td><span class="badge ${pdiStatusBadge(st)}">${st}</span></td>
-    <td style="white-space:nowrap">
-      <button class="icon-btn admin-only" onclick="editarPDI('${p.id}')" title="Editar"><i class="ti ti-edit"></i></button>
-      <button class="icon-btn del admin-only" onclick="excluirPDI('${p.id}','${(p.gestor_nome||'').replace(/'/g,"\\'")}')" title="Excluir"><i class="ti ti-trash"></i></button>
-    </td>
-  </tr>`;
+  const gp = gestorProfiles[p.gestor_nome];
+  const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(p.gestor_nome||'?');
+  const titulo = p.detalhe_desenvolvimento || p.acao || 'Ação de PDI';
+  const subParts = [p.acao, p.origem_acao].filter(Boolean);
+  const badges = [
+    p.competencia_desenvolvimento ? `<span class="badge b-b">${p.competencia_desenvolvimento}</span>` : '',
+    p.tipo_necessidade ? `<span class="badge b-p">${p.tipo_necessidade}</span>` : '',
+    p.direcao_crescimento ? `<span class="badge b-g">${p.direcao_crescimento}</span>` : '',
+    ...pdiSplit(p.canal_mapeamento).map(c=>`<span class="badge b-b">${c}</span>`),
+  ].filter(Boolean).join('');
+  const navAttr = `pdiNavForGestor('${(p.gestor_nome||'').replace(/'/g,"\\'")}')`;
+  return `<div class="pdi-rowcard" onclick="verPDI('${p.id}', ${navAttr})">
+    <div class="avatar">${avatarHtml}</div>
+    <div class="pdi-rc-who">
+      <div class="nm">${p.gestor_nome||'—'}</div>
+      <div class="un">${p.unidade||'—'}</div>
+    </div>
+    <div class="pdi-rc-main">
+      <div class="ttl">${titulo}</div>
+      <div class="sub">${subParts.join(' · ')||'—'}</div>
+      ${badges?`<div class="badges">${badges}</div>`:''}
+    </div>
+    <div class="pdi-rc-side">
+      <span class="badge ${pdiStatusBadge(st)}">${st}</span>
+      <span class="dt">${p.data_termino_programada?fmt(p.data_termino_programada):'sem prazo'}</span>
+    </div>
+    <div class="pdi-rc-actions">
+      <button class="icon-btn admin-only" onclick="event.stopPropagation();editarPDI('${p.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+      <button class="icon-btn del admin-only" onclick="event.stopPropagation();excluirPDI('${p.id}','${(p.gestor_nome||'').replace(/'/g,"\\'")}')" title="Excluir"><i class="ti ti-trash"></i></button>
+    </div>
+  </div>`;
 }
 
 function renderPDILista() {
@@ -1958,9 +2016,7 @@ function renderPDILista() {
       <div class="pdi-group-head${open?' open':''}" onclick="togglePdiGroup('${ano}')"><i class="ti ti-chevron-right"></i> Ano: ${ano} <span class="cnt">(${rows.length})</span></div>
       <div class="pdi-group-body${open?' open':''}">
         <div class="table-wrap" style="border-radius:0;border:none;box-shadow:none">
-          <table><thead><tr>
-            <th>Gestor</th><th>Unidade</th><th>Canal</th><th>Origem</th><th>Competência</th><th>Tipo de necessidade</th><th>Direção</th><th>Ação</th><th>Detalhe</th><th>Início</th><th>Término prog.</th><th>Status</th><th></th>
-          </tr></thead><tbody>${rows.map(pdiRowHtml).join('')}</tbody></table>
+          ${rows.map(pdiRowCardHtml).join('')}
         </div>
       </div>
     </div>`;
@@ -1970,6 +2026,11 @@ function renderPDILista() {
 function togglePdiGroup(ano) {
   if(pdiOpenGroups.has(ano)) pdiOpenGroups.delete(ano); else pdiOpenGroups.add(ano);
   renderPDILista();
+}
+
+function abrirGestorCard(nome) {
+  const navList = pdiNavForGestor(nome);
+  if (navList.length) verPDI(navList[0], navList);
 }
 
 function renderPDIGestores() {
@@ -1985,7 +2046,7 @@ function renderPDIGestores() {
     const gp = gestorProfiles[g];
     const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(g);
     const gNomeEsc = g.replace(/'/g,"\\'");
-    return `<div class="pdi-card" onclick="verPDI('${items[0].id}')">
+    return `<div class="pdi-card" onclick="abrirGestorCard('${gNomeEsc}')">
       <div class="pdi-card-head">
         <div class="avatar" ${gp?`style="cursor:pointer" title="Clique para trocar a foto" onclick="event.stopPropagation();abrirUploadGestorFoto('${gNomeEsc}')"`:''}>${avatarHtml}</div>
         <div><div class="nm">${g}</div><div class="un">${unidade}</div></div>
@@ -2126,7 +2187,7 @@ function toggleMeuPdiGroup(ano) {
 
 function meuPdiRowHtml(p) {
   const st = pdiEffectiveStatus(p);
-  return `<tr style="cursor:pointer" onclick="verPDI('${p.id}')">
+  return `<tr style="cursor:pointer" onclick="verPDI('${p.id}', pdis.map(x=>x.id))">
     <td><div class="pdi-badges">${pdiSplit(p.canal_mapeamento).map(c=>`<span class="badge b-b">${c}</span>`).join('')||'—'}</div></td>
     <td>${p.acao||'—'}</td>
     <td style="max-width:320px;white-space:normal">${p.detalhe_desenvolvimento||'—'}</td>
@@ -2188,8 +2249,18 @@ async function onGestorFotoSelected(input) {
   input.value = '';
 }
 
-function verPDI(id) {
+let fichaNavList = [];
+
+function verPDI(id, navList) {
   const p = pdis.find(x=>x.id===id); if(!p) return;
+  fichaNavList = (navList && navList.includes(id)) ? navList : [id];
+  const navEl = r$('pdiFichaNav');
+  if (fichaNavList.length > 1) {
+    navEl.style.display = 'flex';
+    r$('pdiFichaNavPos').textContent = `${fichaNavList.indexOf(id)+1} de ${fichaNavList.length}`;
+  } else {
+    navEl.style.display = 'none';
+  }
   viewPDIId=id; editPDIId=null;
   r$('pdiFichaView').style.display='block'; r$('pdiForm').style.display='none';
   r$('mPDITitulo').textContent='Ação de PDI';
@@ -2220,6 +2291,18 @@ function verPDI(id) {
   r$('pdiFichaDetalhe').textContent=p.detalhe_desenvolvimento||'Nenhum detalhe registrado.';
   r$('pdiFichaFeedback').textContent=p.feedback_dre||'Nenhum feedback registrado.';
   r$('mPDI').classList.add('open');
+}
+
+function fichaNavStep(delta) {
+  if (fichaNavList.length < 2) return;
+  const i = fichaNavList.indexOf(viewPDIId);
+  const next = (i + delta + fichaNavList.length) % fichaNavList.length;
+  verPDI(fichaNavList[next], fichaNavList);
+}
+
+// IDs (na mesma ordem usada no card) de todas as ações de um gestor, dentro do filtro atual.
+function pdiNavForGestor(nome) {
+  return pdiFiltered().filter(p=>p.gestor_nome===nome).sort((a,b)=>(b.ano||0)-(a.ano||0)).map(p=>p.id);
 }
 
 function editarFichaPDI() { editarPDI(viewPDIId); }
