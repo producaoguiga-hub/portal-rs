@@ -723,6 +723,8 @@
         <div><div class="ficha-nome" id="pdiFichaNome"></div><div class="ficha-sub" id="pdiFichaSub"></div></div>
       </div>
       <div class="ficha-grid" id="pdiFichaGrid"></div>
+      <div class="card-title" id="pdiFichaDiagnosticoTitle" style="margin-bottom:6px;display:none">Diagnóstico (autoavaliação)</div>
+      <div class="obs-box" id="pdiFichaDiagnostico" style="margin-bottom:1rem;display:none"></div>
       <div class="card-title" style="margin-bottom:6px">Detalhe do desenvolvimento</div>
       <div class="obs-box" id="pdiFichaDetalhe" style="margin-bottom:1rem"></div>
       <div class="card-title" style="margin-bottom:6px">Feedback DRE</div>
@@ -1729,11 +1731,13 @@ function renderTLTurma() {
 // ============================================================
 const PDI_CANAIS = ['Avaliação Subjetiva','Avaliação 360º','Psicologia no Campo','Avaliação Psicológica','Feedback do Monitor','Follow UP PDI','eNPS','Self','Reunião de Feedback'];
 const PDI_ORIGENS = ['Direcionamento DRE/Diretoria','Iniciativa do Gestor','Iniciativa Própria','Plano de Sucessão'];
-const PDI_ACOES = ['Curso','Curso Udemy','Livro/Apostila','Reunião Estratégica','Mentoria','Coaching','Workshop','Palestra','Boas Práticas CGA','Avaliação Psicológica','Prática Acompanhada/ Monitoria','Realizar Teste de Perfil/ Av.Psicológica','Intercâmbio entre Unidades','Entrar em uma Comissão','Conversa com Psicólogo','Outro'];
+const PDI_ACOES = ['Curso','Curso Udemy','Livro/Apostila','Reunião Estratégica','Orientação da Diretoria','Mentoria','Coaching','Workshop','Palestra','Boas Práticas CGA','Avaliação Psicológica','Prática Acompanhada/ Monitoria','Realizar Teste de Perfil/ Av.Psicológica','Intercâmbio entre Unidades','Entrar em uma Comissão','Conversa com Psicólogo','Rotação de trabalho específica','Outro'];
 const PDI_STATUS = ['Não iniciado','Em andamento','Concluído','Atrasado','Descontinuado'];
-const PDI_COMPETENCIAS_SEED = ['Gestão de Equipes','Comunicação','Liderança','Gestão do Tempo','Gestão de Conflitos','Inteligência Emocional','Visão Estratégica','Feedback','Produtividade'];
-const PDI_TIPOS_SEED = ['Falta de conhecimento','Falta de habilidade','Falta de atitude','Comportamental','Técnica'];
-const PDI_DIRECOES_SEED = ['Quero melhorar','Preciso desenvolver','Ponto forte a potencializar'];
+// Vocabulário oficial do formulário de autoavaliação (pdi_self.html) — mantenha sincronizado.
+const PDI_COMPETENCIAS_SEED = ['Comunicação','Liderança','Gestão de Equipes','Influência','Exposição','Integração','Autoconhecimento','Perfil Comportamental','Ferramenta Técnica','Disciplina Operacional','Proatividade','Responsabilidade','Compromisso','Integridade'];
+const PDI_TIPOS_SEED = ['Falta de conhecimento técnico','Falta de prática/experiência','Comportamento/Atitude','Organização/processo','Melhorar Habilidades/Competências'];
+const PDI_DIRECOES_SEED = ['Quero melhorar meu desempenho','Quero crescer na empresa','Minha equipe precisa evoluir','Recebi algum feedback recente','Quero me preparar para novos desafios'];
+const PDI_OBJETIVOS_SEED = ['Crescer como gestor de equipe maior','Assumir nova unidade','Me especializar tecnicamente','Melhorar minha performance na posição atual','Ainda estou refletindo'];
 const PDI_UNIDADES_SEED = ['OS Slickline RN-CE II','OS Pintura NE III','OS Ucoq-SM II','NAC','Comercial & Negócios','SPT 28','OS Termoaçu II','OS SPM IV','OS Slickline AL','OS Pescada','OS Log','Sede','SPT 19','SPT 77','SPT 22','OS Manati','OS Revap','OS O&M','OS Manutenção NE','OS Rio Grande','OS Oficina Macaé IV','OPI','OS Portos NES III','Controladoria','SPT 23','SPT 92','OS Mans','SPT 26','OS Potiguar','OS Turbinas','SPT 24','OS Terminais Sul II','OS Terminais Oceânicos II','OS Monitoramento Seal','OS ETA AM','SPT 72','STE','PB Loja','Sialog','Diretoria','SPT 82','OS Vitória III','TIC','OS Catu','OS Ucaq SE','SPH'];
 
 let pdiCanalSel = [];
@@ -2115,7 +2119,7 @@ function toggleMeuPdiGroup(ano) {
 
 function meuPdiRowHtml(p) {
   const st = pdiEffectiveStatus(p);
-  return `<tr>
+  return `<tr style="cursor:pointer" onclick="verPDI('${p.id}')">
     <td><div class="pdi-badges">${pdiSplit(p.canal_mapeamento).map(c=>`<span class="badge b-b">${c}</span>`).join('')||'—'}</div></td>
     <td>${p.acao||'—'}</td>
     <td style="max-width:320px;white-space:normal">${p.detalhe_desenvolvimento||'—'}</td>
@@ -2188,17 +2192,24 @@ function verPDI(id) {
   const st=pdiEffectiveStatus(p);
   r$('pdiFichaGrid').innerHTML=[
     ['Status',`<span class="badge ${pdiStatusBadge(st)}">${st}</span>`],
+    ['E-mail',p.gestor_email||'—'],
     ['Canal de mapeamento',pdiSplit(p.canal_mapeamento).join(', ')||'—'],
     ['Origem da ação',p.origem_acao||'—'],
     ['Competência',p.competencia_desenvolvimento||'—'],
     ['Tipo de necessidade',p.tipo_necessidade||'—'],
     ['Direção de crescimento',p.direcao_crescimento||'—'],
+    ['Objetivo (2-3 anos)',p.objetivo_carreira||'—'],
+    ['Já sabe a ação?',p.sabe_acao_imediata||'—'],
     ['Ação',p.acao||'—'],
     ['Início',p.data_inicio?fmt(p.data_inicio):'—'],
     ['Término programado',p.data_termino_programada?fmt(p.data_termino_programada):'—'],
     ['Evidência',p.evidencia_link?`<a href="${p.evidencia_link}" target="_blank" rel="noopener">Abrir link</a>`:'—'],
     ['Link da ação PDI',p.acao_pdi_link?`<a href="${p.acao_pdi_link}" target="_blank" rel="noopener">Abrir link</a>`:'—'],
   ].map(([l,v])=>`<div class="fi"><div class="fi-l">${l}</div><div class="fi-v">${v}</div></div>`).join('');
+  const temDiagnostico = !!p.diagnostico;
+  r$('pdiFichaDiagnosticoTitle').style.display = temDiagnostico ? '' : 'none';
+  r$('pdiFichaDiagnostico').style.display = temDiagnostico ? '' : 'none';
+  if (temDiagnostico) r$('pdiFichaDiagnostico').textContent = p.diagnostico;
   r$('pdiFichaDetalhe').textContent=p.detalhe_desenvolvimento||'Nenhum detalhe registrado.';
   r$('pdiFichaFeedback').textContent=p.feedback_dre||'Nenhum feedback registrado.';
   r$('mPDI').classList.add('open');
