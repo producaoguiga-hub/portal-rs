@@ -316,8 +316,10 @@ async function submitForm() {
 
   try {
     const r = await fetch(`${SUPA_URL}/pdi`, {
+      // return=minimal: o anon não tem permissão de leitura no pdi, só de inserir —
+      // pedir a linha de volta (return=representation) faria o INSERT falhar.
       method: 'POST',
-      headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
       body: JSON.stringify(pdiPayload)
     });
     if (!r.ok) throw new Error(await r.text());
