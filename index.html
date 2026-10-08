@@ -194,6 +194,42 @@
   .tl-avg-row td { background: var(--bg2) !important; color: var(--text2); font-style: italic; font-weight: 500; }
   .tl-avg-row td:first-child { font-weight: 700; color: var(--text); }
 
+  /* PDI */
+  .b-n { background: var(--bg3); color: var(--text2); }
+  .qf-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .qf-btn { padding: 6px 12px; font-size: 12px; border-radius: 999px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text2); cursor: pointer; font-weight: 500; transition: all .15s; white-space: nowrap; }
+  .qf-btn:hover { background: var(--bg2); }
+  .qf-btn.active { background: #091C28; color: #fff; border-color: #091C28; }
+  @media (prefers-color-scheme: dark) { .qf-btn.active { background: #BCFF48; color: #091C28; border-color: #BCFF48; } }
+  .pbar { width: 100%; height: 7px; border-radius: 99px; background: var(--bg3); overflow: hidden; }
+  .pbar-fill { height: 100%; background: linear-gradient(90deg,#1A88FF,#2ED7ED); border-radius: 99px; transition: width .3s; }
+  .pbar-fill.full { background: linear-gradient(90deg,#8fd400,#BCFF48); }
+  .pdi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .pdi-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem; box-shadow: var(--shadow); cursor: pointer; transition: border-color .15s, transform .15s; }
+  .pdi-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+  .pdi-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .pdi-card-head .nm { font-size: 14px; font-weight: 600; color: var(--text); }
+  .pdi-card-head .un { font-size: 11.5px; color: var(--text2); }
+  .pdi-card-stats { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); margin-bottom: 6px; }
+  .pdi-card-stats b { color: var(--text); font-weight: 600; }
+  .pdi-mini-list { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .pdi-mini-item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text2); overflow: hidden; }
+  .pdi-mini-item .txt { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pdi-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .pdi-group { margin-bottom: 10px; border-radius: var(--radius-lg); overflow: hidden; border: 0.5px solid var(--border); box-shadow: var(--shadow); }
+  .pdi-group-head { display: flex; align-items: center; gap: 8px; padding: 11px 16px; background: var(--bg2); cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text); user-select: none; }
+  .pdi-group-head i.ti-chevron-right { transition: transform .15s; font-size: 14px; color: var(--text2); }
+  .pdi-group-head.open i.ti-chevron-right { transform: rotate(90deg); }
+  .pdi-group-head .cnt { font-weight: 400; color: var(--text3); font-size: 12px; }
+  .pdi-group-body { display: none; }
+  .pdi-group-body.open { display: block; }
+  .pdi-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip-select { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip-opt { padding: 6px 11px; font-size: 12px; border-radius: 999px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text2); cursor: pointer; user-select: none; }
+  .chip-opt.sel { background: var(--blue-bg); color: var(--blue-text); border-color: transparent; font-weight: 500; }
+  .import-log { margin-top: .75rem; padding: .75rem; background: #091C28; border-radius: 8px; font-size: 11.5px; font-family: ui-monospace, Consolas, monospace; max-height: 260px; overflow-y: auto; white-space: pre-wrap; color: #cfe3ed; }
+  .import-log .ok { color: #9ee37d; } .import-log .err { color: #F09595; } .import-log .inf { color: #85B7EB; }
+
   @media (max-width: 900px) {
     .sidebar { width: 60px; }
     .sidebar-logo span, .sidebar-subtitle, .nav-item span { display: none; }
@@ -203,6 +239,7 @@
     .form-grid { grid-template-columns: 1fr 1fr; }
     .span2, .span3 { grid-column: span 2; }
     .section-label { grid-column: span 2; }
+    .pdi-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -221,6 +258,7 @@
   <button class="nav-item" onclick="goPage('custos',this)"><i class="ti ti-currency-dollar"></i><span>Custos</span></button>
   <button class="nav-item" onclick="goPage('turmas',this)"><i class="ti ti-school"></i><span>Turmas</span></button>
   <button class="nav-item" onclick="goPage('timeline',this)"><i class="ti ti-timeline"></i><span>Linha do tempo</span></button>
+  <button class="nav-item" onclick="goPage('pdi',this)"><i class="ti ti-target-arrow"></i><span>PDI Gestores</span></button>
 </nav>
 
 <!-- MAIN -->
@@ -396,6 +434,61 @@
     </div>
   </div>
 
+  <!-- PDI GESTORES -->
+  <div class="page" id="page-pdi">
+    <div class="page-title">PDI Gestores</div>
+    <div class="tl-tabs">
+      <button class="tl-tab active" onclick="switchPDITab('dash',this)"><i class="ti ti-chart-dots-3"></i> Painel</button>
+      <button class="tl-tab" onclick="switchPDITab('lista',this)"><i class="ti ti-list"></i> Todas as ações</button>
+      <button class="tl-tab" onclick="switchPDITab('gestores',this)"><i class="ti ti-users"></i> Por gestor</button>
+    </div>
+
+    <div class="toolbar">
+      <select id="pfAno" onchange="renderPDI()"><option value="">Todos os anos</option></select>
+      <select id="pfGestor" onchange="renderPDI()"><option value="">Todos os gestores</option></select>
+      <select id="pfUnidade" onchange="renderPDI()"><option value="">Todas as unidades</option></select>
+      <select id="pfStatus" onchange="renderPDI()"><option value="">Todos os status</option></select>
+      <button class="btn" onclick="limparFiltrosPDI()"><i class="ti ti-x"></i> Limpar</button>
+      <span style="flex:1"></span>
+      <button class="btn" onclick="abrirImportPDI()"><i class="ti ti-file-upload"></i> Importar do Lists</button>
+      <button class="btn btn-primary" onclick="abrirModal('pdi')"><i class="ti ti-plus"></i> Nova ação PDI</button>
+    </div>
+    <div class="toolbar">
+      <div class="qf-row" id="pdiQF"></div>
+    </div>
+
+    <!-- Painel -->
+    <div id="pdiDashView">
+      <div class="metric-grid" id="pdiKPIs"></div>
+      <div class="card">
+        <div class="card-title">Ações por status</div>
+        <div class="metric-grid" id="pdiKPIsStatus" style="margin-bottom:0"></div>
+      </div>
+      <div class="chart-row">
+        <div class="card"><div class="card-title">Status das ações</div><div class="legend" id="pdiLgStatus"></div><div style="position:relative;height:220px"><canvas id="pdiCStatus"></canvas></div></div>
+        <div class="card"><div class="card-title">Ações por gestor</div><div style="position:relative;height:220px"><canvas id="pdiCGestor"></canvas></div></div>
+      </div>
+      <div class="chart-row3">
+        <div class="card"><div class="card-title">Canal de mapeamento</div><div style="position:relative;height:170px"><canvas id="pdiCCanal"></canvas></div></div>
+        <div class="card"><div class="card-title">Origem da ação</div><div style="position:relative;height:170px"><canvas id="pdiCOrigem"></canvas></div></div>
+        <div class="card"><div class="card-title">Tipo de necessidade</div><div style="position:relative;height:170px"><canvas id="pdiCTipo"></canvas></div></div>
+        <div class="card"><div class="card-title">Tipo de ação</div><div style="position:relative;height:170px"><canvas id="pdiCAcao"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- Lista agrupada por ano -->
+    <div id="pdiListaView" style="display:none">
+      <div id="pdiGroups"></div>
+      <div id="pdiEmptyLista" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma ação de PDI encontrada</div>
+    </div>
+
+    <!-- Por gestor -->
+    <div id="pdiGestoresView" style="display:none">
+      <div class="pdi-grid" id="pdiGestoresGrid"></div>
+      <div id="pdiEmptyGestores" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum gestor com PDI cadastrado</div>
+    </div>
+  </div>
+
 </main>
 
 <!-- MODAL CANDIDATO -->
@@ -531,6 +624,92 @@
   </div>
 </div>
 
+<!-- MODAL PDI -->
+<div class="modal-overlay" id="mPDI">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-title" id="mPDITitulo">Nova ação PDI</div>
+
+    <!-- FICHA (view) -->
+    <div id="pdiFichaView" style="display:none">
+      <div class="ficha-header">
+        <div class="avatar" id="pdiFichaAvatar"></div>
+        <div><div class="ficha-nome" id="pdiFichaNome"></div><div class="ficha-sub" id="pdiFichaSub"></div></div>
+      </div>
+      <div class="ficha-grid" id="pdiFichaGrid"></div>
+      <div class="card-title" style="margin-bottom:6px">Detalhe do desenvolvimento</div>
+      <div class="obs-box" id="pdiFichaDetalhe" style="margin-bottom:1rem"></div>
+      <div class="card-title" style="margin-bottom:6px">Feedback DRE</div>
+      <div class="obs-box" id="pdiFichaFeedback"></div>
+      <div class="modal-footer">
+        <button class="btn" onclick="fecharModal('mPDI')">Fechar</button>
+        <button class="btn btn-primary" onclick="editarFichaPDI()"><i class="ti ti-edit"></i> Editar</button>
+      </div>
+    </div>
+
+    <!-- FORMULÁRIO -->
+    <div id="pdiForm">
+      <div class="form-grid">
+        <div class="fg span2"><label>Nome do gestor</label>
+          <select id="pNomeSel" onchange="onPdiGestorSelChange()"></select>
+          <input id="pNomeNovo" type="text" placeholder="Digite o nome do novo gestor" style="display:none;margin-top:6px">
+        </div>
+        <div class="fg"><label>Ano</label><input id="pAno" type="number" min="2020" max="2100" placeholder="2026"></div>
+        <div class="fg span2"><label>Unidade</label><input id="pUnidade" type="text" list="dlUnidades" placeholder="Ex: SPT 28"></div>
+        <div class="fg"><label>Status da ação</label><select id="pStatus"></select></div>
+
+        <div class="section-label">Mapeamento</div>
+        <div class="fg span3">
+          <label>Canal de mapeamento <span style="font-weight:400;color:var(--text3)">(pode marcar mais de um)</span></label>
+          <div class="chip-select" id="pCanalChips"></div>
+        </div>
+        <div class="fg"><label>Origem da ação</label><select id="pOrigem"></select></div>
+        <div class="fg"><label>Competência de desenvolvimento</label><input id="pCompetencia" type="text" list="dlCompetencias"></div>
+        <div class="fg"><label>Evidência de mapeamento (link)</label><input id="pEvidencia" type="text" placeholder="https://..."></div>
+        <div class="fg"><label>Tipo de necessidade</label><input id="pTipoNec" type="text" list="dlTipos"></div>
+        <div class="fg"><label>Direção de crescimento</label><input id="pDirecao" type="text" list="dlDirecoes"></div>
+        <div class="fg"></div>
+
+        <div class="section-label">Ação de desenvolvimento</div>
+        <div class="fg"><label>Ação</label><select id="pAcao"></select></div>
+        <div class="fg span2"><label>Detalhe do desenvolvimento</label><input id="pDetalhe" type="text" placeholder="Ex: Curso Feedback 2.0"></div>
+        <div class="fg"><label>Link da ação PDI</label><input id="pAcaoLink" type="text" placeholder="https://... (opcional)"></div>
+        <div class="fg"><label>Data de início</label><input id="pDtInicio" type="date"></div>
+        <div class="fg"><label>Data de término programada</label><input id="pDtTermino" type="date"></div>
+
+        <div class="section-label">Feedback</div>
+        <div class="fg span3"><label>Feedback DRE</label><textarea id="pFeedback" placeholder="Retorno da diretoria sobre a ação..."></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="fecharModal('mPDI')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarPDI()"><i class="ti ti-check"></i> Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+<datalist id="dlUnidades"></datalist>
+<datalist id="dlCompetencias"></datalist>
+<datalist id="dlTipos"></datalist>
+<datalist id="dlDirecoes"></datalist>
+
+<!-- MODAL IMPORTAR PDI (CSV do Microsoft Lists) -->
+<div class="modal-overlay" id="mPDIImport">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title">Importar PDI do Microsoft Lists</div>
+    <p style="font-size:12.5px;color:var(--text2);line-height:1.6;margin-bottom:1rem">
+      No Lists, abra a lista → <b>Exportar</b> → <b>Exportar para CSV</b>. Depois selecione o arquivo baixado abaixo.
+      As colunas são reconhecidas automaticamente pelo nome (Ano, Nome do Gestor, Unidade, Canal de Mapeamento, Origem da Ação,
+      Evidência de Mapeamento, Competência de desenvolvimento, Tipo de Necessidade, Direção de Crescimento, Ação, Ação PDI,
+      Detalhe do Desenvolvimento, Data de Início, Data de Término Programada, Status da Ação, Feedback DRE).
+    </p>
+    <input type="file" id="pdiImportFile" accept=".csv">
+    <div class="import-log" id="pdiImportLog" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mPDIImport')">Fechar</button>
+      <button class="btn btn-primary" id="pdiImportBtn" onclick="importarPDICSV()"><i class="ti ti-file-upload"></i> Importar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // SUPABASE CONFIG
@@ -570,6 +749,7 @@ async function dbDelete(table, id) {
 // STATE
 // ============================================================
 let candidatos=[], custos=[], turmas=[], editId=null, viewId=null, charts={};
+let pdis=[], editPDIId=null, viewPDIId=null;
 const ETAPAS = ['Captação','Triagem','Entrevista','Apres. Perbras','Gest./Cultura','Av. Psi','Exames','Documentos','Pré-contrato','Passagens','Início'];
 const TL_FIELDS = ['tl_captacao','tl_triagem','tl_entrevista','tl_perbras','tl_gestao_cultura','tl_av_psi','tl_exames','tl_documentos','tl_pre_contrato','tl_passagens','tl_inicio'];
 
@@ -588,6 +768,16 @@ async function init() {
   } catch(e) {
     toast('Erro ao carregar dados: ' + e.message, true);
   }
+  // PDI carrega separadamente: se a tabela "pdi" ainda não existir no Supabase,
+  // o resto do portal continua funcionando normalmente.
+  try {
+    pdis = await dbGet('pdi');
+  } catch(e) {
+    pdis = [];
+    console.warn('Aba "PDI Gestores": tabela "pdi" não encontrada no Supabase ainda.', e.message);
+  }
+  populatePDISels();
+  renderPDI();
 }
 
 function populateSels() {
@@ -1135,11 +1325,24 @@ function abrirModal(tipo) {
   } else if(tipo==='turma') {
     r$('ftNome').value=''; r$('ftPer').value='';
     r$('mTurma').classList.add('open');
+  } else if(tipo==='pdi') {
+    editPDIId=null; viewPDIId=null;
+    r$('pdiFichaView').style.display='none'; r$('pdiForm').style.display='block';
+    r$('mPDITitulo').textContent='Nova ação PDI';
+    populatePDISels();
+    ['pUnidade','pCompetencia','pEvidencia','pTipoNec','pDirecao','pDetalhe','pAcaoLink','pDtInicio','pDtTermino','pFeedback'].forEach(id=>r$(id).value='');
+    r$('pNomeSel').value=''; r$('pNomeNovo').value=''; r$('pNomeNovo').style.display='none';
+    r$('pAno').value = new Date().getFullYear();
+    r$('pStatus').value = 'Não iniciado';
+    r$('pOrigem').selectedIndex = 0;
+    r$('pAcao').selectedIndex = 0;
+    pdiCanalSel=[]; mkCanalChips();
+    r$('mPDI').classList.add('open');
   }
 }
 
 function fecharModal(id) {
-  r$(id).classList.remove('open'); editId=null; viewId=null; editCustoId=null;
+  r$(id).classList.remove('open'); editId=null; viewId=null; editCustoId=null; editPDIId=null; viewPDIId=null;
 }
 
 // Fechar ao clicar fora
@@ -1296,6 +1499,460 @@ function renderTLTurma() {
 
   html+=`</tbody></table></div>`;
   view.innerHTML=html;
+}
+
+// ============================================================
+// PDI GESTORES
+// ============================================================
+const PDI_CANAIS = ['Avaliação Subjetiva','Avaliação 360°','Psicologia no Campo','Avaliação Psicológica','Reunião de Feedback'];
+const PDI_ORIGENS = ['Direcionamento DRE/Diretoria','Iniciativa do Gestor','Iniciativa Própria','Plano de Sucessão'];
+const PDI_ACOES = ['Curso','Livro/Apostila','Reunião Estratégica','Mentoria','Coaching','Workshop','Palestra','Boas Práticas CGA','Avaliação Psicológica','Outro'];
+const PDI_STATUS = ['Não iniciado','Em andamento','Concluído','Atrasado','Descontinuado'];
+const PDI_COMPETENCIAS_SEED = ['Gestão de Equipes','Comunicação','Liderança','Gestão do Tempo','Gestão de Conflitos','Inteligência Emocional','Visão Estratégica','Feedback','Produtividade'];
+const PDI_TIPOS_SEED = ['Falta de conhecimento','Falta de habilidade','Falta de atitude','Comportamental','Técnica'];
+const PDI_DIRECOES_SEED = ['Quero melhorar','Preciso desenvolver','Ponto forte a potencializar'];
+const PDI_UNIDADES_SEED = ['OS ETA AM II','SPT 28','OS TURBINAS ES','TERMINAIS OCEÂNICOS II','VITORIA III','OS DUTOS'];
+
+let pdiCanalSel = [];
+let pdiQF = 'todos';
+let pdiOpenGroups = new Set();
+
+function pdiSplit(s) { return (s||'').split(/[;,]/).map(x=>x.trim()).filter(Boolean); }
+function pdiStatusBadge(s) { return s==='Concluído'?'b-g':s==='Em andamento'?'b-b':s==='Atrasado'?'b-r':s==='Descontinuado'?'b-p':'b-n'; }
+function pdiDotColor(s) { return {'Concluído':'#8fd400','Em andamento':'#1A88FF','Atrasado':'#FF8F1F','Não iniciado':'#8a9fad','Descontinuado':'#7F77DD'}[s]||'#8a9fad'; }
+function pdiIsAtrasado(p) {
+  if(p.status_acao==='Concluído' || p.status_acao==='Descontinuado') return false;
+  if(!p.data_termino_programada) return false;
+  return p.data_termino_programada < new Date().toISOString().slice(0,10);
+}
+function pdiEffectiveStatus(p) { return pdiIsAtrasado(p) ? 'Atrasado' : (p.status_acao||'Não iniciado'); }
+
+function mkDatalist(id,arr) { const el=r$(id); if(!el) return; el.innerHTML=arr.map(v=>`<option value="${String(v).replace(/"/g,'&quot;')}">`).join(''); }
+
+function mkCanalChips() {
+  const el=r$('pCanalChips'); if(!el) return;
+  el.innerHTML=PDI_CANAIS.map(c=>`<span class="chip-opt${pdiCanalSel.includes(c)?' sel':''}" onclick="togglePdiCanal('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');
+}
+function togglePdiCanal(c) {
+  pdiCanalSel = pdiCanalSel.includes(c) ? pdiCanalSel.filter(x=>x!==c) : [...pdiCanalSel,c];
+  mkCanalChips();
+}
+
+function populatePDISels() {
+  const anos=[...new Set(pdis.map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
+  const gestores=[...new Set(pdis.map(p=>p.gestor_nome).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const unidades=[...new Set([...PDI_UNIDADES_SEED,...pdis.map(p=>p.unidade).filter(Boolean)])].sort((a,b)=>a.localeCompare(b));
+  const competencias=[...new Set([...PDI_COMPETENCIAS_SEED,...pdis.map(p=>p.competencia_desenvolvimento).filter(Boolean)])].sort((a,b)=>a.localeCompare(b));
+  const tipos=[...new Set([...PDI_TIPOS_SEED,...pdis.map(p=>p.tipo_necessidade).filter(Boolean)])].sort((a,b)=>a.localeCompare(b));
+  const direcoes=[...new Set([...PDI_DIRECOES_SEED,...pdis.map(p=>p.direcao_crescimento).filter(Boolean)])].sort((a,b)=>a.localeCompare(b));
+
+  const selAno=r$('pfAno'); if(selAno){ const v=selAno.value; selAno.innerHTML='<option value="">Todos os anos</option>'+anos.map(a=>`<option>${a}</option>`).join(''); if(v)selAno.value=v; }
+  const selGestor=r$('pfGestor'); if(selGestor){ const v=selGestor.value; selGestor.innerHTML='<option value="">Todos os gestores</option>'+gestores.map(g=>`<option>${g}</option>`).join(''); if(v)selGestor.value=v; }
+  const selUnidade=r$('pfUnidade'); if(selUnidade){ const v=selUnidade.value; selUnidade.innerHTML='<option value="">Todas as unidades</option>'+unidades.map(u=>`<option>${u}</option>`).join(''); if(v)selUnidade.value=v; }
+  const selStatus=r$('pfStatus'); if(selStatus){ const v=selStatus.value; selStatus.innerHTML='<option value="">Todos os status</option>'+PDI_STATUS.map(s=>`<option>${s}</option>`).join(''); if(v)selStatus.value=v; }
+
+  const fOrigem=r$('pOrigem'); if(fOrigem && !fOrigem.options.length) fOrigem.innerHTML=PDI_ORIGENS.map(o=>`<option>${o}</option>`).join('');
+  const fAcao=r$('pAcao'); if(fAcao && !fAcao.options.length) fAcao.innerHTML=PDI_ACOES.map(a=>`<option>${a}</option>`).join('');
+  const fStatus=r$('pStatus'); if(fStatus && !fStatus.options.length) fStatus.innerHTML=PDI_STATUS.map(s=>`<option>${s}</option>`).join('');
+
+  mkDatalist('dlUnidades',unidades);
+  mkDatalist('dlCompetencias',competencias); mkDatalist('dlTipos',tipos); mkDatalist('dlDirecoes',direcoes);
+  mkCanalChips();
+
+  const selG=r$('pNomeSel');
+  if(selG){
+    const v=selG.value;
+    selG.innerHTML='<option value="">— Selecione —</option>'
+      + gestores.map(g=>`<option value="${g.replace(/"/g,'&quot;')}">${g}</option>`).join('')
+      + '<option value="__novo__">+ Novo gestor...</option>';
+    if(v && [...selG.options].some(o=>o.value===v)) selG.value=v;
+  }
+}
+
+function onPdiGestorSelChange() {
+  const novo = r$('pNomeSel').value==='__novo__';
+  r$('pNomeNovo').style.display = novo ? '' : 'none';
+  if(novo) r$('pNomeNovo').focus();
+}
+
+function pdiQuickFilter(f) { pdiQF=f; renderPDI(); }
+
+function limparFiltrosPDI() {
+  ['pfAno','pfGestor','pfUnidade','pfStatus'].forEach(id=>{ const el=r$(id); if(el) el.value=''; });
+  pdiQF='todos';
+  renderPDI();
+}
+
+function pdiFiltered() {
+  const af=(r$('pfAno')||{}).value||'', gf=(r$('pfGestor')||{}).value||'', uf=(r$('pfUnidade')||{}).value||'', sf=(r$('pfStatus')||{}).value||'';
+  let f=pdis.filter(p=>(!af||String(p.ano)===af)&&(!gf||p.gestor_nome===gf)&&(!uf||p.unidade===uf)&&(!sf||pdiEffectiveStatus(p)===sf));
+  if(pdiQF==='atrasados') f=f.filter(p=>pdiEffectiveStatus(p)==='Atrasado');
+  if(pdiQF==='andamento') f=f.filter(p=>pdiEffectiveStatus(p)==='Em andamento');
+  if(pdiQF==='concluidos') f=f.filter(p=>pdiEffectiveStatus(p)==='Concluído');
+  if(pdiQF==='descontinuados') f=f.filter(p=>(p.status_acao||'')==='Descontinuado');
+  return f;
+}
+
+function switchPDITab(tab,el) {
+  document.querySelectorAll('#page-pdi .tl-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  r$('pdiDashView').style.display=tab==='dash'?'':'none';
+  r$('pdiListaView').style.display=tab==='lista'?'':'none';
+  r$('pdiGestoresView').style.display=tab==='gestores'?'':'none';
+  renderPDI();
+}
+
+function renderPDI() {
+  const qfCounts = {
+    todos: pdis.length,
+    atrasados: pdis.filter(p=>pdiEffectiveStatus(p)==='Atrasado').length,
+    andamento: pdis.filter(p=>pdiEffectiveStatus(p)==='Em andamento').length,
+    concluidos: pdis.filter(p=>pdiEffectiveStatus(p)==='Concluído').length,
+    descontinuados: pdis.filter(p=>(p.status_acao||'')==='Descontinuado').length,
+  };
+  const qfLabels=[['todos','Todos'],['atrasados','Atrasados'],['andamento','Em andamento'],['concluidos','Concluídos'],['descontinuados','Descontinuados']];
+  const qfEl=r$('pdiQF');
+  if(qfEl) qfEl.innerHTML = qfLabels.map(([k,l])=>`<button class="qf-btn${pdiQF===k?' active':''}" onclick="pdiQuickFilter('${k}')">${l} <span style="opacity:.6">${qfCounts[k]}</span></button>`).join('');
+
+  if(r$('pdiDashView') && r$('pdiDashView').style.display!=='none') renderPDIDash();
+  if(r$('pdiListaView') && r$('pdiListaView').style.display!=='none') renderPDILista();
+  if(r$('pdiGestoresView') && r$('pdiGestoresView').style.display!=='none') renderPDIGestores();
+}
+
+function renderPDIDash() {
+  const f = pdiFiltered();
+  const total=f.length;
+  const concl=f.filter(p=>pdiEffectiveStatus(p)==='Concluído').length;
+  const atrasadas=f.filter(p=>pdiEffectiveStatus(p)==='Atrasado').length;
+  const gestoresSet=new Set(f.map(p=>p.gestor_nome).filter(Boolean));
+  r$('pdiKPIs').innerHTML = `
+    <div class="metric"><div class="lbl">Ações de PDI</div><div class="val">${total}</div><div class="sub">${gestoresSet.size} gestor${gestoresSet.size!==1?'es':''}</div></div>
+    <div class="metric m-g"><div class="lbl">Concluídas</div><div class="val">${concl}</div><div class="sub">${total?Math.round(concl/total*100):0}% do total</div></div>
+    <div class="metric m-r"><div class="lbl">Atrasadas</div><div class="val">${atrasadas}</div><div class="sub">${total?Math.round(atrasadas/total*100):0}% do total</div></div>
+    <div class="metric m-b"><div class="lbl">Gestores com PDI</div><div class="val">${gestoresSet.size}</div><div class="sub">no filtro atual</div></div>`;
+
+  // KPIs por status bruto cadastrado (não iniciados / em andamento / concluídos / descontinuados)
+  const rawCnt={'Não iniciado':0,'Em andamento':0,'Concluído':0,'Descontinuado':0};
+  f.forEach(p=>{ const s=p.status_acao||'Não iniciado'; if(rawCnt.hasOwnProperty(s)) rawCnt[s]++; });
+  const pct=n=>total?Math.round(n/total*100):0;
+  r$('pdiKPIsStatus').innerHTML = `
+    <div class="metric"><div class="lbl">Não iniciados</div><div class="val">${rawCnt['Não iniciado']}</div><div class="sub">${pct(rawCnt['Não iniciado'])}%</div></div>
+    <div class="metric m-b"><div class="lbl">Em andamento</div><div class="val">${rawCnt['Em andamento']}</div><div class="sub">${pct(rawCnt['Em andamento'])}%</div></div>
+    <div class="metric m-g"><div class="lbl">Concluídos</div><div class="val">${rawCnt['Concluído']}</div><div class="sub">${pct(rawCnt['Concluído'])}%</div></div>
+    <div class="metric m-r"><div class="lbl">Descontinuados</div><div class="val">${rawCnt['Descontinuado']}</div><div class="sub">${pct(rawCnt['Descontinuado'])}%</div></div>`;
+
+  const stCnt={}; f.forEach(p=>{ const s=pdiEffectiveStatus(p); stCnt[s]=(stCnt[s]||0)+1; });
+  const stK=PDI_STATUS.filter(s=>stCnt[s]); const stV=stK.map(k=>stCnt[k]);
+  const stColors={'Concluído':'#BCFF48','Em andamento':'#1A88FF','Atrasado':'#FF8F1F','Não iniciado':'#8a9fad','Descontinuado':'#7F77DD'};
+  mkLeg('pdiLgStatus', stK, stK.map(k=>stColors[k]));
+  dc('pdiCStatus');
+  charts['pdiCStatus']=new Chart(r$('pdiCStatus'),{type:'doughnut',data:{labels:stK,datasets:[{data:stV,backgroundColor:stK.map(k=>stColors[k]),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}});
+
+  const gCnt={}; f.forEach(p=>{ if(p.gestor_nome) gCnt[p.gestor_nome]=(gCnt[p.gestor_nome]||0)+1; });
+  const gK=Object.keys(gCnt).sort((a,b)=>gCnt[b]-gCnt[a]).slice(0,10);
+  const gV=gK.map(k=>gCnt[k]);
+  dc('pdiCGestor');
+  charts['pdiCGestor']=new Chart(r$('pdiCGestor'),{type:'bar',data:{labels:gK,datasets:[{data:gV,backgroundColor:'#1A88FF',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+
+  const cnCnt={}; f.forEach(p=>{ pdiSplit(p.canal_mapeamento).forEach(c=>{cnCnt[c]=(cnCnt[c]||0)+1;}); });
+  const cnK=Object.keys(cnCnt).sort((a,b)=>cnCnt[b]-cnCnt[a]); const cnV=cnK.map(k=>cnCnt[k]);
+  dc('pdiCCanal');
+  charts['pdiCCanal']=new Chart(r$('pdiCCanal'),{type:'bar',data:{labels:cnK,datasets:[{data:cnV,backgroundColor:'#2ED7ED',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+
+  const orCnt=cnt(f.filter(p=>p.origem_acao),'origem_acao'); const orK=Object.keys(orCnt); const orV=orK.map(k=>orCnt[k]);
+  const multiCols=['#1A88FF','#2ED7ED','#BCFF48','#FF8F1F','#7F77DD'];
+  dc('pdiCOrigem');
+  charts['pdiCOrigem']=new Chart(r$('pdiCOrigem'),{type:'doughnut',data:{labels:orK,datasets:[{data:orV,backgroundColor:multiCols.slice(0,orK.length),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:true,position:'bottom',labels:{font:{size:9},boxWidth:8,padding:6}}}}});
+
+  const tpCnt=cnt(f.filter(p=>p.tipo_necessidade),'tipo_necessidade'); const tpK=Object.keys(tpCnt); const tpV=tpK.map(k=>tpCnt[k]);
+  dc('pdiCTipo');
+  charts['pdiCTipo']=new Chart(r$('pdiCTipo'),{type:'doughnut',data:{labels:tpK,datasets:[{data:tpV,backgroundColor:multiCols.slice(0,tpK.length),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:true,position:'bottom',labels:{font:{size:9},boxWidth:8,padding:6}}}}});
+
+  const acCnt=cnt(f.filter(p=>p.acao),'acao'); const acK=Object.keys(acCnt).sort((a,b)=>acCnt[b]-acCnt[a]); const acV=acK.map(k=>acCnt[k]);
+  dc('pdiCAcao');
+  charts['pdiCAcao']=new Chart(r$('pdiCAcao'),{type:'bar',data:{labels:acK,datasets:[{data:acV,backgroundColor:'#BCFF48',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+}
+
+function pdiRowHtml(p) {
+  const st = pdiEffectiveStatus(p);
+  return `<tr>
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:26px;height:26px;font-size:10px;flex-shrink:0">${initials(p.gestor_nome||'?')}</div><button class="link-name" onclick="verPDI('${p.id}')">${p.gestor_nome||'—'}</button></div></td>
+    <td style="color:var(--text2)">${p.unidade||'—'}</td>
+    <td><div class="pdi-badges">${pdiSplit(p.canal_mapeamento).map(c=>`<span class="badge b-b">${c}</span>`).join('')||'—'}</div></td>
+    <td><span class="badge b-b">${p.origem_acao||'—'}</span></td>
+    <td>${p.competencia_desenvolvimento?`<span class="badge b-b">${p.competencia_desenvolvimento}</span>`:'—'}</td>
+    <td>${p.tipo_necessidade?`<span class="badge b-p">${p.tipo_necessidade}</span>`:'—'}</td>
+    <td>${p.direcao_crescimento?`<span class="badge b-g">${p.direcao_crescimento}</span>`:'—'}</td>
+    <td>${p.acao||'—'}</td>
+    <td style="max-width:200px;white-space:normal">${p.detalhe_desenvolvimento||'—'}</td>
+    <td>${p.data_inicio?fmt(p.data_inicio):'—'}</td>
+    <td>${p.data_termino_programada?fmt(p.data_termino_programada):'—'}</td>
+    <td><span class="badge ${pdiStatusBadge(st)}">${st}</span></td>
+    <td style="white-space:nowrap">
+      <button class="icon-btn" onclick="editarPDI('${p.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+      <button class="icon-btn del" onclick="excluirPDI('${p.id}','${(p.gestor_nome||'').replace(/'/g,"\\'")}')" title="Excluir"><i class="ti ti-trash"></i></button>
+    </td>
+  </tr>`;
+}
+
+function renderPDILista() {
+  const f = pdiFiltered();
+  r$('pdiEmptyLista').style.display = f.length ? 'none' : 'block';
+  const anos=[...new Set(f.map(p=>p.ano||'Sem ano'))].sort((a,b)=>{
+    if(a==='Sem ano') return 1; if(b==='Sem ano') return -1; return b-a;
+  });
+  if(!pdiOpenGroups.size && anos.length) pdiOpenGroups.add(anos[0]);
+  r$('pdiGroups').innerHTML = anos.map(ano=>{
+    const rows = f.filter(p=>(p.ano||'Sem ano')===ano).sort((a,b)=>(a.gestor_nome||'').localeCompare(b.gestor_nome||''));
+    const open = pdiOpenGroups.has(ano);
+    return `<div class="pdi-group">
+      <div class="pdi-group-head${open?' open':''}" onclick="togglePdiGroup('${ano}')"><i class="ti ti-chevron-right"></i> Ano: ${ano} <span class="cnt">(${rows.length})</span></div>
+      <div class="pdi-group-body${open?' open':''}">
+        <div class="table-wrap" style="border-radius:0;border:none;box-shadow:none">
+          <table><thead><tr>
+            <th>Gestor</th><th>Unidade</th><th>Canal</th><th>Origem</th><th>Competência</th><th>Tipo de necessidade</th><th>Direção</th><th>Ação</th><th>Detalhe</th><th>Início</th><th>Término prog.</th><th>Status</th><th></th>
+          </tr></thead><tbody>${rows.map(pdiRowHtml).join('')}</tbody></table>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togglePdiGroup(ano) {
+  if(pdiOpenGroups.has(ano)) pdiOpenGroups.delete(ano); else pdiOpenGroups.add(ano);
+  renderPDILista();
+}
+
+function renderPDIGestores() {
+  const f = pdiFiltered();
+  const gestores = [...new Set(f.map(p=>p.gestor_nome).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  r$('pdiEmptyGestores').style.display = gestores.length ? 'none' : 'block';
+  r$('pdiGestoresGrid').innerHTML = gestores.map(g=>{
+    const items = f.filter(p=>p.gestor_nome===g).sort((a,b)=>(b.ano||0)-(a.ano||0));
+    const unidade = (items.find(p=>p.unidade)||{}).unidade || '—';
+    const concl = items.filter(p=>pdiEffectiveStatus(p)==='Concluído').length;
+    const atrasadas = items.filter(p=>pdiEffectiveStatus(p)==='Atrasado').length;
+    const pct = items.length ? Math.round(concl/items.length*100) : 0;
+    return `<div class="pdi-card" onclick="verPDI('${items[0].id}')">
+      <div class="pdi-card-head">
+        <div class="avatar">${initials(g)}</div>
+        <div><div class="nm">${g}</div><div class="un">${unidade}</div></div>
+      </div>
+      <div class="pdi-card-stats"><span>${concl}/${items.length} concluídas</span><b>${pct}%</b></div>
+      <div class="pbar"><div class="pbar-fill${pct===100?' full':''}" style="width:${pct}%"></div></div>
+      ${atrasadas?`<div style="margin-top:8px"><span class="badge b-r">${atrasadas} atrasada${atrasadas!==1?'s':''}</span></div>`:''}
+      <div class="pdi-mini-list">${items.slice(0,4).map(p=>`<div class="pdi-mini-item"><span class="pdi-dot" style="background:${pdiDotColor(pdiEffectiveStatus(p))}"></span><span class="txt">${p.detalhe_desenvolvimento||p.acao||'Ação PDI'}</span></div>`).join('')}${items.length>4?`<div style="font-size:11px;color:var(--text3)">+${items.length-4} outra${items.length-4!==1?'s':''} ação${items.length-4!==1?'ões':''}</div>`:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function verPDI(id) {
+  const p = pdis.find(x=>x.id===id); if(!p) return;
+  viewPDIId=id; editPDIId=null;
+  r$('pdiFichaView').style.display='block'; r$('pdiForm').style.display='none';
+  r$('mPDITitulo').textContent='Ação de PDI';
+  r$('pdiFichaAvatar').textContent=initials(p.gestor_nome||'?');
+  r$('pdiFichaNome').textContent=p.gestor_nome||'—';
+  r$('pdiFichaSub').textContent=[p.unidade,p.ano].filter(Boolean).join(' · ');
+  const st=pdiEffectiveStatus(p);
+  r$('pdiFichaGrid').innerHTML=[
+    ['Status',`<span class="badge ${pdiStatusBadge(st)}">${st}</span>`],
+    ['Canal de mapeamento',pdiSplit(p.canal_mapeamento).join(', ')||'—'],
+    ['Origem da ação',p.origem_acao||'—'],
+    ['Competência',p.competencia_desenvolvimento||'—'],
+    ['Tipo de necessidade',p.tipo_necessidade||'—'],
+    ['Direção de crescimento',p.direcao_crescimento||'—'],
+    ['Ação',p.acao||'—'],
+    ['Início',p.data_inicio?fmt(p.data_inicio):'—'],
+    ['Término programado',p.data_termino_programada?fmt(p.data_termino_programada):'—'],
+    ['Evidência',p.evidencia_link?`<a href="${p.evidencia_link}" target="_blank" rel="noopener">Abrir link</a>`:'—'],
+    ['Link da ação PDI',p.acao_pdi_link?`<a href="${p.acao_pdi_link}" target="_blank" rel="noopener">Abrir link</a>`:'—'],
+  ].map(([l,v])=>`<div class="fi"><div class="fi-l">${l}</div><div class="fi-v">${v}</div></div>`).join('');
+  r$('pdiFichaDetalhe').textContent=p.detalhe_desenvolvimento||'Nenhum detalhe registrado.';
+  r$('pdiFichaFeedback').textContent=p.feedback_dre||'Nenhum feedback registrado.';
+  r$('mPDI').classList.add('open');
+}
+
+function editarFichaPDI() { editarPDI(viewPDIId); }
+
+function editarPDI(id) {
+  const p = pdis.find(x=>x.id===id); if(!p) return;
+  editPDIId=id; viewPDIId=null;
+  r$('pdiFichaView').style.display='none'; r$('pdiForm').style.display='block';
+  r$('mPDITitulo').textContent='Editar ação de PDI';
+  populatePDISels();
+  const gestorExiste=p.gestor_nome && pdis.some(x=>x.gestor_nome===p.gestor_nome);
+  if(gestorExiste){ r$('pNomeSel').value=p.gestor_nome; r$('pNomeNovo').value=''; r$('pNomeNovo').style.display='none'; }
+  else { r$('pNomeSel').value='__novo__'; r$('pNomeNovo').value=p.gestor_nome||''; r$('pNomeNovo').style.display=''; }
+  r$('pAno').value=p.ano||'';
+  r$('pUnidade').value=p.unidade||''; r$('pStatus').value=p.status_acao||'Não iniciado';
+  pdiCanalSel=pdiSplit(p.canal_mapeamento); mkCanalChips();
+  r$('pOrigem').value=p.origem_acao||PDI_ORIGENS[0];
+  r$('pCompetencia').value=p.competencia_desenvolvimento||'';
+  r$('pEvidencia').value=p.evidencia_link||'';
+  r$('pTipoNec').value=p.tipo_necessidade||'';
+  r$('pDirecao').value=p.direcao_crescimento||'';
+  r$('pAcao').value=p.acao||PDI_ACOES[0];
+  r$('pDetalhe').value=p.detalhe_desenvolvimento||'';
+  r$('pAcaoLink').value=p.acao_pdi_link||'';
+  r$('pDtInicio').value=p.data_inicio||''; r$('pDtTermino').value=p.data_termino_programada||'';
+  r$('pFeedback').value=p.feedback_dre||'';
+  r$('mPDI').classList.add('open');
+}
+
+async function salvarPDI() {
+  const selVal=r$('pNomeSel').value;
+  const gestor_nome=(selVal==='__novo__'?r$('pNomeNovo').value:selVal).trim();
+  if(!gestor_nome){alert('Selecione um gestor ou cadastre um novo');return;}
+  const data={
+    gestor_nome, ano: r$('pAno').value?parseInt(r$('pAno').value):null,
+    unidade: r$('pUnidade').value.trim()||null,
+    status_acao: r$('pStatus').value,
+    canal_mapeamento: pdiCanalSel.join(', ')||null,
+    origem_acao: r$('pOrigem').value||null,
+    competencia_desenvolvimento: r$('pCompetencia').value.trim()||null,
+    evidencia_link: r$('pEvidencia').value.trim()||null,
+    tipo_necessidade: r$('pTipoNec').value.trim()||null,
+    direcao_crescimento: r$('pDirecao').value.trim()||null,
+    acao: r$('pAcao').value||null,
+    detalhe_desenvolvimento: r$('pDetalhe').value.trim()||null,
+    acao_pdi_link: r$('pAcaoLink').value.trim()||null,
+    data_inicio: r$('pDtInicio').value||null,
+    data_termino_programada: r$('pDtTermino').value||null,
+    feedback_dre: r$('pFeedback').value.trim()||null,
+  };
+  try {
+    if(editPDIId) { await dbUpdate('pdi',editPDIId,data); toast('Ação de PDI atualizada!'); }
+    else { await dbInsert('pdi',data); toast('Ação de PDI cadastrada!'); }
+    fecharModal('mPDI'); editPDIId=null;
+    pdis=await dbGet('pdi'); populatePDISels(); renderPDI();
+  } catch(e){ toast('Erro ao salvar PDI: '+e.message,true); }
+}
+
+async function excluirPDI(id,nome) {
+  if(!confirm(`Excluir esta ação de PDI de ${nome}?`)) return;
+  try { await dbDelete('pdi',id); toast('Excluído.'); pdis=await dbGet('pdi'); populatePDISels(); renderPDI(); }
+  catch(e){ toast('Erro: '+e.message,true); }
+}
+
+// ── Importador CSV (Microsoft Lists) ──────────────────────────
+const PDI_HEADER_MAP = {
+  'ano':'ano','nome do gestor':'gestor_nome','gestor':'gestor_nome','unidade':'unidade',
+  'canal de mapeamento':'canal_mapeamento',
+  'origem da ação':'origem_acao','origem da acao':'origem_acao',
+  'evidência de mapeamento':'evidencia_link','evidencia de mapeamento':'evidencia_link',
+  'competência de desenvolvimento':'competencia_desenvolvimento','competencia de desenvolvimento':'competencia_desenvolvimento',
+  'tipo de necessidade':'tipo_necessidade',
+  'direção de crescimento':'direcao_crescimento','direcao de crescimento':'direcao_crescimento',
+  'ação':'acao','acao':'acao',
+  'ação pdi':'acao_pdi_link','acao pdi':'acao_pdi_link',
+  'detalhe do desenvolvimento':'detalhe_desenvolvimento',
+  'data de início':'data_inicio','data de inicio':'data_inicio',
+  'data de término programada':'data_termino_programada','data de termino programada':'data_termino_programada',
+  'status da ação':'status_acao','status da acao':'status_acao',
+  'feedback dre':'feedback_dre'
+};
+
+function abrirImportPDI() {
+  r$('pdiImportFile').value='';
+  r$('pdiImportLog').style.display='none'; r$('pdiImportLog').innerHTML='';
+  r$('pdiImportBtn').disabled=false; r$('pdiImportBtn').innerHTML='<i class="ti ti-file-upload"></i> Importar';
+  r$('mPDIImport').classList.add('open');
+}
+
+function pdiLog(el,msg,cls) { el.innerHTML+=`<span class="${cls||''}">${msg}</span>\n`; el.scrollTop=el.scrollHeight; }
+
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, '');
+  const firstLine = text.split(/\r?\n/)[0] || '';
+  const delim = (firstLine.split(';').length > firstLine.split(',').length) ? ';' : ',';
+  const rows=[]; let row=[]; let field=''; let inQuotes=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i], n=text[i+1];
+    if(inQuotes){
+      if(c==='"' && n==='"'){ field+='"'; i++; }
+      else if(c==='"'){ inQuotes=false; }
+      else field+=c;
+    } else {
+      if(c==='"') inQuotes=true;
+      else if(c===delim){ row.push(field); field=''; }
+      else if(c==='\r'){ /* skip */ }
+      else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else field+=c;
+    }
+  }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r=>r.length>1||(r[0]||'')!=='');
+}
+
+function pdiParseDate(s) {
+  if(!s) return null;
+  s=s.trim(); if(!s) return null;
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(m){ let [,d,mo,y]=m; if(y.length===2) y='20'+y; return `${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`; }
+  return null;
+}
+
+function pdiExtractLink(s) {
+  if(!s) return null;
+  s=s.trim(); if(!s) return null;
+  const parts=s.split(',').map(x=>x.trim());
+  const urlPart=parts.find(p=>/^https?:\/\//i.test(p));
+  return urlPart || s;
+}
+
+async function importarPDICSV() {
+  const file=r$('pdiImportFile').files[0];
+  if(!file){ alert('Selecione um arquivo CSV exportado do Lists'); return; }
+  const btn=r$('pdiImportBtn'); btn.disabled=true; btn.textContent='Importando...';
+  const logEl=r$('pdiImportLog'); logEl.style.display='block'; logEl.innerHTML='';
+  pdiLog(logEl,'Lendo arquivo...','inf');
+  try {
+    const text = await file.text();
+    const rows = parseCSV(text);
+    if(!rows.length){ pdiLog(logEl,'Arquivo vazio.','err'); btn.disabled=false; btn.innerHTML='<i class="ti ti-file-upload"></i> Importar'; return; }
+    const header = rows[0].map(h=>h.trim().toLowerCase());
+    const cols = header.map(h=>PDI_HEADER_MAP[h]||null);
+    if(!cols.includes('gestor_nome')){
+      pdiLog(logEl,'Não encontrei a coluna "Nome do Gestor" no CSV. Verifique o arquivo exportado do Lists.','err');
+      btn.disabled=false; btn.innerHTML='<i class="ti ti-file-upload"></i> Importar'; return;
+    }
+    pdiLog(logEl,`${rows.length-1} linha(s) encontrada(s). Importando...`,'inf');
+    let ok=0, fail=0;
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];
+      if(!r.some(c=>c&&c.trim())) continue;
+      const rec={};
+      cols.forEach((key,idx)=>{ if(key) rec[key]=(r[idx]||'').trim(); });
+      if(!rec.gestor_nome) continue;
+      const data={
+        gestor_nome: rec.gestor_nome||null,
+        ano: rec.ano?parseInt(rec.ano.replace(/\D/g,''))||null:null,
+        unidade: rec.unidade||null,
+        canal_mapeamento: rec.canal_mapeamento||null,
+        origem_acao: rec.origem_acao||null,
+        evidencia_link: pdiExtractLink(rec.evidencia_link),
+        competencia_desenvolvimento: rec.competencia_desenvolvimento||null,
+        tipo_necessidade: rec.tipo_necessidade||null,
+        direcao_crescimento: rec.direcao_crescimento||null,
+        acao: rec.acao||null,
+        acao_pdi_link: pdiExtractLink(rec.acao_pdi_link),
+        detalhe_desenvolvimento: rec.detalhe_desenvolvimento||null,
+        data_inicio: pdiParseDate(rec.data_inicio),
+        data_termino_programada: pdiParseDate(rec.data_termino_programada),
+        status_acao: rec.status_acao||'Não iniciado',
+        feedback_dre: rec.feedback_dre||null,
+      };
+      try { await dbInsert('pdi',data); ok++; pdiLog(logEl,`  ✓ ${data.gestor_nome} — ${data.detalhe_desenvolvimento||data.acao||'ação'}`,'ok'); }
+      catch(e){ fail++; pdiLog(logEl,`  ✗ ${data.gestor_nome||'linha '+(i+1)}: ${e.message}`,'err'); }
+    }
+    pdiLog(logEl,`\nConcluído: ${ok} importada(s), ${fail} com erro.`, ok?'ok':'err');
+    pdis = await dbGet('pdi'); populatePDISels(); renderPDI();
+  } catch(e) {
+    pdiLog(logEl,'Erro ao ler arquivo: '+e.message,'err');
+  }
+  btn.disabled=false; btn.innerHTML='<i class="ti ti-file-upload"></i> Importar';
 }
 
 init();
