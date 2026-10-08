@@ -731,6 +731,7 @@
       <div class="obs-box" id="pdiFichaFeedback"></div>
       <div class="modal-footer">
         <button class="btn" onclick="fecharModal('mPDI')">Fechar</button>
+        <button class="btn btn-danger admin-only" onclick="excluirFichaPDI()"><i class="ti ti-trash"></i> Excluir</button>
         <button class="btn btn-primary admin-only" onclick="editarFichaPDI()"><i class="ti ti-edit"></i> Editar</button>
       </div>
     </div>
@@ -2223,6 +2224,11 @@ function verPDI(id) {
 
 function editarFichaPDI() { editarPDI(viewPDIId); }
 
+function excluirFichaPDI() {
+  const p = pdis.find(x=>x.id===viewPDIId); if(!p) return;
+  excluirPDI(p.id, p.gestor_nome, () => fecharModal('mPDI'));
+}
+
 function editarPDI(id) {
   const p = pdis.find(x=>x.id===id); if(!p) return;
   editPDIId=id; viewPDIId=null;
@@ -2283,10 +2289,13 @@ async function salvarPDI() {
   } catch(e){ toast('Erro ao salvar PDI: '+e.message,true); }
 }
 
-async function excluirPDI(id,nome) {
+async function excluirPDI(id,nome,onDone) {
   if(!confirm(`Excluir esta ação de PDI de ${nome}?`)) return;
-  try { await dbDelete('pdi',id); toast('Excluído.'); pdis=await dbGet('pdi'); populatePDISels(); renderPDI(); }
-  catch(e){ toast('Erro: '+e.message,true); }
+  try {
+    await dbDelete('pdi',id); toast('Excluído.');
+    pdis=await dbGet('pdi'); populatePDISels(); renderPDI();
+    if(onDone) onDone();
+  } catch(e){ toast('Erro: '+e.message,true); }
 }
 
 // ── Importador CSV (Microsoft Lists) ──────────────────────────
