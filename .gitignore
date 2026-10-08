@@ -1,3 +1,8 @@
 # Ferramenta de admin local — usa a Service Role Key do Supabase (acesso total,
 # sem restrição de segurança). Nunca deve ir pro repositório público.
 admin_gestores.html
+
+# Dumps de importação de dados reais de PDI — contém feedback de desempenho
+# de pessoas específicas e credenciais de terceiros embutidas no texto.
+# Fica só local, nunca no repositório público.
+pdi_import*.sql
