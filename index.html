@@ -748,6 +748,7 @@
           <input id="pUnidadeNovo" type="text" placeholder="Digite o nome da nova unidade" style="display:none;margin-top:6px">
         </div>
         <div class="fg"><label>Status da ação</label><select id="pStatus"></select></div>
+        <div class="fg span3"><label>E-mail do gestor <span style="font-weight:400;color:var(--text3)">(pra onde vão as notificações)</span></label><input id="pGestorEmail" type="email" placeholder="nome@perbras.com.br"></div>
 
         <div class="section-label">Mapeamento</div>
         <div class="fg span3">
@@ -1554,7 +1555,7 @@ function abrirModal(tipo) {
     r$('pdiFichaView').style.display='none'; r$('pdiForm').style.display='block';
     r$('mPDITitulo').textContent='Nova ação PDI';
     populatePDISels();
-    ['pCompetencia','pEvidencia','pTipoNec','pDirecao','pDetalhe','pAcaoLink','pDtInicio','pDtTermino','pFeedback'].forEach(id=>r$(id).value='');
+    ['pCompetencia','pEvidencia','pTipoNec','pDirecao','pDetalhe','pAcaoLink','pDtInicio','pDtTermino','pFeedback','pGestorEmail'].forEach(id=>r$(id).value='');
     r$('pNomeSel').value=''; r$('pNomeNovo').value=''; r$('pNomeNovo').style.display='none';
     r$('pUnidadeSel').value=''; r$('pUnidadeNovo').value=''; r$('pUnidadeNovo').style.display='none';
     r$('pAno').value = new Date().getFullYear();
@@ -1805,9 +1806,14 @@ function populatePDISels() {
 }
 
 function onPdiGestorSelChange() {
-  const novo = r$('pNomeSel').value==='__novo__';
+  const sel = r$('pNomeSel').value;
+  const novo = sel==='__novo__';
   r$('pNomeNovo').style.display = novo ? '' : 'none';
   if(novo) r$('pNomeNovo').focus();
+  else if(sel && !r$('pGestorEmail').value){
+    const prev=[...pdis].reverse().find(p=>p.gestor_nome===sel && p.gestor_email);
+    if(prev) r$('pGestorEmail').value=prev.gestor_email;
+  }
 }
 
 function onPdiUnidadeSelChange() {
@@ -2232,6 +2238,7 @@ function editarPDI(id) {
   else if(p.unidade){ r$('pUnidadeSel').value='__nova__'; r$('pUnidadeNovo').value=p.unidade; r$('pUnidadeNovo').style.display=''; }
   else { r$('pUnidadeSel').value=''; r$('pUnidadeNovo').value=''; r$('pUnidadeNovo').style.display='none'; }
   r$('pStatus').value=p.status_acao||'Não iniciado';
+  r$('pGestorEmail').value=p.gestor_email||'';
   pdiCanalSel=pdiSplit(p.canal_mapeamento); mkCanalChips();
   r$('pOrigem').value=p.origem_acao||PDI_ORIGENS[0];
   r$('pCompetencia').value=p.competencia_desenvolvimento||'';
@@ -2254,6 +2261,7 @@ async function salvarPDI() {
     gestor_nome, ano: r$('pAno').value?parseInt(r$('pAno').value):null,
     unidade: (r$('pUnidadeSel').value==='__nova__'?r$('pUnidadeNovo').value:r$('pUnidadeSel').value).trim()||null,
     status_acao: r$('pStatus').value,
+    gestor_email: r$('pGestorEmail').value.trim()||null,
     canal_mapeamento: pdiCanalSel.join(', ')||null,
     origem_acao: r$('pOrigem').value||null,
     competencia_desenvolvimento: r$('pCompetencia').value.trim()||null,
