@@ -15,6 +15,9 @@ alter table public.pdi add column if not exists sabe_acao_imediata text;  -- "j�
 --    "Iniciativa do Gestor" / canal "Self" / status "Não iniciado".
 --    Não dá pra ler, editar nem apagar nada — só inserir esse tipo
 --    específico de registro. É o que o formulário público usa.
+-- Permissão de base pra inserir (grant), separada da regra de conteúdo (policy) logo abaixo.
+grant insert on public.pdi to anon;
+
 drop policy if exists "Autoavaliação pública (Self)" on public.pdi;
 create policy "Autoavaliação pública (Self)" on public.pdi
   for insert to anon
