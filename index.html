@@ -230,6 +230,23 @@
   .import-log { margin-top: .75rem; padding: .75rem; background: #091C28; border-radius: 8px; font-size: 11.5px; font-family: ui-monospace, Consolas, monospace; max-height: 260px; overflow-y: auto; white-space: pre-wrap; color: #cfe3ed; }
   .import-log .ok { color: #9ee37d; } .import-log .err { color: #F09595; } .import-log .inf { color: #85B7EB; }
 
+  /* Login / acesso */
+  #loginScreen { display: none; position: fixed; inset: 0; z-index: 500; align-items: center; justify-content: center; background: var(--bg3); padding: 1.5rem; }
+  body:not(.authed) #loginScreen { display: flex; }
+  body:not(.authed) .sidebar, body:not(.authed) .main { display: none; }
+  .login-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,0.16); padding: 2rem; width: 100%; max-width: 340px; }
+  .login-card img { max-height: 44px; display: block; margin: 0 auto 1.25rem; }
+  .login-card h1 { font-size: 15px; font-weight: 600; text-align: center; margin-bottom: 1.5rem; color: var(--text); }
+  .login-err { background: var(--red-bg); color: var(--red-text); font-size: 12.5px; padding: 9px 11px; border-radius: 6px; margin-top: 12px; display: none; line-height: 1.5; }
+  .role-badge { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 2px 7px; border-radius: 5px; }
+  .role-badge.gestor { background: rgba(188,255,72,0.18); color: #BCFF48; }
+  .role-badge.admin { background: rgba(46,215,237,0.18); color: #2ED7ED; }
+  .sidebar-foot { margin-top: auto; padding-top: 10px; border-top: 0.5px solid rgba(255,255,255,0.08); }
+  .sidebar-user { font-size: 11px; color: rgba(255,255,255,0.55); padding: 4px 10px 8px; line-height: 1.5; word-break: break-word; }
+  .gestor-banner { background: var(--amber-bg); color: var(--amber-text); border-radius: var(--radius); padding: 10px 14px; font-size: 12.5px; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+  body.role-gestor .admin-only { display: none !important; }
+  body:not(.role-gestor) .gestor-only { display: none !important; }
+
   @media (max-width: 900px) {
     .sidebar { width: 60px; }
     .sidebar-logo span, .sidebar-subtitle, .nav-item span { display: none; }
@@ -247,18 +264,34 @@
 
 <div id="toast"></div>
 
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <img src="perbraslogo.png" alt="Perbras">
+    <h1>Portal R&S — Entrar</h1>
+    <div class="fg" style="margin-bottom:10px"><label>E-mail</label><input id="loginEmail" type="email" placeholder="seu@email.com" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="fg"><label>Senha</label><input id="loginSenha" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" id="loginBtn" onclick="doLogin()"><i class="ti ti-login-2"></i> Entrar</button>
+  </div>
+</div>
+
 <!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="sidebar-logo">
     <img src="perbraslogo.png" alt="Perbras">
     <span class="sidebar-subtitle">Portal R&S</span>
   </div>
-  <button class="nav-item active" onclick="goPage('visao',this)"><i class="ti ti-layout-dashboard"></i><span>Visão geral</span></button>
-  <button class="nav-item" onclick="goPage('candidatos',this)"><i class="ti ti-users"></i><span>Candidatos</span></button>
-  <button class="nav-item" onclick="goPage('custos',this)"><i class="ti ti-currency-dollar"></i><span>Custos</span></button>
-  <button class="nav-item" onclick="goPage('turmas',this)"><i class="ti ti-school"></i><span>Turmas</span></button>
-  <button class="nav-item" onclick="goPage('timeline',this)"><i class="ti ti-timeline"></i><span>Linha do tempo</span></button>
-  <button class="nav-item" onclick="goPage('pdi',this)"><i class="ti ti-target-arrow"></i><span>PDI Gestores</span></button>
+  <button class="nav-item active admin-only" onclick="goPage('visao',this)"><i class="ti ti-layout-dashboard"></i><span>Visão geral</span></button>
+  <button class="nav-item admin-only" onclick="goPage('candidatos',this)"><i class="ti ti-users"></i><span>Candidatos</span></button>
+  <button class="nav-item admin-only" onclick="goPage('custos',this)"><i class="ti ti-currency-dollar"></i><span>Custos</span></button>
+  <button class="nav-item admin-only" onclick="goPage('turmas',this)"><i class="ti ti-school"></i><span>Turmas</span></button>
+  <button class="nav-item admin-only" onclick="goPage('timeline',this)"><i class="ti ti-timeline"></i><span>Linha do tempo</span></button>
+  <button class="nav-item" id="navItemPdi" onclick="goPage('pdi',this)"><i class="ti ti-target-arrow"></i><span>PDI Gestores</span></button>
+  <div class="sidebar-foot">
+    <div class="sidebar-user" id="sidebarUser"></div>
+    <button class="nav-item" onclick="authSignOut()"><i class="ti ti-logout"></i><span>Sair</span></button>
+  </div>
 </nav>
 
 <!-- MAIN -->
@@ -437,6 +470,7 @@
   <!-- PDI GESTORES -->
   <div class="page" id="page-pdi">
     <div class="page-title">PDI Gestores</div>
+    <div class="gestor-banner gestor-only"><i class="ti ti-info-circle"></i> Você está vendo apenas o seu próprio PDI, em modo leitura.</div>
     <div class="tl-tabs">
       <button class="tl-tab active" onclick="switchPDITab('dash',this)"><i class="ti ti-chart-dots-3"></i> Painel</button>
       <button class="tl-tab" onclick="switchPDITab('lista',this)"><i class="ti ti-list"></i> Todas as ações</button>
@@ -450,8 +484,8 @@
       <select id="pfStatus" onchange="renderPDI()"><option value="">Todos os status</option></select>
       <button class="btn" onclick="limparFiltrosPDI()"><i class="ti ti-x"></i> Limpar</button>
       <span style="flex:1"></span>
-      <button class="btn" onclick="abrirImportPDI()"><i class="ti ti-file-upload"></i> Importar do Lists</button>
-      <button class="btn btn-primary" onclick="abrirModal('pdi')"><i class="ti ti-plus"></i> Nova ação PDI</button>
+      <button class="btn admin-only" onclick="abrirImportPDI()"><i class="ti ti-file-upload"></i> Importar do Lists</button>
+      <button class="btn btn-primary admin-only" onclick="abrirModal('pdi')"><i class="ti ti-plus"></i> Nova ação PDI</button>
     </div>
     <div class="toolbar">
       <div class="qf-row" id="pdiQF"></div>
@@ -642,7 +676,7 @@
       <div class="obs-box" id="pdiFichaFeedback"></div>
       <div class="modal-footer">
         <button class="btn" onclick="fecharModal('mPDI')">Fechar</button>
-        <button class="btn btn-primary" onclick="editarFichaPDI()"><i class="ti ti-edit"></i> Editar</button>
+        <button class="btn btn-primary admin-only" onclick="editarFichaPDI()"><i class="ti ti-edit"></i> Editar</button>
       </div>
     </div>
 
@@ -718,32 +752,93 @@
 // ============================================================
 const SUPA_URL = 'https://gahrfavjcdgwjmlsajeo.supabase.co/rest/v1';
 const SUPA_STORAGE = 'https://gahrfavjcdgwjmlsajeo.supabase.co/storage/v1';
+const SUPA_AUTH_URL = 'https://gahrfavjcdgwjmlsajeo.supabase.co/auth/v1';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaHJmYXZqY2Rnd2ptbHNhamVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTQzNzYsImV4cCI6MjA5NzM3MDM3Nn0.I5ozH_hPb4DT-PerlWwtpMKwBMXZnCQeNLu5rDs3tKY';
 
-const headers = {
-  'apikey': SUPA_KEY,
-  'Authorization': 'Bearer ' + SUPA_KEY,
-  'Content-Type': 'application/json',
-  'Prefer': 'return=representation'
-};
+// ============================================================
+// AUTH (Supabase Auth / GoTrue) — login obrigatório pra tudo
+// ============================================================
+let session = null;   // { access_token, refresh_token, expires_at, user }
+let profile = null;   // { role: 'admin'|'gestor', gestor_nome }
+
+function loadSession() {
+  try { const s = localStorage.getItem('rs_session'); return s ? JSON.parse(s) : null; } catch(e) { return null; }
+}
+function saveSession(s) {
+  session = s;
+  try { s ? localStorage.setItem('rs_session', JSON.stringify(s)) : localStorage.removeItem('rs_session'); } catch(e) {}
+}
+
+async function authSignIn(email, password) {
+  const r = await fetch(`${SUPA_AUTH_URL}/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: SUPA_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error_description || j.msg || 'E-mail ou senha inválidos.');
+  saveSession({ access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Date.now() + (j.expires_in||3600)*1000, user: j.user });
+}
+
+async function authRefresh() {
+  if (!session || !session.refresh_token) return false;
+  try {
+    const r = await fetch(`${SUPA_AUTH_URL}/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: session.refresh_token })
+    });
+    if (!r.ok) return false;
+    const j = await r.json();
+    saveSession({ access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Date.now() + (j.expires_in||3600)*1000, user: j.user });
+    return true;
+  } catch(e) { return false; }
+}
+
+function authSignOut() {
+  saveSession(null); profile = null;
+  document.body.classList.remove('authed');
+  location.reload();
+}
+
+function authHeaders() {
+  return {
+    apikey: SUPA_KEY,
+    Authorization: 'Bearer ' + (session ? session.access_token : SUPA_KEY),
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  };
+}
+
+// fetch autenticado: se o token expirou (401), tenta renovar uma vez antes de desistir
+async function authFetch(url, opts={}, retry=true) {
+  const r = await fetch(url, { ...opts, headers: { ...authHeaders(), ...(opts.headers||{}) } });
+  if (r.status === 401 && retry && session) {
+    const ok = await authRefresh();
+    if (ok) return authFetch(url, opts, false);
+    authSignOut();
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
+  return r;
+}
 
 async function dbGet(table, params='') {
-  const r = await fetch(`${SUPA_URL}/${table}?order=created_at.asc${params}`, { headers });
+  const r = await authFetch(`${SUPA_URL}/${table}?order=created_at.asc${params}`);
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function dbInsert(table, data) {
-  const r = await fetch(`${SUPA_URL}/${table}`, { method:'POST', headers, body: JSON.stringify(data) });
+  const r = await authFetch(`${SUPA_URL}/${table}`, { method:'POST', body: JSON.stringify(data) });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function dbUpdate(table, id, data) {
-  const r = await fetch(`${SUPA_URL}/${table}?id=eq.${id}`, { method:'PATCH', headers, body: JSON.stringify(data) });
+  const r = await authFetch(`${SUPA_URL}/${table}?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(data) });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
 async function dbDelete(table, id) {
-  const r = await fetch(`${SUPA_URL}/${table}?id=eq.${id}`, { method:'DELETE', headers });
+  const r = await authFetch(`${SUPA_URL}/${table}?id=eq.${id}`, { method:'DELETE' });
   if (!r.ok) throw new Error(await r.text());
 }
 
@@ -759,16 +854,20 @@ const TL_FIELDS = ['tl_captacao','tl_triagem','tl_entrevista','tl_perbras','tl_g
 // INIT
 // ============================================================
 async function init() {
-  try {
-    [turmas, candidatos, custos] = await Promise.all([
-      dbGet('turmas'),
-      dbGet('candidatos'),
-      dbGet('custos')
-    ]);
-    populateSels();
-    renderAll();
-  } catch(e) {
-    toast('Erro ao carregar dados: ' + e.message, true);
+  // Candidatos/custos/turmas são dados de RH — só carregam pra quem é admin
+  // (pra quem é gestor, a política de segurança do banco bloquearia mesmo assim).
+  if (profile && profile.role === 'admin') {
+    try {
+      [turmas, candidatos, custos] = await Promise.all([
+        dbGet('turmas'),
+        dbGet('candidatos'),
+        dbGet('custos')
+      ]);
+      populateSels();
+      renderAll();
+    } catch(e) {
+      toast('Erro ao carregar dados: ' + e.message, true);
+    }
   }
   // PDI carrega separadamente: se a tabela "pdi" ainda não existir no Supabase,
   // o resto do portal continua funcionando normalmente.
@@ -776,10 +875,72 @@ async function init() {
     pdis = await dbGet('pdi');
   } catch(e) {
     pdis = [];
-    console.warn('Aba "PDI Gestores": tabela "pdi" não encontrada no Supabase ainda.', e.message);
+    console.warn('Aba "PDI Gestores": tabela "pdi" não encontrada no Supabase ainda, ou sem permissão.', e.message);
   }
   populatePDISels();
   renderPDI();
+}
+
+// ============================================================
+// BOOTSTRAP (login + perfil + liberação de tela)
+// ============================================================
+async function loadProfile() {
+  const r = await authFetch(`${SUPA_URL}/profiles?id=eq.${session.user.id}&select=role,gestor_nome`);
+  if (!r.ok) throw new Error(await r.text());
+  const rows = await r.json();
+  profile = rows[0] || null;
+}
+
+function applyRoleUI() {
+  const isGestor = profile.role === 'gestor';
+  document.body.classList.toggle('role-gestor', isGestor);
+  r$('sidebarUser').innerHTML = `<span class="role-badge ${isGestor?'gestor':'admin'}">${isGestor?'Gestor':'RH / Admin'}</span><br>${(profile.gestor_nome||session.user.email)}`;
+  if (isGestor) {
+    goPage('pdi', r$('navItemPdi'));
+    const tab = document.querySelector('#page-pdi .tl-tab');
+    if (tab) switchPDITab('dash', tab);
+  }
+}
+
+async function doLogin() {
+  const email = r$('loginEmail').value.trim(), senha = r$('loginSenha').value;
+  const errEl = r$('loginErr'); errEl.style.display = 'none';
+  if (!email || !senha) { errEl.textContent = 'Preencha e-mail e senha.'; errEl.style.display = 'block'; return; }
+  const btn = r$('loginBtn'); btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Entrando...';
+  try {
+    await authSignIn(email, senha);
+    await bootstrap();
+  } catch(e) {
+    errEl.textContent = e.message || 'Erro ao entrar.';
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false; btn.innerHTML = '<i class="ti ti-login-2"></i> Entrar';
+}
+
+async function bootstrap() {
+  session = loadSession();
+  if (session && session.expires_at < Date.now() + 60000) await authRefresh();
+  if (!session) { document.body.classList.remove('authed'); return; }
+
+  try {
+    await loadProfile();
+  } catch(e) {
+    r$('loginErr').textContent = 'Não foi possível validar sua sessão. Faça login novamente.';
+    r$('loginErr').style.display = 'block';
+    authSignOut();
+    return;
+  }
+
+  if (!profile) {
+    r$('loginErr').textContent = 'Seu usuário não tem acesso configurado ainda. Peça para o RH liberar seu perfil no Portal R&S.';
+    r$('loginErr').style.display = 'block';
+    document.body.classList.remove('authed');
+    return;
+  }
+
+  document.body.classList.add('authed');
+  applyRoleUI();
+  init();
 }
 
 function populateSels() {
@@ -1706,8 +1867,8 @@ function pdiRowHtml(p) {
     <td>${p.data_termino_programada?fmt(p.data_termino_programada):'—'}</td>
     <td><span class="badge ${pdiStatusBadge(st)}">${st}</span></td>
     <td style="white-space:nowrap">
-      <button class="icon-btn" onclick="editarPDI('${p.id}')" title="Editar"><i class="ti ti-edit"></i></button>
-      <button class="icon-btn del" onclick="excluirPDI('${p.id}','${(p.gestor_nome||'').replace(/'/g,"\\'")}')" title="Excluir"><i class="ti ti-trash"></i></button>
+      <button class="icon-btn admin-only" onclick="editarPDI('${p.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+      <button class="icon-btn del admin-only" onclick="excluirPDI('${p.id}','${(p.gestor_nome||'').replace(/'/g,"\\'")}')" title="Excluir"><i class="ti ti-trash"></i></button>
     </td>
   </tr>`;
 }
@@ -1976,7 +2137,7 @@ async function importarPDICSV() {
   btn.disabled=false; btn.innerHTML='<i class="ti ti-file-upload"></i> Importar';
 }
 
-init();
+bootstrap();
 </script>
 </body>
 </html>
