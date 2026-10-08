@@ -939,7 +939,12 @@ async function init() {
 // BOOTSTRAP (login + perfil + liberação de tela)
 // ============================================================
 async function loadProfile() {
-  const r = await authFetch(`${SUPA_URL}/profiles?id=eq.${session.user.id}&select=role,gestor_nome,foto_url`);
+  let r = await authFetch(`${SUPA_URL}/profiles?id=eq.${session.user.id}&select=role,gestor_nome,foto_url`);
+  if (r.status === 400) {
+    // Fallback: a coluna foto_url pode ainda não existir (profiles_photo.sql não rodado nesse
+    // projeto ainda) — não deixa isso travar o login de ninguém, só perde a foto por enquanto.
+    r = await authFetch(`${SUPA_URL}/profiles?id=eq.${session.user.id}&select=role,gestor_nome`);
+  }
   if (!r.ok) throw new Error(await r.text());
   const rows = await r.json();
   profile = rows[0] || null;
