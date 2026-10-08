@@ -654,7 +654,10 @@
           <input id="pNomeNovo" type="text" placeholder="Digite o nome do novo gestor" style="display:none;margin-top:6px">
         </div>
         <div class="fg"><label>Ano</label><input id="pAno" type="number" min="2020" max="2100" placeholder="2026"></div>
-        <div class="fg span2"><label>Unidade</label><input id="pUnidade" type="text" list="dlUnidades" placeholder="Ex: SPT 28"></div>
+        <div class="fg span2"><label>Unidade</label>
+          <select id="pUnidadeSel" onchange="onPdiUnidadeSelChange()"></select>
+          <input id="pUnidadeNovo" type="text" placeholder="Digite o nome da nova unidade" style="display:none;margin-top:6px">
+        </div>
         <div class="fg"><label>Status da ação</label><select id="pStatus"></select></div>
 
         <div class="section-label">Mapeamento</div>
@@ -686,7 +689,6 @@
     </div>
   </div>
 </div>
-<datalist id="dlUnidades"></datalist>
 <datalist id="dlCompetencias"></datalist>
 <datalist id="dlTipos"></datalist>
 <datalist id="dlDirecoes"></datalist>
@@ -1330,8 +1332,9 @@ function abrirModal(tipo) {
     r$('pdiFichaView').style.display='none'; r$('pdiForm').style.display='block';
     r$('mPDITitulo').textContent='Nova ação PDI';
     populatePDISels();
-    ['pUnidade','pCompetencia','pEvidencia','pTipoNec','pDirecao','pDetalhe','pAcaoLink','pDtInicio','pDtTermino','pFeedback'].forEach(id=>r$(id).value='');
+    ['pCompetencia','pEvidencia','pTipoNec','pDirecao','pDetalhe','pAcaoLink','pDtInicio','pDtTermino','pFeedback'].forEach(id=>r$(id).value='');
     r$('pNomeSel').value=''; r$('pNomeNovo').value=''; r$('pNomeNovo').style.display='none';
+    r$('pUnidadeSel').value=''; r$('pUnidadeNovo').value=''; r$('pUnidadeNovo').style.display='none';
     r$('pAno').value = new Date().getFullYear();
     r$('pStatus').value = 'Não iniciado';
     r$('pOrigem').selectedIndex = 0;
@@ -1511,7 +1514,7 @@ const PDI_STATUS = ['Não iniciado','Em andamento','Concluído','Atrasado','Desc
 const PDI_COMPETENCIAS_SEED = ['Gestão de Equipes','Comunicação','Liderança','Gestão do Tempo','Gestão de Conflitos','Inteligência Emocional','Visão Estratégica','Feedback','Produtividade'];
 const PDI_TIPOS_SEED = ['Falta de conhecimento','Falta de habilidade','Falta de atitude','Comportamental','Técnica'];
 const PDI_DIRECOES_SEED = ['Quero melhorar','Preciso desenvolver','Ponto forte a potencializar'];
-const PDI_UNIDADES_SEED = ['OS ETA AM II','SPT 28','OS TURBINAS ES','TERMINAIS OCEÂNICOS II','VITORIA III','OS DUTOS'];
+const PDI_UNIDADES_SEED = ['OS Slickline RN-CE II','OS Pintura NE III','OS Ucoq-SM II','NAC','Comercial & Negócios','SPT 28','OS Termoaçu II','OS SPM IV','OS Slickline AL','OS Pescada','OS Log','Sede','SPT 19','SPT 77','SPT 22','OS Manati','OS Revap','OS O&M','OS Manutenção NE','OS Rio Grande','OS Oficina Macaé IV','OPI','OS Portos NES III','Controladoria','SPT 23','SPT 92','OS Mans','SPT 26','OS Potiguar','OS Turbinas','SPT 24','OS Terminais Sul II','OS Terminais Oceânicos II','OS Monitoramento Seal','OS ETA AM','SPT 72','STE','PB Loja','Sialog','Diretoria','SPT 82','OS Vitória III','TIC','OS Catu','OS Ucaq SE','SPH'];
 
 let pdiCanalSel = [];
 let pdiQF = 'todos';
@@ -1555,7 +1558,6 @@ function populatePDISels() {
   const fAcao=r$('pAcao'); if(fAcao && !fAcao.options.length) fAcao.innerHTML=PDI_ACOES.map(a=>`<option>${a}</option>`).join('');
   const fStatus=r$('pStatus'); if(fStatus && !fStatus.options.length) fStatus.innerHTML=PDI_STATUS.map(s=>`<option>${s}</option>`).join('');
 
-  mkDatalist('dlUnidades',unidades);
   mkDatalist('dlCompetencias',competencias); mkDatalist('dlTipos',tipos); mkDatalist('dlDirecoes',direcoes);
   mkCanalChips();
 
@@ -1567,12 +1569,27 @@ function populatePDISels() {
       + '<option value="__novo__">+ Novo gestor...</option>';
     if(v && [...selG.options].some(o=>o.value===v)) selG.value=v;
   }
+
+  const selU=r$('pUnidadeSel');
+  if(selU){
+    const v=selU.value;
+    selU.innerHTML='<option value="">— Selecione —</option>'
+      + unidades.map(u=>`<option value="${u.replace(/"/g,'&quot;')}">${u}</option>`).join('')
+      + '<option value="__nova__">+ Nova unidade...</option>';
+    if(v && [...selU.options].some(o=>o.value===v)) selU.value=v;
+  }
 }
 
 function onPdiGestorSelChange() {
   const novo = r$('pNomeSel').value==='__novo__';
   r$('pNomeNovo').style.display = novo ? '' : 'none';
   if(novo) r$('pNomeNovo').focus();
+}
+
+function onPdiUnidadeSelChange() {
+  const nova = r$('pUnidadeSel').value==='__nova__';
+  r$('pUnidadeNovo').style.display = nova ? '' : 'none';
+  if(nova) r$('pUnidadeNovo').focus();
 }
 
 function pdiQuickFilter(f) { pdiQF=f; renderPDI(); }
@@ -1785,7 +1802,11 @@ function editarPDI(id) {
   if(gestorExiste){ r$('pNomeSel').value=p.gestor_nome; r$('pNomeNovo').value=''; r$('pNomeNovo').style.display='none'; }
   else { r$('pNomeSel').value='__novo__'; r$('pNomeNovo').value=p.gestor_nome||''; r$('pNomeNovo').style.display=''; }
   r$('pAno').value=p.ano||'';
-  r$('pUnidade').value=p.unidade||''; r$('pStatus').value=p.status_acao||'Não iniciado';
+  const unidadeExiste=p.unidade && PDI_UNIDADES_SEED.concat(pdis.map(x=>x.unidade)).includes(p.unidade);
+  if(unidadeExiste){ r$('pUnidadeSel').value=p.unidade; r$('pUnidadeNovo').value=''; r$('pUnidadeNovo').style.display='none'; }
+  else if(p.unidade){ r$('pUnidadeSel').value='__nova__'; r$('pUnidadeNovo').value=p.unidade; r$('pUnidadeNovo').style.display=''; }
+  else { r$('pUnidadeSel').value=''; r$('pUnidadeNovo').value=''; r$('pUnidadeNovo').style.display='none'; }
+  r$('pStatus').value=p.status_acao||'Não iniciado';
   pdiCanalSel=pdiSplit(p.canal_mapeamento); mkCanalChips();
   r$('pOrigem').value=p.origem_acao||PDI_ORIGENS[0];
   r$('pCompetencia').value=p.competencia_desenvolvimento||'';
@@ -1806,7 +1827,7 @@ async function salvarPDI() {
   if(!gestor_nome){alert('Selecione um gestor ou cadastre um novo');return;}
   const data={
     gestor_nome, ano: r$('pAno').value?parseInt(r$('pAno').value):null,
-    unidade: r$('pUnidade').value.trim()||null,
+    unidade: (r$('pUnidadeSel').value==='__nova__'?r$('pUnidadeNovo').value:r$('pUnidadeSel').value).trim()||null,
     status_acao: r$('pStatus').value,
     canal_mapeamento: pdiCanalSel.join(', ')||null,
     origem_acao: r$('pOrigem').value||null,
