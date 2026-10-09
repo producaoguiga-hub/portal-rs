@@ -6,3 +6,8 @@ admin_gestores.html
 # de pessoas específicas e credenciais de terceiros embutidas no texto.
 # Fica só local, nunca no repositório público.
 pdi_import*.sql
+
+# Dumps de importação de avaliações reais de Monitoria — avaliação de
+# desempenho de gestores específicos, com comentários sensíveis.
+# Fica só local, nunca no repositório público.
+monitoria_import*.sql
