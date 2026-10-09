@@ -326,6 +326,23 @@
   .val.mp-count { transition: color .3s; }
   @media (max-width: 900px) { .mp-header { flex-wrap: wrap; } .mp-pct { margin-left: 0; } }
 
+  .mp-spotlight { border-radius: var(--radius-lg); padding: 1.15rem 1.35rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(120deg, rgba(26,136,255,0.08), rgba(188,255,72,0.12));
+    border: 1px solid rgba(26,136,255,0.18); }
+  .mp-spotlight-ico { font-size: 24px; flex-shrink: 0; color: var(--blue); }
+  .mp-spotlight-body { flex: 1; min-width: 0; overflow: hidden; }
+  .mp-spotlight-msg { font-size: 13.5px; line-height: 1.6; color: var(--text); animation: mpSpotFade .35s ease; }
+  .mp-spotlight-msg b { color: var(--blue-text); }
+  @keyframes mpSpotFade { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+  .mp-spotlight-link { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; font-size: 12.5px; font-weight: 600; color: var(--blue); text-decoration: none; }
+  .mp-spotlight-link:hover { text-decoration: underline; }
+  .mp-spotlight-nav { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; }
+  .mp-spotlight-nav button { background: var(--bg); border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text2); transition: background .15s, color .15s, transform .15s; padding: 0; }
+  .mp-spotlight-nav button:hover { background: var(--blue); color: #fff; transform: scale(1.08); }
+  .mp-spotlight-nav button i { font-size: 13px; }
+  .mp-spotlight-dots { font-size: 10.5px; color: var(--text3); white-space: nowrap; }
+  @media (max-width: 760px) { .mp-spotlight { flex-wrap: wrap; } }
+
   /* Login / acesso */
   #loginScreen { display: none; position: fixed; inset: 0; z-index: 500; align-items: center; justify-content: center; background: var(--bg3); padding: 1.5rem; }
   body:not(.authed) #loginScreen { display: flex; }
@@ -643,6 +660,7 @@
       <div class="card"><div class="card-title">Minhas ações por status</div><div class="legend" id="mpLgStatus"></div><div style="position:relative;height:190px"><canvas id="mpCStatus"></canvas></div></div>
       <div class="metric-grid" id="mpKPIs" style="align-content:start"></div>
     </div>
+    <div id="mpSpotlight" class="mp-spotlight mp-anim" style="display:none;animation-delay:.18s"></div>
     <div id="mpGroups" class="mp-anim" style="animation-delay:.2s"></div>
     <div id="mpEmpty" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma ação de PDI cadastrada ainda</div>
     <input type="file" id="mpFotoInput" accept="image/*" style="display:none" onchange="uploadMinhaFoto(this)">
@@ -2271,6 +2289,10 @@ function renderMeuPDI() {
     <div class="metric"><div class="lbl">Não iniciadas</div><div class="val mp-count" data-target="${naoIniciadas}">0</div></div>`;
   animateCounts(r$('mpKPIs'));
 
+  mpSpotlightList = mine.filter(p => pdiEffectiveStatus(p) === 'Em andamento');
+  if (mpSpotlightIdx >= mpSpotlightList.length) mpSpotlightIdx = 0;
+  mpSpotlightRender(me);
+
   const stCnt = {}; mine.forEach(p=>{ const s=pdiEffectiveStatus(p); stCnt[s]=(stCnt[s]||0)+1; });
   const stK = PDI_STATUS.filter(s=>stCnt[s]); const stV = stK.map(k=>stCnt[k]);
   const stColors={'Concluído':'#BCFF48','Em andamento':'#1A88FF','Atrasado':'#FF8F1F','Não iniciado':'#8a9fad','Descontinuado':'#7F77DD'};
@@ -2294,6 +2316,39 @@ function renderMeuPDI() {
       </div>
     </div>`;
   }).join('');
+}
+
+let mpSpotlightList = [];
+let mpSpotlightIdx = 0;
+
+function mpSpotlightRender(nomeCompleto) {
+  const el = r$('mpSpotlight'); if (!el) return;
+  if (!mpSpotlightList.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = 'flex';
+  const p = mpSpotlightList[mpSpotlightIdx];
+  const primeiroNome = (nomeCompleto || '').split(' ')[0] || 'tudo bem';
+  const titulo = p.detalhe_desenvolvimento || p.acao || 'ação de PDI';
+  el.innerHTML = `
+    <i class="ti ti-sparkles mp-spotlight-ico"></i>
+    <div class="mp-spotlight-body">
+      <div class="mp-spotlight-msg">
+        Olá, <b>${primeiroNome}</b>! Você tem a ação “${titulo}” em andamento. Se atente aos prazos e um ótimo PDI :)
+        ${p.evidencia_link?`<br><a class="mp-spotlight-link" href="${p.evidencia_link}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Abrir link da ação</a>`:''}
+      </div>
+    </div>
+    ${mpSpotlightList.length>1?`
+    <div class="mp-spotlight-nav">
+      <button onclick="mpSpotlightStep(-1)" title="Ação anterior"><i class="ti ti-chevron-up"></i></button>
+      <span class="mp-spotlight-dots">${mpSpotlightIdx+1}/${mpSpotlightList.length}</span>
+      <button onclick="mpSpotlightStep(1)" title="Próxima ação"><i class="ti ti-chevron-down"></i></button>
+    </div>`:''}`;
+}
+
+function mpSpotlightStep(delta) {
+  if (mpSpotlightList.length < 2) return;
+  mpSpotlightIdx = (mpSpotlightIdx + delta + mpSpotlightList.length) % mpSpotlightList.length;
+  const me = (profile && profile.gestor_nome) || (session && session.user.email) || '—';
+  mpSpotlightRender(me);
 }
 
 function toggleMeuPdiGroup(ano) {
