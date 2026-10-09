@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitoria — Avaliação do Gestor | Perbras</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f5f8fb; --bg3: #edf2f7;
+    --text: #091C28; --text2: #4a6577; --text3: #8a9fad;
+    --border: rgba(9,28,40,0.1); --border2: rgba(9,28,40,0.22);
+    --blue: #1A88FF; --blue-bg: #E3F0FF; --blue-text: #0a56b0;
+    --green-bg: rgba(188,255,72,0.18); --green-text: #1e4800;
+    --red: #c42828; --red-bg: #FCEBEB; --red-text: #791F1F;
+    --radius: 10px; --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; padding: 2rem 1rem 5rem; }
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  .hero { position: relative; overflow: hidden; border-radius: var(--radius-lg); padding: 2rem 1.75rem; margin-bottom: 1.25rem;
+    background: linear-gradient(120deg, #0E2A3D, #0B3A4D 45%, #0E4A52 75%, #0B3A2E); color: #fff; text-align: center; }
+  .hero::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 85% 15%, rgba(188,255,72,0.18), transparent 55%), radial-gradient(circle at 10% 90%, rgba(46,215,237,0.18), transparent 50%); pointer-events: none; }
+  .hero > * { position: relative; z-index: 1; }
+  .hero img { max-height: 40px; filter: brightness(0) invert(1); margin-bottom: 1rem; }
+  .hero h1 { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+  .hero p { font-size: 13px; color: rgba(255,255,255,0.72); line-height: 1.5; }
+
+  .card { position: relative; overflow: hidden; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(9,28,40,0.06); animation: cardIn .45s cubic-bezier(.4,0,.2,1) both; }
+  @keyframes cardIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+  .q-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; }
+  .q-title .req { color: var(--red); margin-left: 2px; }
+
+  .fg { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
+  .fg:last-child { margin-bottom: 0; }
+  .fg label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .fg label .req { color: var(--red); margin-left: 2px; }
+  .fg input, .fg select, .fg textarea { font-size: 14px; padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border2); background: var(--bg); color: var(--text); transition: border-color .15s, box-shadow .15s; }
+  .fg input:focus, .fg select:focus, .fg textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,136,255,0.12); }
+  .fg textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+
+  .scale { display: flex; gap: 6px; margin-bottom: 10px; }
+  .scale label { flex: 1; }
+  .scale input { display: none; }
+  .scale span { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 10px 0; border: 1px solid var(--border2); border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 14px; color: var(--text2); transition: all .15s; }
+  .scale input:checked + span { border-color: var(--blue); background: var(--blue-bg); color: var(--blue-text); }
+  .scale span .ripple { position: absolute; border-radius: 50%; background: rgba(26,136,255,0.25); transform: scale(0); pointer-events: none; animation: rip .6s ease-out; }
+  @keyframes rip { to { transform: scale(3); opacity: 0; } }
+  .scale-lbls { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--text3); margin-top: -4px; margin-bottom: 12px; padding: 0 2px; }
+
+  .nps-row { display: flex; gap: 4px; margin-bottom: 8px; }
+  .nps-row label { flex: 1; }
+  .nps-row input { display: none; }
+  .nps-row span { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 9px 0; border: 1px solid var(--border2); border-radius: 7px; cursor: pointer; font-weight: 600; font-size: 12.5px; color: var(--text2); }
+  .nps-row input:checked + span { border-color: var(--blue); background: var(--blue-bg); color: var(--blue-text); }
+
+  .btn-submit { position: relative; overflow: hidden; width: 100%; padding: 14px; font-size: 15px; font-weight: 700; border-radius: var(--radius); border: none; cursor: pointer; color: #06131c;
+    background: linear-gradient(120deg, #1A88FF, #2ED7ED 55%, #BCFF48); transition: transform .15s, box-shadow .2s; box-shadow: 0 6px 18px rgba(26,136,255,0.25); }
+  .btn-submit:hover { box-shadow: 0 8px 22px rgba(26,136,255,0.32); }
+  .btn-submit:active { transform: scale(.98); }
+  .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-submit .ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.5); transform: scale(0); pointer-events: none; animation: rip .6s ease-out; }
+
+  .err-box { background: var(--red-bg); color: var(--red-text); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; display: none; line-height: 1.5; }
+  .err-box.show { display: block; }
+
+  #successScreen { display: none; text-align: center; padding: 3rem 1.5rem; }
+  #successScreen .ico { font-size: 56px; color: #2a6200; margin-bottom: 1rem; animation: popIn .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  #successScreen h2 { font-size: 18px; margin-bottom: 8px; }
+  #successScreen p { color: var(--text2); font-size: 13.5px; line-height: 1.7; max-width: 440px; margin: 0 auto; }
+
+  @media (max-width: 480px) { body { padding: 1rem .75rem 4rem; } .card { padding: 1.1rem; } .hero { padding: 1.5rem 1.25rem; } .scale span, .nps-row span { font-size: 12px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <img src="perbraslogo.png" alt="Perbras">
+    <h1>Monitoria — Avaliação do Gestor em Treinamento</h1>
+    <p>Responda sobre o desempenho do gestor que você monitorou. Seja transparente e, se possível, explique de forma clara os motivos das suas respostas.</p>
+  </div>
+
+  <div id="formScreen">
+    <div class="err-box" id="errBox"></div>
+
+    <form id="monForm" onsubmit="return false">
+
+      <div class="card">
+        <div class="q-title">Identificação</div>
+        <div class="fg">
+          <label>Nome do Monitor<span class="req">*</span></label>
+          <input type="text" id="fMonitor" required>
+        </div>
+        <div class="fg">
+          <label>Nome do Gestor em Treinamento<span class="req">*</span></label>
+          <input type="text" id="fGestor" list="dlNomes" required>
+          <datalist id="dlNomes"></datalist>
+        </div>
+        <div class="fg">
+          <label>Unidade<span class="req">*</span></label>
+          <input type="text" id="fUnidade" list="dlUnidades" required>
+          <datalist id="dlUnidades"></datalist>
+        </div>
+        <div class="fg">
+          <label>Duração da Treinamento/Monitoria<span class="req">*</span></label>
+          <input type="text" id="fDuracao" placeholder="Ex: 2 meses" required>
+        </div>
+      </div>
+
+      <div id="perguntas"></div>
+
+      <div class="card">
+        <div class="q-title">Quais áreas o Gestor tem como ponto de melhoria? E quais treinamentos sugere?<span class="req">*</span></div>
+        <textarea id="fMelhoria" required></textarea>
+      </div>
+
+      <div class="card">
+        <div class="q-title">O quanto você recomendaria o monitorando?<span class="req">*</span></div>
+        <div class="nps-row" id="npsRow"></div>
+        <div class="scale-lbls"><span>Nada provável</span><span>Extremamente provável</span></div>
+      </div>
+
+      <button class="btn-submit" id="btnSubmit" onclick="submitForm()"><i class="ti ti-send"></i> Enviar avaliação</button>
+      <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:1rem">Diretoria Perbras · Portal R&amp;S</div>
+    </form>
+  </div>
+
+  <div id="successScreen">
+    <div class="ico"><i class="ti ti-circle-check"></i></div>
+    <h2>Avaliação registrada!</h2>
+    <p>Obrigado por avaliar o gestor monitorado. A resposta já foi registrada no Portal R&amp;S.</p>
+  </div>
+
+</div>
+
+<script>
+const SUPA_URL = 'https://gahrfavjcdgwjmlsajeo.supabase.co/rest/v1';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaHJmYXZqY2Rnd2ptbHNhamVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTQzNzYsImV4cCI6MjA5NzM3MDM3Nn0.I5ozH_hPb4DT-PerlWwtpMKwBMXZnCQeNLu5rDs3tKY';
+
+const NOMES_CONHECIDOS = ['Claudinei Nepomuceno','Sabrina Cavalcante','Renata Moreira','Thiago Lima','Pedro Santos',"Debora Sant'ana",'Luana Leite','Amanda Arcoverde','Veronica Chaves Bezerra','Igor Medeiros','Pedro Silva','Manuella Padilha','Caroline Santiago','Jonas Reis','Dimitri Papa','Igor Franca','Ana Martins','Leonardo Cruz','Auberício Silva','Vinicius Santos','Igor Ramos','Danilo Cogo','Rodrigo Costa','Rita Dias','Franklin Silva Araujo','Marina Cardoso','Camila Otone'];
+const UNIDADES = ['OS Slickline RN-CE II','OS Pintura NE III','OS Ucoq-SM II','NAC','Comercial & Negócios','SPT 28','OS Termoaçu II','OS SPM IV','OS Slickline AL','OS Pescada','OS Log','Sede','SPT 19','SPT 77','SPT 22','OS Manati','OS Revap','OS O&M','OS Manutenção NE','OS Rio Grande','OS Oficina Macaé IV','OPI','OS Portos NES III','Controladoria','SPT 23','SPT 92','OS Mans','SPT 26','OS Potiguar','OS Turbinas','SPT 24','OS Terminais Sul II','OS Terminais Oceânicos II','OS Monitoramento Seal','OS ETA AM','SPT 72','STE','PB Loja','Sialog','Diretoria','SPT 82','OS Vitória III','TIC','OS Catu','OS Ucaq SE','SPH'];
+
+const PERGUNTAS = [
+  { campo: 'postura', titulo: 'Como você avalia a postura, conduta, maturidade e comportamento do gestor?' },
+  { campo: 'busca_info', titulo: 'Como avalia a capacidade de buscar e obter informações, se integrar e aprender os processos?' },
+  { campo: 'organizacao', titulo: 'Como você avalia a capacidade do gestor em organizar, gerenciar o tempo e cumprir prazos?' },
+  { campo: 'resolutivo', titulo: 'O Gestor é resolutivo? Consegue resolver as demandas e problemas que aparecem?' },
+  { campo: 'questionamento', titulo: 'Tem um bom nível de questionamento?' },
+  { campo: 'lideranca', titulo: 'Se envolveu com as equipes, exerceu um papel de liderança?' },
+  { campo: 'comunicacao', titulo: 'Avalie a comunicação do gestor (transparência e clareza)' },
+  { campo: 'aprendizado', titulo: 'Como você avalia a capacidade de aprendizado e entendimento das atividades/rotinas do gestor?' },
+  { campo: 'humildade', titulo: 'Escuta críticas com humildade, reflete e se esforça para melhorar quando sinalizado algum ponto de melhoria?' },
+  { campo: 'perfil_valores', titulo: 'Na sua percepção, tem o perfil compatível com os valores da Perbras e com o que o cargo de gestor exige?' },
+];
+
+function mkDatalist(id, arr) { document.getElementById(id).innerHTML = arr.map(v=>`<option value="${v.replace(/"/g,'&quot;')}">`).join(''); }
+mkDatalist('dlNomes', NOMES_CONHECIDOS);
+mkDatalist('dlUnidades', UNIDADES);
+
+document.getElementById('perguntas').innerHTML = PERGUNTAS.map(p => `
+  <div class="card">
+    <div class="q-title">${p.titulo}<span class="req">*</span></div>
+    <div class="scale">
+      ${[1,2,3,4,5].map(n => `<label><input type="radio" name="nota_${p.campo}" value="${n}" required><span>${n}</span></label>`).join('')}
+    </div>
+    <textarea id="coment_${p.campo}" placeholder="Detalhe o porquê da sua nota..." required></textarea>
+  </div>`).join('');
+
+document.getElementById('npsRow').innerHTML = Array.from({length:11}, (_,n) =>
+  `<label><input type="radio" name="nps" value="${n}" required><span>${n}</span></label>`).join('');
+
+// Ripple genérico
+document.addEventListener('mousedown', e => {
+  const el = e.target.closest('.scale span, .nps-row span, .btn-submit');
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height) * 1.8;
+  const ripple = document.createElement('span');
+  ripple.className = 'ripple';
+  ripple.style.width = ripple.style.height = size + 'px';
+  ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+  ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+  el.appendChild(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove());
+});
+
+function showErr(msg) {
+  const el = document.getElementById('errBox');
+  el.textContent = msg;
+  el.classList.add('show');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function clearErr() { document.getElementById('errBox').classList.remove('show'); }
+
+function getRadio(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : null;
+}
+
+async function submitForm() {
+  clearErr();
+  const form = document.getElementById('monForm');
+  if (!form.checkValidity()) { form.reportValidity(); return; }
+
+  const payload = {
+    monitor_nome: document.getElementById('fMonitor').value.trim(),
+    gestor_nome: document.getElementById('fGestor').value.trim(),
+    unidade: document.getElementById('fUnidade').value.trim(),
+    duracao: document.getElementById('fDuracao').value.trim(),
+    pontos_melhoria: document.getElementById('fMelhoria').value.trim(),
+    nps: parseInt(getRadio('nps'), 10),
+  };
+
+  for (const p of PERGUNTAS) {
+    const nota = getRadio('nota_' + p.campo);
+    if (!nota) { showErr('Preencha todas as notas de 1 a 5 antes de enviar.'); return; }
+    payload['nota_' + p.campo] = parseInt(nota, 10);
+    payload['coment_' + p.campo] = document.getElementById('coment_' + p.campo).value.trim();
+  }
+
+  const btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2"></i> Enviando...';
+
+  try {
+    const r = await fetch(`${SUPA_URL}/monitorias`, {
+      method: 'POST',
+      headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    document.getElementById('formScreen').style.display = 'none';
+    document.getElementById('successScreen').style.display = 'block';
+  } catch (e) {
+    showErr('Não deu pra enviar agora: ' + e.message + '. Tenta de novo em alguns instantes.');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-send"></i> Enviar avaliação';
+  }
+}
+</script>
+</body>
+</html>

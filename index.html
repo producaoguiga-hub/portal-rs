@@ -281,6 +281,17 @@
     .pdi-rc-side { width: auto; align-items: flex-start; text-align: left; margin-left: 48px; }
   }
 
+  /* Monitorias */
+  .mon-nota { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; padding: 4px 8px; border-radius: 7px; font-weight: 700; font-size: 13px; }
+  .mon-nota.n-alta { background: var(--green-bg); color: var(--green-text); }
+  .mon-nota.n-media { background: var(--amber-bg); color: var(--amber-text); }
+  .mon-nota.n-baixa { background: var(--red-bg); color: var(--red-text); }
+  .mon-qa { padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+  .mon-qa:last-child { border-bottom: none; }
+  .mon-qa-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .mon-qa-head .q { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+  .mon-qa-coment { font-size: 13px; color: var(--text2); line-height: 1.6; background: var(--bg2); border-radius: 8px; padding: 10px 12px; }
+
   /* Meu PDI (visão do gestor) */
   @keyframes mpIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .mp-anim { animation: mpIn .5s cubic-bezier(.4,0,.2,1) both; }
@@ -365,8 +376,10 @@
     <span class="sidebar-subtitle">Portal R&S</span>
   </div>
   <button class="nav-item active admin-only" onclick="goPage('rsgestao',this)"><i class="ti ti-briefcase"></i><span>R&amp;S Gestão</span></button>
-  <button class="nav-item admin-only" id="navItemPdi" onclick="goPage('pdi',this)"><i class="ti ti-target-arrow"></i><span>PDI Gestores</span></button>
+  <button class="nav-item admin-only" id="navItemPdi" onclick="goPage('pdi',this)"><i class="ti ti-target-arrow"></i><span>PDI Gestão</span></button>
+  <button class="nav-item admin-only" onclick="goPage('monitorias',this)"><i class="ti ti-clipboard-check"></i><span>Monitorias</span></button>
   <button class="nav-item gestor-only" id="navItemMeuPdi" onclick="goPage('meupdi',this)"><i class="ti ti-target-arrow"></i><span>Meu PDI</span></button>
+  <button class="nav-item gestor-only" onclick="goPage('minhamonitoria',this)"><i class="ti ti-clipboard-check"></i><span>Minha Monitoria</span></button>
   <div class="sidebar-foot">
     <div class="sidebar-user" id="sidebarUser"></div>
     <button class="nav-item" onclick="authSignOut()"><i class="ti ti-logout"></i><span>Sair</span></button>
@@ -381,7 +394,7 @@
     <div class="page-title">R&amp;S Gestão</div>
     <div class="tl-tabs" style="margin-bottom:1.25rem">
       <button class="tl-tab active" onclick="switchRSTab('visao',this)"><i class="ti ti-layout-dashboard"></i> Visão geral</button>
-      <button class="tl-tab" onclick="switchRSTab('candidatos',this)"><i class="ti ti-users"></i> Candidatos</button>
+      <button class="tl-tab" onclick="switchRSTab('candidatos',this)"><i class="ti ti-users"></i> Admitidos</button>
       <button class="tl-tab" onclick="switchRSTab('custos',this)"><i class="ti ti-currency-dollar"></i> Custos</button>
       <button class="tl-tab" onclick="switchRSTab('turmas',this)"><i class="ti ti-school"></i> Turmas</button>
       <button class="tl-tab" onclick="switchRSTab('timeline',this)"><i class="ti ti-timeline"></i> Linha do tempo</button>
@@ -437,12 +450,12 @@
         <select id="fT" onchange="renderCandidatos()"><option value="">Todas as turmas</option></select>
         <select id="fS" onchange="renderCandidatos()"><option value="">Todos os status</option><option>Ativo</option><option>Desligado</option></select>
         <select id="fC" onchange="renderCandidatos()"><option value="">Todos os cargos</option><option>Gestor Técnico</option><option>Gestor Administrativo</option></select>
-        <button class="btn btn-primary" onclick="abrirModal('candidato')"><i class="ti ti-plus"></i> Novo candidato</button>
+        <button class="btn btn-primary" onclick="abrirModal('candidato')"><i class="ti ti-plus"></i> Novo admitido</button>
       </div>
       <div class="table-wrap">
         <table><thead><tr><th>Nome</th><th>Cargo</th><th>Turma</th><th>UF</th><th>Fonte</th><th>DISC</th><th>Status</th><th>Contratação</th><th>Desligamento</th><th></th></tr></thead>
         <tbody id="tbCand"></tbody></table>
-        <div id="emptyCand" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum candidato encontrado</div>
+        <div id="emptyCand" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum admitido encontrado</div>
       </div>
     </div>
     <!-- Turnover -->
@@ -558,7 +571,7 @@
 
   <!-- PDI GESTORES -->
   <div class="page" id="page-pdi">
-    <div class="page-title">PDI Gestores</div>
+    <div class="page-title">PDI Gestão</div>
     <div class="gestor-banner gestor-only"><i class="ti ti-info-circle"></i> Você está vendo apenas o seu próprio PDI, em modo leitura.</div>
     <div class="tl-tabs">
       <button class="tl-tab active" onclick="switchPDITab('dash',this)"><i class="ti ti-chart-dots-3"></i> Painel</button>
@@ -632,12 +645,39 @@
     <input type="file" id="mpFotoInput" accept="image/*" style="display:none" onchange="uploadMinhaFoto(this)">
   </div>
 
+  <!-- MONITORIAS (admin) -->
+  <div class="page" id="page-monitorias">
+    <div class="page-title">Monitorias</div>
+    <p style="font-size:12.5px;color:var(--text2);margin:-1rem 0 1.25rem;max-width:620px;line-height:1.6">Avaliações feitas pelos monitores sobre gestores novos, ao fim do período de monitoria/rotação. Link público pra enviar aos monitores: <code style="background:var(--bg2);padding:1px 6px;border-radius:4px">monitoria_form.html</code></p>
+    <div class="toolbar">
+      <input type="text" id="monFiltro" placeholder="Buscar por gestor ou monitor..." oninput="renderMonitorias()" style="min-width:240px">
+      <button class="btn" onclick="r$('monFiltro').value='';renderMonitorias()"><i class="ti ti-x"></i> Limpar</button>
+    </div>
+    <div class="card psp">
+      <div class="psp-top">
+        <div class="psp-total"><div class="val mp-count" id="monTotalAval" data-target="0">0</div><div class="lbl">avaliações</div></div>
+        <div class="psp-divider"></div>
+        <div class="psp-total"><div class="val mp-count" id="monTotalGestores" data-target="0">0</div><div class="lbl">gestores avaliados</div></div>
+      </div>
+    </div>
+    <div id="monGroups"></div>
+    <div id="monEmpty" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma monitoria registrada ainda</div>
+  </div>
+
+  <!-- MINHA MONITORIA (gestor) -->
+  <div class="page" id="page-minhamonitoria">
+    <div class="page-title">Minha Monitoria</div>
+    <div id="mmHeader" class="card mp-anim" style="animation-delay:.02s"></div>
+    <div id="mmList" class="mp-anim" style="animation-delay:.1s"></div>
+    <div id="mmEmpty" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma monitoria registrada ainda pra você</div>
+  </div>
+
 </main>
 
 <!-- MODAL CANDIDATO -->
 <div class="modal-overlay" id="mCand">
   <div class="modal">
-    <div class="modal-title" id="mCandTitulo">Novo candidato</div>
+    <div class="modal-title" id="mCandTitulo">Novo admitido</div>
     <!-- FICHA (view) -->
     <div id="fichaView" style="display:none">
       <div class="ficha-header">
@@ -864,6 +904,26 @@
   </div>
 </div>
 
+<!-- MODAL MONITORIA (detalhe de uma avaliação) -->
+<div class="modal-overlay" id="mMonitoria">
+  <div class="modal" style="max-width:680px">
+    <div class="ficha-header">
+      <div class="avatar" id="monFichaAvatar"></div>
+      <div style="flex:1"><div class="ficha-nome" id="monFichaNome"></div><div class="ficha-sub" id="monFichaSub"></div></div>
+      <div class="mp-pct" id="monFichaNota" style="font-size:22px"></div>
+    </div>
+    <div id="monFichaQA"></div>
+    <div class="card-title" style="margin:1rem 0 6px">Pontos de melhoria / treinamentos sugeridos</div>
+    <div class="obs-box" id="monFichaMelhoria" style="margin-bottom:1rem"></div>
+    <div class="card-title" style="margin-bottom:6px">Recomendaria o monitorando?</div>
+    <div class="obs-box" id="monFichaNps"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mMonitoria')">Fechar</button>
+      <button class="btn btn-danger admin-only" id="monFichaExcluir" onclick="excluirMonitoriaFicha()"><i class="ti ti-trash"></i> Excluir</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // SUPABASE CONFIG
@@ -965,6 +1025,19 @@ async function dbDelete(table, id) {
 // ============================================================
 let candidatos=[], custos=[], turmas=[], editId=null, viewId=null, charts={};
 let pdis=[], editPDIId=null, viewPDIId=null;
+let monitorias=[], viewMonitoriaId=null;
+const MON_PERGUNTAS = [
+  { campo: 'postura', titulo: 'Postura, conduta, maturidade e comportamento' },
+  { campo: 'busca_info', titulo: 'Busca e obtenção de informações, integração e aprendizado' },
+  { campo: 'organizacao', titulo: 'Organização, gestão do tempo e cumprimento de prazos' },
+  { campo: 'resolutivo', titulo: 'É resolutivo? Resolve as demandas e problemas?' },
+  { campo: 'questionamento', titulo: 'Bom nível de questionamento?' },
+  { campo: 'lideranca', titulo: 'Envolvimento com equipes / papel de liderança' },
+  { campo: 'comunicacao', titulo: 'Comunicação (transparência e clareza)' },
+  { campo: 'aprendizado', titulo: 'Capacidade de aprendizado e entendimento das rotinas' },
+  { campo: 'humildade', titulo: 'Escuta críticas com humildade e se esforça para melhorar?' },
+  { campo: 'perfil_valores', titulo: 'Perfil compatível com os valores da Perbras?' },
+];
 const ETAPAS = ['Captação','Triagem','Entrevista','Apres. Perbras','Gest./Cultura','Av. Psi','Exames','Documentos','Pré-contrato','Passagens','Início'];
 const TL_FIELDS = ['tl_captacao','tl_triagem','tl_entrevista','tl_perbras','tl_gestao_cultura','tl_av_psi','tl_exames','tl_documentos','tl_pre_contrato','tl_passagens','tl_inicio'];
 
@@ -994,10 +1067,20 @@ async function init() {
     pdis = await dbGet('pdi');
   } catch(e) {
     pdis = [];
-    console.warn('Aba "PDI Gestores": tabela "pdi" não encontrada no Supabase ainda, ou sem permissão.', e.message);
+    console.warn('Aba "PDI Gestão": tabela "pdi" não encontrada no Supabase ainda, ou sem permissão.', e.message);
   }
   populatePDISels();
   renderPDI();
+
+  // Monitorias: mesma lógica — se a tabela ainda não existir, não quebra o resto.
+  try {
+    monitorias = await dbGet('monitorias');
+  } catch(e) {
+    monitorias = [];
+    console.warn('Aba "Monitorias": tabela "monitorias" não encontrada ainda, ou sem permissão.', e.message);
+  }
+  if (profile && profile.role === 'gestor') renderMinhaMonitoria();
+  else renderMonitorias();
 }
 
 // ============================================================
@@ -1408,7 +1491,7 @@ function verCandidato(id) {
   const c=candidatos.find(x=>x.id===id); if(!c) return;
   viewId=id;
   r$('fichaView').style.display='block'; r$('formCand').style.display='none';
-  r$('mCandTitulo').textContent='Ficha do candidato';
+  r$('mCandTitulo').textContent='Ficha do admitido';
   r$('fichaAvatar').innerHTML=c.foto_url?`<img src="${c.foto_url}">`:`${initials(c.nome)}`;
   r$('fichaNome').textContent=c.nome;
   r$('fichaSub').textContent=(c.cargo||'')+(c.turma_nome?' · '+c.turma_nome:'');
@@ -1436,7 +1519,7 @@ function editarCandidato(id) {
   const c=candidatos.find(x=>x.id===id); if(!c) return;
   editId=id; viewId=null;
   r$('fichaView').style.display='none'; r$('formCand').style.display='block';
-  r$('mCandTitulo').textContent='Editar candidato';
+  r$('mCandTitulo').textContent='Editar admitido';
   populateSels();
   r$('fNome').value=c.nome||''; r$('fStatus').value=c.status||'Ativo';
   r$('fCargo').value=c.cargo||'Gestor Técnico'; r$('fTurma').value=c.turma_nome||'';
@@ -1603,7 +1686,7 @@ function abrirModal(tipo) {
   if(tipo==='candidato') {
     editId=null; viewId=null;
     r$('fichaView').style.display='none'; r$('formCand').style.display='block';
-    r$('mCandTitulo').textContent='Novo candidato';
+    r$('mCandTitulo').textContent='Novo admitido';
     ['fNome','fEstado','fUniv','fDtContr','fDtDesl','fObs'].forEach(id=>r$(id).value='');
     r$('fMotivo').value=''; r$('fMotivoCont').style.display='none';
     r$('fFotoInput').value=''; r$('fFotoPreview').src=''; r$('fFotoPreview').style.display='none';
@@ -1638,7 +1721,7 @@ function abrirModal(tipo) {
 }
 
 function fecharModal(id) {
-  r$(id).classList.remove('open'); editId=null; viewId=null; editCustoId=null; editPDIId=null; viewPDIId=null;
+  r$(id).classList.remove('open'); editId=null; viewId=null; editCustoId=null; editPDIId=null; viewPDIId=null; viewMonitoriaId=null;
 }
 
 // Fechar ao clicar fora
@@ -1746,7 +1829,7 @@ function renderTLTurma() {
   if(!tf){ view.innerHTML='<div class="empty" style="margin-top:2rem"><i class="ti ti-layout-grid" style="font-size:28px;display:block;margin-bottom:8px"></i>Selecione uma turma</div>'; return; }
 
   const cands=candidatos.filter(c=>c.turma_nome===tf);
-  if(!cands.length){ view.innerHTML='<div class="empty">Nenhum candidato nesta turma</div>'; return; }
+  if(!cands.length){ view.innerHTML='<div class="empty">Nenhum admitido nesta turma</div>'; return; }
 
   // KPIs rápidos da turma
   const comTL=cands.filter(c=>c[TL_FIELDS[0]]&&c[TL_FIELDS[10]]);
@@ -1755,7 +1838,7 @@ function renderTLTurma() {
   const ativos=cands.filter(c=>c.status==='Ativo').length;
 
   let html=`<div class="metric-grid" style="margin-bottom:1rem">
-    <div class="metric"><div class="lbl">Candidatos</div><div class="val">${cands.length}</div></div>
+    <div class="metric"><div class="lbl">Admitidos</div><div class="val">${cands.length}</div></div>
     <div class="metric m-g"><div class="lbl">Ativos</div><div class="val">${ativos}</div><div class="sub">${Math.round(ativos/cands.length*100)}% retenção</div></div>
     <div class="metric m-r"><div class="lbl">Desligados</div><div class="val">${cands.length-ativos}</div></div>
     <div class="metric m-b"><div class="lbl">Tempo médio processo</div><div class="val">${avgTot!=null?avgTot+'d':'—'}</div><div class="sub">${comTL.length} com dados completos</div></div>
@@ -2404,6 +2487,145 @@ async function excluirPDI(id,nome,onDone) {
     pdis=await dbGet('pdi'); populatePDISels(); renderPDI();
     if(onDone) onDone();
   } catch(e){ toast('Erro: '+e.message,true); }
+}
+
+// ============================================================
+// MONITORIAS
+// ============================================================
+function monNotas(m) { return MON_PERGUNTAS.map(p=>m['nota_'+p.campo]).filter(n=>n!=null); }
+function monMedia(m) { const ns=monNotas(m); return ns.length? ns.reduce((a,b)=>a+b,0)/ns.length : null; }
+function monNotaClass(media) { if(media==null) return ''; return media>=4?'n-alta':media>=3?'n-media':'n-baixa'; }
+
+function renderMonitorias() {
+  const elGroups=r$('monGroups'); if(!elGroups) return;
+  const termo=(r$('monFiltro')?.value||'').toLowerCase().trim();
+  const f = monitorias.filter(m => !termo || (m.gestor_nome||'').toLowerCase().includes(termo) || (m.monitor_nome||'').toLowerCase().includes(termo));
+
+  const gestoresSet=new Set(f.map(m=>m.gestor_nome).filter(Boolean));
+  r$('monTotalAval').dataset.target = f.length;
+  r$('monTotalGestores').dataset.target = gestoresSet.size;
+  animateCounts(r$('page-monitorias'));
+
+  r$('monEmpty').style.display = f.length ? 'none' : 'block';
+
+  const gestores=[...gestoresSet].sort((a,b)=>a.localeCompare(b));
+  elGroups.innerHTML = gestores.map(g=>{
+    const items = f.filter(m=>m.gestor_nome===g).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+    const medias = items.map(monMedia).filter(n=>n!=null);
+    const mediaGeral = medias.length ? (medias.reduce((a,b)=>a+b,0)/medias.length) : null;
+    const npsVals = items.map(m=>m.nps).filter(n=>n!=null);
+    const npsMedia = npsVals.length ? Math.round(npsVals.reduce((a,b)=>a+b,0)/npsVals.length) : null;
+    const open = monOpenGroups.has(g);
+    return `<div class="pdi-group">
+      <div class="pdi-group-head${open?' open':''}" onclick="toggleMonGroup('${g.replace(/'/g,"\\'")}')">
+        <i class="ti ti-chevron-right"></i> ${g}
+        <span class="cnt">(${items.length} avaliação${items.length!==1?'ões':''})</span>
+        <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+          ${mediaGeral!=null?`<span class="mon-nota ${monNotaClass(mediaGeral)}">${mediaGeral.toFixed(1)}</span>`:''}
+          ${npsMedia!=null?`<span style="font-size:11px;color:var(--text2)">NPS médio: <b>${npsMedia}</b></span>`:''}
+        </span>
+      </div>
+      <div class="pdi-group-body${open?' open':''}">
+        <div class="table-wrap" style="border-radius:0;border:none;box-shadow:none">
+          ${items.map(monRowCardHtml).join('')}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let monOpenGroups = new Set();
+function toggleMonGroup(g) { if(monOpenGroups.has(g)) monOpenGroups.delete(g); else monOpenGroups.add(g); renderMonitorias(); }
+
+function monRowCardHtml(m) {
+  const media = monMedia(m);
+  const gp = gestorProfiles[m.gestor_nome];
+  const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(m.gestor_nome||'?');
+  return `<div class="pdi-rowcard" onclick="abrirMonitoriaFicha('${m.id}')">
+    <div class="pdi-rc-person">
+      <div class="avatar">${avatarHtml}</div>
+      <div class="pdi-rc-who">
+        <div class="nm">${m.gestor_nome||'—'}</div>
+        <div class="un">${m.unidade||'—'}</div>
+      </div>
+    </div>
+    <div class="pdi-rc-main">
+      <div class="ttl">Monitor: ${m.monitor_nome||'—'}</div>
+      <div class="sub">${m.duracao||'—'} · ${m.created_at?fmt(m.created_at.slice(0,10)):''}</div>
+    </div>
+    <div class="pdi-rc-side">
+      ${media!=null?`<span class="mon-nota ${monNotaClass(media)}">${media.toFixed(1)}</span>`:'<span class="dt">sem nota</span>'}
+      ${m.nps!=null?`<span class="dt">NPS ${m.nps}</span>`:''}
+    </div>
+    <div class="pdi-rc-actions admin-only">
+      <button class="icon-btn del" onclick="event.stopPropagation();excluirMonitoria('${m.id}','${(m.gestor_nome||'').replace(/'/g,"\\'")}')" title="Excluir"><i class="ti ti-trash"></i></button>
+    </div>
+  </div>`;
+}
+
+function abrirMonitoriaFicha(id) {
+  const m = monitorias.find(x=>x.id===id); if(!m) return;
+  viewMonitoriaId = id;
+  const media = monMedia(m);
+  r$('monFichaAvatar').textContent = initials(m.gestor_nome||'?');
+  r$('monFichaNome').textContent = m.gestor_nome||'—';
+  r$('monFichaSub').textContent = [m.unidade, 'Monitor: '+(m.monitor_nome||'—'), m.duracao].filter(Boolean).join(' · ');
+  r$('monFichaNota').innerHTML = media!=null ? `<span class="mon-nota ${monNotaClass(media)}" style="font-size:18px;padding:6px 14px">${media.toFixed(1)}</span>` : '';
+  r$('monFichaQA').innerHTML = MON_PERGUNTAS.map(p => {
+    const nota = m['nota_'+p.campo], coment = m['coment_'+p.campo];
+    return `<div class="mon-qa">
+      <div class="mon-qa-head"><span class="q">${p.titulo}</span>${nota!=null?`<span class="mon-nota ${monNotaClass(nota)}">${nota}</span>`:''}</div>
+      ${coment?`<div class="mon-qa-coment">${coment}</div>`:''}
+    </div>`;
+  }).join('');
+  r$('monFichaMelhoria').textContent = m.pontos_melhoria || 'Nenhuma observação registrada.';
+  r$('monFichaNps').textContent = m.nps!=null ? `${m.nps} de 10` : '—';
+  r$('mMonitoria').classList.add('open');
+}
+
+async function excluirMonitoria(id, nome, onDone) {
+  if(!confirm(`Excluir esta avaliação de monitoria de ${nome}?`)) return;
+  try {
+    await dbDelete('monitorias', id); toast('Excluído.');
+    monitorias = await dbGet('monitorias'); renderMonitorias();
+    if (onDone) onDone();
+  } catch(e){ toast('Erro: '+e.message, true); }
+}
+function excluirMonitoriaFicha() {
+  const m = monitorias.find(x=>x.id===viewMonitoriaId); if(!m) return;
+  excluirMonitoria(m.id, m.gestor_nome, () => fecharModal('mMonitoria'));
+}
+
+function renderMinhaMonitoria() {
+  const headerEl = r$('mmHeader'); if (!headerEl) return;
+  const mine = monitorias; // já vem só com as avaliações do gestor logado (RLS)
+  r$('mmEmpty').style.display = mine.length ? 'none' : 'block';
+
+  const medias = mine.map(monMedia).filter(n=>n!=null);
+  const mediaGeral = medias.length ? (medias.reduce((a,b)=>a+b,0)/medias.length) : null;
+
+  headerEl.innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="avatar" style="width:52px;height:52px;font-size:18px">${initials((profile&&profile.gestor_nome)||'?')}</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:600">${(profile&&profile.gestor_nome)||'—'}</div>
+        <div style="font-size:12.5px;color:var(--text2);margin-top:2px">${mine.length} avaliação${mine.length!==1?'ões':''} de monitoria</div>
+      </div>
+      ${mediaGeral!=null?`<span class="mon-nota ${monNotaClass(mediaGeral)}" style="font-size:18px;padding:6px 14px">${mediaGeral.toFixed(1)}</span>`:''}
+    </div>`;
+
+  r$('mmList').innerHTML = mine
+    .sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''))
+    .map(m => {
+      const media = monMedia(m);
+      return `<div class="pdi-group" style="cursor:pointer" onclick="abrirMonitoriaFicha('${m.id}')">
+        <div class="pdi-group-head open" style="cursor:pointer">
+          <i class="ti ti-clipboard-check"></i> Monitor: ${m.monitor_nome||'—'}
+          <span class="cnt">${m.unidade||''} · ${m.duracao||''}</span>
+          <span style="margin-left:auto">${media!=null?`<span class="mon-nota ${monNotaClass(media)}">${media.toFixed(1)}</span>`:''}</span>
+        </div>
+      </div>`;
+    }).join('');
 }
 
 // ── Importador CSV (Microsoft Lists) ──────────────────────────
