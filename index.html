@@ -334,10 +334,6 @@
     background: linear-gradient(120deg, rgba(26,136,255,0.08), rgba(188,255,72,0.12));
     border: 1px solid rgba(26,136,255,0.18); }
   .mp-spotlight-ico { font-size: 24px; flex-shrink: 0; color: var(--blue); }
-  .mp-spotlight.urgent { background: var(--red-bg); border-color: rgba(196,40,40,0.25); }
-  .mp-spotlight.urgent .mp-spotlight-ico, .mp-spotlight.urgent .mp-spotlight-msg b { color: var(--red-text); }
-  .mp-spotlight.celebrate { background: linear-gradient(120deg, rgba(188,255,72,0.22), rgba(46,215,237,0.14)); border-color: rgba(188,255,72,0.4); }
-  .mp-spotlight.celebrate .mp-spotlight-ico, .mp-spotlight.celebrate .mp-spotlight-msg b { color: var(--green-text); }
   .mp-spotlight-body { flex: 1; min-width: 0; overflow: hidden; }
   .mp-spotlight-msg { font-size: 13.5px; line-height: 1.6; color: var(--text); animation: mpSpotFade .35s ease; }
   .mp-spotlight-msg b { color: var(--blue-text); }
@@ -2300,9 +2296,7 @@ function renderMeuPDI() {
     <div class="metric"><div class="lbl">Não iniciadas</div><div class="val mp-count" data-target="${naoIniciadas}">0</div></div>`;
   animateCounts(r$('mpKPIs'));
 
-  const spot = mpSpotlightCompute(mine);
-  mpSpotlightMode = spot.mode;
-  mpSpotlightList = spot.list;
+  mpSpotlightList = mine.filter(p => pdiEffectiveStatus(p) === 'Em andamento');
   if (mpSpotlightIdx >= mpSpotlightList.length) mpSpotlightIdx = 0;
   mpSpotlightRender(me);
 
@@ -2332,52 +2326,20 @@ function renderMeuPDI() {
 }
 
 let mpSpotlightList = [];
-let mpSpotlightMode = 'vazio';
 let mpSpotlightIdx = 0;
-
-// Prioriza o que é mais urgente de mostrar: em andamento > atrasada > não iniciada.
-// Se não tem nenhuma dessas (tudo concluído), mostra uma mensagem de parabéns em vez de sumir.
-function mpSpotlightCompute(mine) {
-  const andamento = mine.filter(p => pdiEffectiveStatus(p) === 'Em andamento');
-  if (andamento.length) return { mode: 'andamento', list: andamento };
-  const atrasada = mine.filter(p => pdiEffectiveStatus(p) === 'Atrasado');
-  if (atrasada.length) return { mode: 'atrasada', list: atrasada };
-  const naoIniciada = mine.filter(p => (p.status_acao||'Não iniciado') === 'Não iniciado');
-  if (naoIniciada.length) return { mode: 'naoiniciada', list: naoIniciada };
-  if (mine.length) return { mode: 'concluido', list: [] };
-  return { mode: 'vazio', list: [] };
-}
-
-const MP_SPOTLIGHT_TXT = {
-  andamento: { ico: 'ti-sparkles', verbo: (t) => `Você tem a ação “${t}” em andamento. Se atente aos prazos e um ótimo PDI :)` },
-  atrasada: { ico: 'ti-alert-triangle', verbo: (t) => `A ação “${t}” está com o prazo atrasado. Dá uma olhada nela quando puder :)` },
-  naoiniciada: { ico: 'ti-flag-3', verbo: (t) => `Você ainda não começou a ação “${t}”. Bora dar o primeiro passo? :)` },
-};
 
 function mpSpotlightRender(nomeCompleto) {
   const el = r$('mpSpotlight'); if (!el) return;
-  const primeiroNome = (nomeCompleto || '').split(' ')[0] || 'tudo bem';
-  if (mpSpotlightMode === 'vazio') { el.style.display = 'none'; el.innerHTML = ''; return; }
+  if (!mpSpotlightList.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
   el.style.display = 'flex';
-  el.className = 'mp-spotlight mp-anim' + (mpSpotlightMode==='atrasada'?' urgent':'') + (mpSpotlightMode==='concluido'?' celebrate':'');
-
-  if (mpSpotlightMode === 'concluido') {
-    el.innerHTML = `
-      <i class="ti ti-confetti mp-spotlight-ico"></i>
-      <div class="mp-spotlight-body">
-        <div class="mp-spotlight-msg">Parabéns, <b>${primeiroNome}</b>! Você concluiu todas as suas ações de PDI. Ótimo trabalho :)</div>
-      </div>`;
-    return;
-  }
-
   const p = mpSpotlightList[mpSpotlightIdx];
+  const primeiroNome = (nomeCompleto || '').split(' ')[0] || 'tudo bem';
   const titulo = p.detalhe_desenvolvimento || p.acao || 'ação de PDI';
-  const cfg = MP_SPOTLIGHT_TXT[mpSpotlightMode];
   el.innerHTML = `
-    <i class="ti ${cfg.ico} mp-spotlight-ico"></i>
+    <i class="ti ti-sparkles mp-spotlight-ico"></i>
     <div class="mp-spotlight-body">
       <div class="mp-spotlight-msg">
-        Olá, <b>${primeiroNome}</b>! ${cfg.verbo(titulo)}
+        Olá, <b>${primeiroNome}</b>! Você tem a ação “${titulo}” em andamento. Se atente aos prazos e um ótimo PDI :)
         ${p.acao_pdi_link?`<div class="mp-spotlight-linkbox">${pdiLinkFieldHtml(p.acao_pdi_link, 'Abrir link da ação')}</div>`:''}
       </div>
     </div>
