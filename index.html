@@ -2154,10 +2154,10 @@ function renderPDILista() {
   const anos=[...new Set(f.map(p=>p.ano||'Sem ano'))].sort((a,b)=>{
     if(a==='Sem ano') return 1; if(b==='Sem ano') return -1; return b-a;
   });
-  if(!pdiOpenGroups.size && anos.length) pdiOpenGroups.add(anos[0]);
+  if(!pdiOpenGroups.size && anos.length) pdiOpenGroups.add(String(anos[0]));
   r$('pdiGroups').innerHTML = anos.map(ano=>{
     const rows = f.filter(p=>(p.ano||'Sem ano')===ano).sort((a,b)=>(a.gestor_nome||'').localeCompare(b.gestor_nome||''));
-    const open = pdiOpenGroups.has(ano);
+    const open = pdiOpenGroups.has(String(ano));
     return `<div class="pdi-group">
       <div class="pdi-group-head${open?' open':''}" onclick="togglePdiGroup('${ano}')"><i class="ti ti-chevron-right"></i> Ano: ${ano} <span class="cnt">(${rows.length})</span></div>
       <div class="pdi-group-body${open?' open':''}">
@@ -2170,6 +2170,7 @@ function renderPDILista() {
 }
 
 function togglePdiGroup(ano) {
+  ano = String(ano);
   if(pdiOpenGroups.has(ano)) pdiOpenGroups.delete(ano); else pdiOpenGroups.add(ano);
   renderPDILista();
 }
@@ -2316,10 +2317,10 @@ function renderMeuPDI() {
 
   r$('mpEmpty').style.display = total ? 'none' : 'block';
   const anos = [...new Set(mine.map(p=>p.ano||'Sem ano'))].sort((a,b)=>{ if(a==='Sem ano') return 1; if(b==='Sem ano') return -1; return b-a; });
-  if (!meuPdiOpenGroups.size && anos.length) meuPdiOpenGroups.add(anos[0]);
+  if (!meuPdiOpenGroups.size && anos.length) meuPdiOpenGroups.add(String(anos[0]));
   r$('mpGroups').innerHTML = anos.map(ano => {
     const rows = mine.filter(p=>(p.ano||'Sem ano')===ano).sort((a,b)=>(a.data_inicio||'').localeCompare(b.data_inicio||''));
-    const open = meuPdiOpenGroups.has(ano);
+    const open = meuPdiOpenGroups.has(String(ano));
     return `<div class="pdi-group">
       <div class="pdi-group-head${open?' open':''}" onclick="toggleMeuPdiGroup('${ano}')"><i class="ti ti-chevron-right"></i> ${ano} <span class="cnt">(${rows.length})</span></div>
       <div class="pdi-group-body${open?' open':''}">
@@ -2401,6 +2402,7 @@ function mpSpotlightStep(delta) {
 }
 
 function toggleMeuPdiGroup(ano) {
+  ano = String(ano);
   if (meuPdiOpenGroups.has(ano)) meuPdiOpenGroups.delete(ano); else meuPdiOpenGroups.add(ano);
   renderMeuPDI();
 }
