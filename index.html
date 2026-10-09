@@ -910,6 +910,11 @@
     <div class="ficha-header">
       <div class="avatar" id="monFichaAvatar"></div>
       <div style="flex:1"><div class="ficha-nome" id="monFichaNome"></div><div class="ficha-sub" id="monFichaSub"></div></div>
+      <div class="ficha-nav" id="monFichaNav" style="display:none">
+        <button class="icon-btn" onclick="monFichaNavStep(-1)" title="Avaliação anterior"><i class="ti ti-chevron-left"></i></button>
+        <span id="monFichaNavPos"></span>
+        <button class="icon-btn" onclick="monFichaNavStep(1)" title="Próxima avaliação"><i class="ti ti-chevron-right"></i></button>
+      </div>
       <div class="mp-pct" id="monFichaNota" style="font-size:22px"></div>
     </div>
     <div id="monFichaQA"></div>
@@ -2162,7 +2167,7 @@ function renderPDIGestores() {
       <div class="pdi-card-stats"><span>${concl}/${items.length} concluídas</span><b>${pct}%</b></div>
       <div class="pbar"><div class="pbar-fill${pct===100?' full':''}" style="width:${pct}%"></div></div>
       ${atrasadas?`<div style="margin-top:8px"><span class="badge b-r">${atrasadas} atrasada${atrasadas!==1?'s':''}</span></div>`:''}
-      <div class="pdi-mini-list">${items.slice(0,4).map(p=>`<div class="pdi-mini-item"><span class="pdi-dot" style="background:${pdiDotColor(pdiEffectiveStatus(p))}"></span><span class="txt">${p.detalhe_desenvolvimento||p.acao||'Ação PDI'}</span></div>`).join('')}${items.length>4?`<div style="font-size:11px;color:var(--text3)">+${items.length-4} outra${items.length-4!==1?'s':''} ação${items.length-4!==1?'ões':''}</div>`:''}</div>
+      <div class="pdi-mini-list">${items.slice(0,4).map(p=>`<div class="pdi-mini-item"><span class="pdi-dot" style="background:${pdiDotColor(pdiEffectiveStatus(p))}"></span><span class="txt">${p.detalhe_desenvolvimento||p.acao||'Ação PDI'}</span></div>`).join('')}${items.length>4?`<div style="font-size:11px;color:var(--text3)">+${items.length-4} outra${items.length-4!==1?'s':''} ${items.length-4!==1?'ações':'ação'}</div>`:''}</div>
     </div>`;
   }).join('');
 }
@@ -2227,7 +2232,7 @@ function renderMeuPDI() {
   const alertEl = r$('mpAlert');
   if (alertas.length) {
     alertEl.style.display = '';
-    alertEl.innerHTML = `<i class="ti ti-alert-triangle"></i> Você tem <b>${alertas.length}</b> ação${alertas.length!==1?'ões':''} de PDI com prazo nos próximos 30 dias.`;
+    alertEl.innerHTML = `<i class="ti ti-alert-triangle"></i> Você tem <b>${alertas.length}</b> ${alertas.length!==1?'ações':'ação'} de PDI com prazo nos próximos 30 dias.`;
   } else {
     alertEl.style.display = 'none';
   }
@@ -2497,7 +2502,7 @@ function monMedia(m) { const ns=monNotas(m); return ns.length? ns.reduce((a,b)=>
 function monNotaClass(media) { if(media==null) return ''; return media>=4?'n-alta':media>=3?'n-media':'n-baixa'; }
 
 function renderMonitorias() {
-  const elGroups=r$('monGroups'); if(!elGroups) return;
+  const elGrid=r$('monGroups'); if(!elGrid) return;
   const termo=(r$('monFiltro')?.value||'').toLowerCase().trim();
   const f = monitorias.filter(m => !termo || (m.gestor_nome||'').toLowerCase().includes(termo) || (m.monitor_nome||'').toLowerCase().includes(termo));
 
@@ -2509,68 +2514,61 @@ function renderMonitorias() {
   r$('monEmpty').style.display = f.length ? 'none' : 'block';
 
   const gestores=[...gestoresSet].sort((a,b)=>a.localeCompare(b));
-  elGroups.innerHTML = gestores.map(g=>{
+  elGrid.innerHTML = `<div class="pdi-grid">` + gestores.map(g=>{
     const items = f.filter(m=>m.gestor_nome===g).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+    const unidade = (items.find(m=>m.unidade)||{}).unidade || '—';
     const medias = items.map(monMedia).filter(n=>n!=null);
     const mediaGeral = medias.length ? (medias.reduce((a,b)=>a+b,0)/medias.length) : null;
     const npsVals = items.map(m=>m.nps).filter(n=>n!=null);
     const npsMedia = npsVals.length ? Math.round(npsVals.reduce((a,b)=>a+b,0)/npsVals.length) : null;
-    const open = monOpenGroups.has(g);
-    return `<div class="pdi-group">
-      <div class="pdi-group-head${open?' open':''}" onclick="toggleMonGroup('${g.replace(/'/g,"\\'")}')">
-        <i class="ti ti-chevron-right"></i> ${g}
-        <span class="cnt">(${items.length} avaliação${items.length!==1?'ões':''})</span>
-        <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
-          ${mediaGeral!=null?`<span class="mon-nota ${monNotaClass(mediaGeral)}">${mediaGeral.toFixed(1)}</span>`:''}
-          ${npsMedia!=null?`<span style="font-size:11px;color:var(--text2)">NPS médio: <b>${npsMedia}</b></span>`:''}
-        </span>
+    const gp = gestorProfiles[g];
+    const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(g);
+    const gEsc = g.replace(/'/g,"\\'");
+    return `<div class="pdi-card" onclick="abrirGestorMonitorias('${gEsc}')">
+      <div class="pdi-card-head">
+        <div class="avatar">${avatarHtml}</div>
+        <div><div class="nm">${g}</div><div class="un">${unidade}</div></div>
       </div>
-      <div class="pdi-group-body${open?' open':''}">
-        <div class="table-wrap" style="border-radius:0;border:none;box-shadow:none">
-          ${items.map(monRowCardHtml).join('')}
-        </div>
+      <div class="pdi-card-stats">
+        <span>${items.length} ${items.length!==1?'avaliações':'avaliação'} de monitoria</span>
+        ${mediaGeral!=null?`<span class="mon-nota ${monNotaClass(mediaGeral)}">${mediaGeral.toFixed(1)}</span>`:''}
       </div>
+      ${npsMedia!=null?`<div style="font-size:11.5px;color:var(--text2);margin-top:6px">Recomendaria o gestor (NPS 0–10): <b style="color:var(--text)">${npsMedia}</b></div>`:''}
+      <div class="pdi-mini-list">${items.slice(0,3).map(m=>`<div class="pdi-mini-item"><span class="pdi-dot" style="background:${monDotColor(monMedia(m))}"></span><span class="txt">Monitor: ${m.monitor_nome||'—'} · ${m.duracao||'—'}</span></div>`).join('')}${items.length>3?`<div style="font-size:11px;color:var(--text3)">+${items.length-3} outra${items.length-3!==1?'s':''} ${items.length-3!==1?'avaliações':'avaliação'}</div>`:''}</div>
     </div>`;
-  }).join('');
+  }).join('') + `</div>`;
 }
 
-let monOpenGroups = new Set();
-function toggleMonGroup(g) { if(monOpenGroups.has(g)) monOpenGroups.delete(g); else monOpenGroups.add(g); renderMonitorias(); }
-
-function monRowCardHtml(m) {
-  const media = monMedia(m);
-  const gp = gestorProfiles[m.gestor_nome];
-  const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(m.gestor_nome||'?');
-  return `<div class="pdi-rowcard" onclick="abrirMonitoriaFicha('${m.id}')">
-    <div class="pdi-rc-person">
-      <div class="avatar">${avatarHtml}</div>
-      <div class="pdi-rc-who">
-        <div class="nm">${m.gestor_nome||'—'}</div>
-        <div class="un">${m.unidade||'—'}</div>
-      </div>
-    </div>
-    <div class="pdi-rc-main">
-      <div class="ttl">Monitor: ${m.monitor_nome||'—'}</div>
-      <div class="sub">${m.duracao||'—'} · ${m.created_at?fmt(m.created_at.slice(0,10)):''}</div>
-    </div>
-    <div class="pdi-rc-side">
-      ${media!=null?`<span class="mon-nota ${monNotaClass(media)}">${media.toFixed(1)}</span>`:'<span class="dt">sem nota</span>'}
-      ${m.nps!=null?`<span class="dt">NPS ${m.nps}</span>`:''}
-    </div>
-    <div class="pdi-rc-actions admin-only">
-      <button class="icon-btn del" onclick="event.stopPropagation();excluirMonitoria('${m.id}','${(m.gestor_nome||'').replace(/'/g,"\\'")}')" title="Excluir"><i class="ti ti-trash"></i></button>
-    </div>
-  </div>`;
+function monDotColor(media) {
+  if (media==null) return '#8a9fad';
+  return media>=4 ? '#8fd400' : media>=3 ? '#FF8F1F' : '#e5484d';
 }
 
-function abrirMonitoriaFicha(id) {
+let monNavList = [];
+function abrirGestorMonitorias(nome) {
+  const navList = monitorias.filter(m=>m.gestor_nome===nome).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).map(m=>m.id);
+  if (navList.length) abrirMonitoriaFicha(navList[0], navList);
+}
+
+function abrirMonitoriaFicha(id, navList) {
   const m = monitorias.find(x=>x.id===id); if(!m) return;
   viewMonitoriaId = id;
+  monNavList = (navList && navList.includes(id)) ? navList : [id];
   const media = monMedia(m);
-  r$('monFichaAvatar').textContent = initials(m.gestor_nome||'?');
+  const gp = gestorProfiles[m.gestor_nome];
+  r$('monFichaAvatar').innerHTML = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(m.gestor_nome||'?');
   r$('monFichaNome').textContent = m.gestor_nome||'—';
   r$('monFichaSub').textContent = [m.unidade, 'Monitor: '+(m.monitor_nome||'—'), m.duracao].filter(Boolean).join(' · ');
   r$('monFichaNota').innerHTML = media!=null ? `<span class="mon-nota ${monNotaClass(media)}" style="font-size:18px;padding:6px 14px">${media.toFixed(1)}</span>` : '';
+  const navEl = r$('monFichaNav');
+  if (navEl) {
+    if (monNavList.length > 1) {
+      navEl.style.display = 'flex';
+      r$('monFichaNavPos').textContent = `${monNavList.indexOf(id)+1} de ${monNavList.length}`;
+    } else {
+      navEl.style.display = 'none';
+    }
+  }
   r$('monFichaQA').innerHTML = MON_PERGUNTAS.map(p => {
     const nota = m['nota_'+p.campo], coment = m['coment_'+p.campo];
     return `<div class="mon-qa">
@@ -2596,9 +2594,16 @@ function excluirMonitoriaFicha() {
   excluirMonitoria(m.id, m.gestor_nome, () => fecharModal('mMonitoria'));
 }
 
+function monFichaNavStep(delta) {
+  if (monNavList.length < 2) return;
+  const i = monNavList.indexOf(viewMonitoriaId);
+  const next = (i + delta + monNavList.length) % monNavList.length;
+  abrirMonitoriaFicha(monNavList[next], monNavList);
+}
+
 function renderMinhaMonitoria() {
   const headerEl = r$('mmHeader'); if (!headerEl) return;
-  const mine = monitorias; // já vem só com as avaliações do gestor logado (RLS)
+  const mine = monitorias.slice().sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')); // já vem só com as avaliações do gestor logado (RLS)
   r$('mmEmpty').style.display = mine.length ? 'none' : 'block';
 
   const medias = mine.map(monMedia).filter(n=>n!=null);
@@ -2609,16 +2614,17 @@ function renderMinhaMonitoria() {
       <div class="avatar" style="width:52px;height:52px;font-size:18px">${initials((profile&&profile.gestor_nome)||'?')}</div>
       <div style="flex:1">
         <div style="font-size:15px;font-weight:600">${(profile&&profile.gestor_nome)||'—'}</div>
-        <div style="font-size:12.5px;color:var(--text2);margin-top:2px">${mine.length} avaliação${mine.length!==1?'ões':''} de monitoria</div>
+        <div style="font-size:12.5px;color:var(--text2);margin-top:2px">${mine.length} ${mine.length!==1?'avaliações':'avaliação'} de monitoria</div>
       </div>
       ${mediaGeral!=null?`<span class="mon-nota ${monNotaClass(mediaGeral)}" style="font-size:18px;padding:6px 14px">${mediaGeral.toFixed(1)}</span>`:''}
     </div>`;
 
+  const navIds = mine.map(m=>m.id);
+  const navListJs = '[' + navIds.map(id=>`'${id}'`).join(',') + ']';
   r$('mmList').innerHTML = mine
-    .sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''))
     .map(m => {
       const media = monMedia(m);
-      return `<div class="pdi-group" style="cursor:pointer" onclick="abrirMonitoriaFicha('${m.id}')">
+      return `<div class="pdi-group" style="cursor:pointer" onclick="abrirMonitoriaFicha('${m.id}', ${navListJs})">
         <div class="pdi-group-head open" style="cursor:pointer">
           <i class="ti ti-clipboard-check"></i> Monitor: ${m.monitor_nome||'—'}
           <span class="cnt">${m.unidade||''} · ${m.duracao||''}</span>
