@@ -11,3 +11,6 @@ pdi_import*.sql
 # desempenho de gestores específicos, com comentários sensíveis.
 # Fica só local, nunca no repositório público.
 monitoria_import*.sql
+
+# E-mails reais de gestores. Fica só local, nunca no repositório público.
+pdi_email_backfill.sql
