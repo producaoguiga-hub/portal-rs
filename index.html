@@ -53,6 +53,8 @@
   .main { margin-left: 220px; padding: 2rem; min-height: 100vh; }
   .page { display: none; }
   .page.active { display: block; animation: pageIn .35s cubic-bezier(.4,0,.2,1); }
+  .page-sub { display: none; }
+  .page-sub.active { display: block; animation: pageIn .3s cubic-bezier(.4,0,.2,1); }
   @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .page-title { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 1.5rem; }
 
@@ -362,11 +364,7 @@
     <img src="perbraslogo.png" alt="Perbras">
     <span class="sidebar-subtitle">Portal R&S</span>
   </div>
-  <button class="nav-item active admin-only" onclick="goPage('visao',this)"><i class="ti ti-layout-dashboard"></i><span>Visão geral</span></button>
-  <button class="nav-item admin-only" onclick="goPage('candidatos',this)"><i class="ti ti-users"></i><span>Candidatos</span></button>
-  <button class="nav-item admin-only" onclick="goPage('custos',this)"><i class="ti ti-currency-dollar"></i><span>Custos</span></button>
-  <button class="nav-item admin-only" onclick="goPage('turmas',this)"><i class="ti ti-school"></i><span>Turmas</span></button>
-  <button class="nav-item admin-only" onclick="goPage('timeline',this)"><i class="ti ti-timeline"></i><span>Linha do tempo</span></button>
+  <button class="nav-item active admin-only" onclick="goPage('rsgestao',this)"><i class="ti ti-briefcase"></i><span>R&amp;S Gestão</span></button>
   <button class="nav-item admin-only" id="navItemPdi" onclick="goPage('pdi',this)"><i class="ti ti-target-arrow"></i><span>PDI Gestores</span></button>
   <button class="nav-item gestor-only" id="navItemMeuPdi" onclick="goPage('meupdi',this)"><i class="ti ti-target-arrow"></i><span>Meu PDI</span></button>
   <div class="sidebar-foot">
@@ -378,9 +376,19 @@
 <!-- MAIN -->
 <main class="main">
 
+  <!-- R&S GESTÃO -->
+  <div class="page active" id="page-rsgestao">
+    <div class="page-title">R&amp;S Gestão</div>
+    <div class="tl-tabs" style="margin-bottom:1.25rem">
+      <button class="tl-tab active" onclick="switchRSTab('visao',this)"><i class="ti ti-layout-dashboard"></i> Visão geral</button>
+      <button class="tl-tab" onclick="switchRSTab('candidatos',this)"><i class="ti ti-users"></i> Candidatos</button>
+      <button class="tl-tab" onclick="switchRSTab('custos',this)"><i class="ti ti-currency-dollar"></i> Custos</button>
+      <button class="tl-tab" onclick="switchRSTab('turmas',this)"><i class="ti ti-school"></i> Turmas</button>
+      <button class="tl-tab" onclick="switchRSTab('timeline',this)"><i class="ti ti-timeline"></i> Linha do tempo</button>
+    </div>
+
   <!-- VISÃO GERAL -->
-  <div class="page active" id="page-visao">
-    <div class="page-title">Visão geral</div>
+  <div class="page-sub active" id="page-visao">
     <div class="toolbar">
       <select id="vfTurma" onchange="renderCharts()"><option value="">Todas as turmas</option></select>
       <select id="vfStatus" onchange="renderCharts()">
@@ -417,8 +425,7 @@
   </div>
 
   <!-- CANDIDATOS -->
-  <div class="page" id="page-candidatos">
-    <div class="page-title">Candidatos</div>
+  <div class="page-sub" id="page-candidatos">
     <div class="tl-tabs" style="margin-bottom:1rem">
       <button class="tl-tab active" onclick="switchCandTab('lista',this)"><i class="ti ti-list"></i> Lista</button>
       <button class="tl-tab" onclick="switchCandTab('turnover',this)"><i class="ti ti-chart-bar"></i> Turnover</button>
@@ -495,8 +502,7 @@
   </div>
 
   <!-- CUSTOS -->
-  <div class="page" id="page-custos">
-    <div class="page-title">Custos</div>
+  <div class="page-sub" id="page-custos">
     <div class="toolbar">
       <select id="fCT" onchange="renderCustos()"><option value="">Todas as turmas</option></select>
       <button class="btn btn-primary" onclick="abrirModal('custo')"><i class="ti ti-plus"></i> Registrar custo</button>
@@ -510,8 +516,7 @@
   </div>
 
   <!-- TURMAS -->
-  <div class="page" id="page-turmas">
-    <div class="page-title">Turmas</div>
+  <div class="page-sub" id="page-turmas">
     <div class="toolbar">
       <button class="btn btn-primary" onclick="abrirModal('turma')"><i class="ti ti-plus"></i> Nova turma</button>
     </div>
@@ -523,8 +528,7 @@
   </div>
 
   <!-- LINHA DO TEMPO -->
-  <div class="page" id="page-timeline">
-    <div class="page-title">Linha do tempo</div>
+  <div class="page-sub" id="page-timeline">
     <div class="tl-tabs">
       <button class="tl-tab active" onclick="switchTLTab('individual',this)"><i class="ti ti-user"></i> Por candidato</button>
       <button class="tl-tab" onclick="switchTLTab('turma',this)"><i class="ti ti-users"></i> Por turma</button>
@@ -547,6 +551,10 @@
       <div id="tlTurmaView"><div class="empty" style="margin-top:2rem"><i class="ti ti-layout-grid" style="font-size:28px;display:block;margin-bottom:8px"></i>Selecione uma turma para ver o consolidado</div></div>
     </div>
   </div>
+  <!-- /page-timeline -->
+
+  </div>
+  <!-- /R&S GESTÃO -->
 
   <!-- PDI GESTORES -->
   <div class="page" id="page-pdi">
@@ -1014,7 +1022,7 @@ function applyRoleUI() {
   if (isGestor) {
     goPage('meupdi', r$('navItemMeuPdi'));
   } else {
-    goPage('visao', document.querySelector('.nav-item.admin-only'));
+    goPage('rsgestao', document.querySelector('.nav-item.admin-only'));
   }
 }
 
@@ -1086,6 +1094,14 @@ function goPage(id, btn) {
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
+}
+
+// Abas internas de "R&S Gestão" (Visão geral / Candidatos / Custos / Turmas / Linha do tempo)
+function switchRSTab(tab, btn) {
+  document.querySelectorAll('#page-rsgestao > .tl-tabs > .tl-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#page-rsgestao .page-sub').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
 }
 
 // ============================================================
