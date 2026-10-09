@@ -145,6 +145,10 @@
     .tl-step.done .sd { color: #DAFF94; }
   }
   .obs-box { background: var(--bg2); border-radius: var(--radius); padding: 12px; font-size: 13px; line-height: 1.6; min-height: 44px; }
+  .pdi-link-block { display: flex; flex-direction: column; gap: 6px; }
+  .pdi-link-line { word-break: break-word; }
+  .pdi-link-line b { color: var(--text2); font-weight: 600; }
+  .pdi-link-line a, .obs-box a { color: var(--blue); font-weight: 500; }
 
   /* Toast */
   #toast { position: fixed; bottom: 24px; right: 24px; background: #27500A; color: #EAF3DE; padding: 10px 18px; border-radius: 8px; font-size: 13px; z-index: 9999; opacity: 0; transition: opacity .3s; pointer-events: none; }
@@ -334,8 +338,8 @@
   .mp-spotlight-msg { font-size: 13.5px; line-height: 1.6; color: var(--text); animation: mpSpotFade .35s ease; }
   .mp-spotlight-msg b { color: var(--blue-text); }
   @keyframes mpSpotFade { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
-  .mp-spotlight-link { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; font-size: 12.5px; font-weight: 600; color: var(--blue); text-decoration: none; }
-  .mp-spotlight-link:hover { text-decoration: underline; }
+  .mp-spotlight-linkbox { margin-top: 8px; padding: 10px 12px; background: var(--bg); border-radius: var(--radius); font-size: 12.5px; }
+  .mp-spotlight-linkbox a { font-weight: 600; }
   .mp-spotlight-nav { display: flex; flex-direction: column; align-items: center; gap: 5px; flex-shrink: 0; }
   .mp-spotlight-nav button { background: var(--bg); border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text2); transition: background .15s, color .15s, transform .15s; padding: 0; }
   .mp-spotlight-nav button:hover { background: var(--blue); color: #fff; transform: scale(1.08); }
@@ -847,6 +851,10 @@
       <div class="ficha-grid" id="pdiFichaGrid"></div>
       <div class="card-title" id="pdiFichaDiagnosticoTitle" style="margin-bottom:6px;display:none">Diagnóstico (autoavaliação)</div>
       <div class="obs-box" id="pdiFichaDiagnostico" style="margin-bottom:1rem;display:none"></div>
+      <div class="card-title" id="pdiFichaEvidenciaTitle" style="margin-bottom:6px;display:none">Evidência</div>
+      <div class="obs-box" id="pdiFichaEvidencia" style="margin-bottom:1rem;display:none"></div>
+      <div class="card-title" id="pdiFichaAcaoLinkTitle" style="margin-bottom:6px;display:none">Link da ação PDI</div>
+      <div class="obs-box" id="pdiFichaAcaoLink" style="margin-bottom:1rem;display:none"></div>
       <div class="card-title" style="margin-bottom:6px">Detalhe do desenvolvimento</div>
       <div class="obs-box" id="pdiFichaDetalhe" style="margin-bottom:1rem"></div>
       <div class="card-title" style="margin-bottom:6px">Feedback DRE</div>
@@ -2333,7 +2341,7 @@ function mpSpotlightRender(nomeCompleto) {
     <div class="mp-spotlight-body">
       <div class="mp-spotlight-msg">
         Olá, <b>${primeiroNome}</b>! Você tem a ação “${titulo}” em andamento. Se atente aos prazos e um ótimo PDI :)
-        ${p.evidencia_link?`<br><a class="mp-spotlight-link" href="${p.evidencia_link}" target="_blank" rel="noopener"><i class="ti ti-external-link"></i> Abrir link da ação</a>`:''}
+        ${p.acao_pdi_link?`<div class="mp-spotlight-linkbox">${pdiLinkFieldHtml(p.acao_pdi_link, 'Abrir link da ação')}</div>`:''}
       </div>
     </div>
     ${mpSpotlightList.length>1?`
@@ -2452,13 +2460,17 @@ function verPDI(id, navList) {
     ['Ação',p.acao||'—'],
     ['Início',p.data_inicio?fmt(p.data_inicio):'—'],
     ['Término programado',p.data_termino_programada?fmt(p.data_termino_programada):'—'],
-    ['Evidência',p.evidencia_link?`<a href="${p.evidencia_link}" target="_blank" rel="noopener">Abrir link</a>`:'—'],
-    ['Link da ação PDI',p.acao_pdi_link?`<a href="${p.acao_pdi_link}" target="_blank" rel="noopener">Abrir link</a>`:'—'],
   ].map(([l,v])=>`<div class="fi"><div class="fi-l">${l}</div><div class="fi-v">${v}</div></div>`).join('');
   const temDiagnostico = !!p.diagnostico;
   r$('pdiFichaDiagnosticoTitle').style.display = temDiagnostico ? '' : 'none';
   r$('pdiFichaDiagnostico').style.display = temDiagnostico ? '' : 'none';
   if (temDiagnostico) r$('pdiFichaDiagnostico').textContent = p.diagnostico;
+  r$('pdiFichaEvidenciaTitle').style.display = p.evidencia_link ? '' : 'none';
+  r$('pdiFichaEvidencia').style.display = p.evidencia_link ? '' : 'none';
+  if (p.evidencia_link) r$('pdiFichaEvidencia').innerHTML = pdiLinkFieldHtml(p.evidencia_link);
+  r$('pdiFichaAcaoLinkTitle').style.display = p.acao_pdi_link ? '' : 'none';
+  r$('pdiFichaAcaoLink').style.display = p.acao_pdi_link ? '' : 'none';
+  if (p.acao_pdi_link) r$('pdiFichaAcaoLink').innerHTML = pdiLinkFieldHtml(p.acao_pdi_link);
   r$('pdiFichaDetalhe').textContent=p.detalhe_desenvolvimento||'Nenhum detalhe registrado.';
   r$('pdiFichaFeedback').textContent=p.feedback_dre||'Nenhum feedback registrado.';
   r$('mPDI').classList.add('open');
@@ -2749,6 +2761,31 @@ function pdiParseDate(s) {
   const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
   if(m){ let [,d,mo,y]=m; if(y.length===2) y='20'+y; return `${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`; }
   return null;
+}
+
+// Alguns registros antigos (importados do Lists) têm, no campo de link,
+// um texto com várias linhas tipo "Curso: ...\nLink: https://...\nLogin: ...\nSenha: ...",
+// em vez de uma URL só. Formata isso de forma legível em vez de tentar usar como href.
+function pdiLinkFieldHtml(raw, simpleLabel) {
+  if (!raw) return '—';
+  const trimmed = raw.trim();
+  if (/^https?:\/\/\S+$/i.test(trimmed)) {
+    return `<a href="${trimmed}" target="_blank" rel="noopener">${simpleLabel || 'Abrir link'}</a>`;
+  }
+  const lines = trimmed.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if (lines.length <= 1) return trimmed;
+  return `<div class="pdi-link-block">${lines.map(line => {
+    const urlMatch = line.match(/https?:\/\/\S+/i);
+    const labelMatch = line.match(/^([^:]{1,30}):\s*(.*)$/);
+    if (labelMatch && urlMatch) {
+      const rest = labelMatch[2].trim();
+      const before = rest.slice(0, rest.indexOf(urlMatch[0])).trim();
+      return `<div class="pdi-link-line"><b>${labelMatch[1]}:</b> ${before?before+' ':''}<a href="${urlMatch[0]}" target="_blank" rel="noopener">${urlMatch[0]}</a></div>`;
+    }
+    if (urlMatch) return `<div class="pdi-link-line"><a href="${urlMatch[0]}" target="_blank" rel="noopener">${urlMatch[0]}</a></div>`;
+    if (labelMatch) return `<div class="pdi-link-line"><b>${labelMatch[1]}:</b> ${labelMatch[2]}</div>`;
+    return `<div class="pdi-link-line">${line}</div>`;
+  }).join('')}</div>`;
 }
 
 function pdiExtractLink(s) {
