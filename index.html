@@ -2243,7 +2243,7 @@ function renderPDIGestores() {
     const gNomeEsc = g.replace(/'/g,"\\'");
     return `<div class="pdi-card" onclick="abrirGestorCard('${gNomeEsc}')">
       <div class="pdi-card-head">
-        <div class="avatar" ${gp?`style="cursor:pointer" title="Clique para trocar a foto" onclick="event.stopPropagation();abrirUploadGestorFoto('${gNomeEsc}')"`:''}>${avatarHtml}</div>
+        <div class="avatar" style="cursor:pointer" title="Clique para trocar a foto" onclick="event.stopPropagation();abrirUploadGestorFoto('${gNomeEsc}')">${avatarHtml}</div>
         <div><div class="nm">${g}</div><div class="un">${unidade}</div></div>
       </div>
       <div class="pdi-card-stats"><span>${concl}/${items.length} concluídas</span><b>${pct}%</b></div>
@@ -2688,7 +2688,7 @@ function renderMonitorias() {
     const gEsc = g.replace(/'/g,"\\'");
     return `<div class="pdi-card" onclick="abrirGestorMonitorias('${gEsc}')">
       <div class="pdi-card-head">
-        <div class="avatar" ${gp?`style="cursor:pointer" title="Clique para trocar a foto" onclick="event.stopPropagation();abrirUploadGestorFoto('${gEsc}')"`:''}>${avatarHtml}</div>
+        <div class="avatar" style="cursor:pointer" title="Clique para trocar a foto" onclick="event.stopPropagation();abrirUploadGestorFoto('${gEsc}')">${avatarHtml}</div>
         <div><div class="nm">${g}</div><div class="un">${unidade}</div></div>
       </div>
       <div class="pdi-card-stats">
