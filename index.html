@@ -894,7 +894,7 @@
           <input id="pUnidadeNovo" type="text" placeholder="Digite o nome da nova unidade" style="display:none;margin-top:6px">
         </div>
         <div class="fg"><label>Status da ação</label><select id="pStatus"></select></div>
-        <div class="fg span3"><label>E-mail do gestor <span style="font-weight:400;color:var(--text3)">(pra onde vão as notificações)</span></label><input id="pGestorEmail" type="email" placeholder="nome@perbras.com.br"></div>
+        <div class="fg span3"><label>E-mail do gestor <span style="font-weight:400;color:var(--text3)">(se ele ainda não tem login, preencher aqui já cria o acesso dele ao salvar)</span></label><input id="pGestorEmail" type="email" placeholder="nome@perbras.com.br"></div>
 
         <div class="section-label">Mapeamento</div>
         <div class="fg span3">
@@ -2639,10 +2639,19 @@ async function salvarPDI() {
     data_termino_programada: r$('pDtTermino').value||null,
     feedback_dre: r$('pFeedback').value.trim()||null,
   };
+  // Se ela ainda não tem login e um e-mail foi preenchido, cria o acesso dela agora
+  // (mesma lógica usada no cadastro de Monitoria) — útil pra quem só foi importado
+  // em massa e nunca ganhou conta.
+  const emailNovoLoginPDI = (!gestorProfiles[gestor_nome] && data.gestor_email) ? data.gestor_email : '';
   try {
+    if (emailNovoLoginPDI) {
+      const resultado = await criarLoginGestor(emailNovoLoginPDI, gestor_nome);
+      toast(resultado.msg, !resultado.ok);
+    }
     if(editPDIId) { await dbUpdate('pdi',editPDIId,data); toast('Ação de PDI atualizada!'); }
     else { await dbInsert('pdi',data); toast('Ação de PDI cadastrada!'); }
     fecharModal('mPDI'); editPDIId=null;
+    loadGestorProfiles();
     pdis=await dbGet('pdi'); populatePDISels(); renderPDI();
   } catch(e){ toast('Erro ao salvar PDI: '+e.message,true); }
 }
@@ -2783,19 +2792,36 @@ function populateMonitoriaFormSels(selecionado) {
   sel.innerHTML = '<option value="">— Selecione —</option>'
     + nomes.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join('')
     + '<option value="__novo__">+ Novo gestor...</option>';
-  if (selecionado && nomes.includes(selecionado)) { sel.value = selecionado; r$('mfGestorNovo').style.display = 'none'; r$('mfGestorLoginRow').style.display = 'none'; }
-  else if (selecionado) { sel.value = '__novo__'; r$('mfGestorNovo').value = selecionado; r$('mfGestorNovo').style.display = ''; r$('mfGestorLoginRow').style.display = ''; }
-  else { r$('mfGestorNovo').value = ''; r$('mfGestorNovo').style.display = 'none'; r$('mfGestorLoginRow').style.display = 'none'; }
+  if (selecionado && nomes.includes(selecionado)) { sel.value = selecionado; r$('mfGestorNovo').style.display = 'none'; }
+  else if (selecionado) { sel.value = '__novo__'; r$('mfGestorNovo').value = selecionado; r$('mfGestorNovo').style.display = ''; }
+  else { r$('mfGestorNovo').value = ''; r$('mfGestorNovo').style.display = 'none'; }
 
   const unidades = [...new Set([...PDI_UNIDADES_SEED, ...pdis.map(p=>p.unidade).filter(Boolean), ...monitorias.map(m=>m.unidade).filter(Boolean)])].sort((a,b)=>a.localeCompare(b));
   mkDatalist('dlMonUnidades', unidades);
+  monAtualizaLoginRow();
+}
+
+// Mostra o campo de e-mail/criar login sempre que a pessoa selecionada (ou digitada)
+// ainda não tem perfil de login — não só quando é "Novo gestor". Alguém importado em
+// massa (PDI ou Monitoria) já aparece na lista, mas pode nunca ter ganhado login.
+function monAtualizaLoginRow() {
+  const selVal = r$('mfGestorSel').value;
+  const novo = selVal === '__novo__';
+  if (novo) { r$('mfGestorLoginRow').style.display = ''; return; }
+  const nomeAtual = selVal.trim();
+  const temLogin = nomeAtual && !!gestorProfiles[nomeAtual];
+  r$('mfGestorLoginRow').style.display = (nomeAtual && !temLogin) ? '' : 'none';
+  if (!nomeAtual || temLogin) { r$('mfGestorEmail').value = ''; return; }
+  // sugere o e-mail já cadastrado em alguma ação de PDI dela, se tiver
+  const pdiComEmail = pdis.find(p=>p.gestor_nome===nomeAtual && p.gestor_email);
+  r$('mfGestorEmail').value = pdiComEmail ? pdiComEmail.gestor_email : '';
 }
 
 function onMonGestorSelChange() {
   const novo = r$('mfGestorSel').value === '__novo__';
   r$('mfGestorNovo').style.display = novo ? '' : 'none';
-  r$('mfGestorLoginRow').style.display = novo ? '' : 'none';
-  if (novo) r$('mfGestorNovo').focus(); else r$('mfGestorEmail').value = '';
+  if (novo) { r$('mfGestorNovo').value = ''; r$('mfGestorNovo').focus(); }
+  monAtualizaLoginRow();
 }
 
 const SELF_SIGNUP_PASSWORD = 'perbras@2026';
@@ -2897,7 +2923,10 @@ async function salvarMonitoriaForm() {
     data['coment_'+p.campo] = r$('mf_coment_'+p.campo).value.trim() || null;
   });
 
-  const emailNovoLogin = (selVal==='__novo__' ? r$('mfGestorEmail').value.trim() : '');
+  // O campo de e-mail aparece tanto pra "Novo gestor" quanto pra alguém que já tem
+  // registro de PDI/Monitoria mas nunca ganhou login — nos dois casos, se tiver
+  // e-mail preenchido, cria o login agora.
+  const emailNovoLogin = (!gestorProfiles[gestor_nome] ? r$('mfGestorEmail').value.trim() : '');
 
   try {
     if (emailNovoLogin) {
