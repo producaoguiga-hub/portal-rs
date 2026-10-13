@@ -987,6 +987,10 @@
         <select id="mfGestorSel" onchange="onMonGestorSelChange()"></select>
         <input id="mfGestorNovo" type="text" placeholder="Digite o nome do novo gestor" style="display:none;margin-top:6px">
       </div>
+      <div class="fg span2" id="mfGestorLoginRow" style="display:none">
+        <label>E-mail da pessoa <span style="font-weight:400;color:var(--text3)">(pra criar o login dela agora — deixe em branco pra não criar)</span></label>
+        <input id="mfGestorEmail" type="email" placeholder="nome@perbras.com.br">
+      </div>
       <div class="fg"><label>Unidade</label><input id="mfUnidade" type="text" list="dlMonUnidades"><datalist id="dlMonUnidades"></datalist></div>
       <div class="fg"><label>Duração</label><input id="mfDuracao" type="text" placeholder="Ex: 2 meses"></div>
       <div class="fg"><label>NPS — recomendaria o gestor (0 a 10)</label><input id="mfNps" type="number" min="0" max="10"></div>
@@ -2773,9 +2777,9 @@ function populateMonitoriaFormSels(selecionado) {
   sel.innerHTML = '<option value="">— Selecione —</option>'
     + nomes.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join('')
     + '<option value="__novo__">+ Novo gestor...</option>';
-  if (selecionado && nomes.includes(selecionado)) sel.value = selecionado;
-  else if (selecionado) { sel.value = '__novo__'; r$('mfGestorNovo').value = selecionado; r$('mfGestorNovo').style.display = ''; }
-  else { r$('mfGestorNovo').value = ''; r$('mfGestorNovo').style.display = 'none'; }
+  if (selecionado && nomes.includes(selecionado)) { sel.value = selecionado; r$('mfGestorNovo').style.display = 'none'; r$('mfGestorLoginRow').style.display = 'none'; }
+  else if (selecionado) { sel.value = '__novo__'; r$('mfGestorNovo').value = selecionado; r$('mfGestorNovo').style.display = ''; r$('mfGestorLoginRow').style.display = ''; }
+  else { r$('mfGestorNovo').value = ''; r$('mfGestorNovo').style.display = 'none'; r$('mfGestorLoginRow').style.display = 'none'; }
 
   const unidades = [...new Set([...PDI_UNIDADES_SEED, ...pdis.map(p=>p.unidade).filter(Boolean), ...monitorias.map(m=>m.unidade).filter(Boolean)])].sort((a,b)=>a.localeCompare(b));
   mkDatalist('dlMonUnidades', unidades);
@@ -2784,7 +2788,37 @@ function populateMonitoriaFormSels(selecionado) {
 function onMonGestorSelChange() {
   const novo = r$('mfGestorSel').value === '__novo__';
   r$('mfGestorNovo').style.display = novo ? '' : 'none';
-  if (novo) r$('mfGestorNovo').focus();
+  r$('mfGestorLoginRow').style.display = novo ? '' : 'none';
+  if (novo) r$('mfGestorNovo').focus(); else r$('mfGestorEmail').value = '';
+}
+
+const SELF_SIGNUP_PASSWORD = 'perbras@2026';
+
+// Mesma lógica de autocadastro do pdi_self.html: cria o login (ou reaproveita
+// se já existir) e vincula o perfil de gestor com esse gestor_nome exato.
+async function criarLoginGestor(email, nome) {
+  try {
+    const r = await fetch(`${SUPA_AUTH_URL}/signup`, {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: SELF_SIGNUP_PASSWORD })
+    });
+    const j = await r.json();
+    if (r.ok && j.access_token && j.user) {
+      try {
+        await fetch(`${SUPA_URL}/profiles`, {
+          method: 'POST',
+          headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + j.access_token, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+          body: JSON.stringify({ id: j.user.id, role: 'gestor', gestor_nome: nome })
+        });
+      } catch(e) { /* perfil pode falhar sem travar o resto */ }
+      return { ok: true, msg: `Login criado pra ${nome} (${email}) — senha padrão "${SELF_SIGNUP_PASSWORD}".` };
+    }
+    if (r.ok && j.id) return { ok: true, msg: `Login criado pra ${nome} (${email}), mas precisa confirmar o e-mail antes de entrar.` };
+    return { ok: false, msg: `Não consegui criar o login (${j.msg||j.error_description||'esse e-mail já deve ter conta'}).` };
+  } catch(e) {
+    return { ok: false, msg: 'Não consegui criar o login: '+e.message };
+  }
 }
 
 function renderMonFormPerguntas() {
@@ -2800,7 +2834,7 @@ function renderMonFormPerguntas() {
 
 function limparMonitoriaForm() {
   renderMonFormPerguntas();
-  r$('mfMonitor').value = ''; r$('mfUnidade').value = ''; r$('mfDuracao').value = ''; r$('mfNps').value = ''; r$('mfMelhoria').value = '';
+  r$('mfMonitor').value = ''; r$('mfUnidade').value = ''; r$('mfDuracao').value = ''; r$('mfNps').value = ''; r$('mfMelhoria').value = ''; r$('mfGestorEmail').value = '';
   MON_PERGUNTAS.forEach(p => { r$('mf_nota_'+p.campo).value = ''; r$('mf_coment_'+p.campo).value = ''; });
   populateMonitoriaFormSels(null);
   r$('monFormPdfNote').style.display = 'none';
@@ -2813,6 +2847,7 @@ function preencherMonitoriaForm(m) {
   r$('mfDuracao').value = m.duracao || '';
   r$('mfNps').value = m.nps!=null ? m.nps : '';
   r$('mfMelhoria').value = m.pontos_melhoria || '';
+  r$('mfGestorEmail').value = '';
   populateMonitoriaFormSels(m.gestor_nome || null);
   MON_PERGUNTAS.forEach(p => {
     r$('mf_nota_'+p.campo).value = m['nota_'+p.campo]!=null ? m['nota_'+p.campo] : '';
@@ -2856,11 +2891,18 @@ async function salvarMonitoriaForm() {
     data['coment_'+p.campo] = r$('mf_coment_'+p.campo).value.trim() || null;
   });
 
+  const emailNovoLogin = (selVal==='__novo__' ? r$('mfGestorEmail').value.trim() : '');
+
   try {
+    if (emailNovoLogin) {
+      const resultado = await criarLoginGestor(emailNovoLogin, gestor_nome);
+      toast(resultado.msg, !resultado.ok);
+    }
     if (monFormEditId) { await dbUpdate('monitorias', monFormEditId, data); toast('Monitoria atualizada!'); }
     else { await dbInsert('monitorias', data); toast('Monitoria cadastrada!'); }
     fecharModal('mMonitoriaForm'); monFormEditId = null;
     monitorias = await dbGet('monitorias'); renderMonitorias();
+    loadGestorProfiles();
   } catch(e) { toast('Erro ao salvar: '+e.message, true); }
 }
 
@@ -2956,6 +2998,7 @@ async function onMonitoriaPdfSelected(input) {
     r$('mfDuracao').value = out.duracao;
     r$('mfMelhoria').value = out.pontos_melhoria;
     r$('mfNps').value = '';
+    r$('mfGestorEmail').value = '';
     populateMonitoriaFormSels(out.gestor_nome || null);
     MON_PERGUNTAS.forEach(p => { r$('mf_nota_'+p.campo).value = ''; r$('mf_coment_'+p.campo).value = out['coment_'+p.campo] || ''; });
 
