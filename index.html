@@ -1160,6 +1160,7 @@ async function init() {
     monitorias = [];
     console.warn('Aba "Monitorias": tabela "monitorias" não encontrada ainda, ou sem permissão.', e.message);
   }
+  populatePDISels(); // de novo, agora que "monitorias" já carregou, pra entrar no roster do seletor de gestor do PDI
   if (profile && profile.role === 'gestor') renderMinhaMonitoria();
   else renderMonitorias();
 }
@@ -2023,8 +2024,12 @@ function populatePDISels() {
   const selG=r$('pNomeSel');
   if(selG){
     const v=selG.value;
+    // Lista completa (perfis com login + PDI + Monitoria), não só quem já tem PDI —
+    // assim, alguém cadastrado primeiro pela Monitoria aparece aqui igual, em vez de
+    // tentar criar "Novo gestor" com um nome digitado que pode não bater com o já existente.
+    const roster = typeof monRosterNomes==='function' ? monRosterNomes() : gestores;
     selG.innerHTML='<option value="">— Selecione —</option>'
-      + gestores.map(g=>`<option value="${g.replace(/"/g,'&quot;')}">${g}</option>`).join('')
+      + roster.map(g=>`<option value="${g.replace(/"/g,'&quot;')}">${g}</option>`).join('')
       + '<option value="__novo__">+ Novo gestor...</option>';
     if(v && [...selG.options].some(o=>o.value===v)) selG.value=v;
   }
@@ -2508,6 +2513,7 @@ async function onGestorFotoSelected(input) {
     gp.foto_url = url;
     toast('Foto atualizada!');
     renderPDIGestores();
+    renderMonitorias();
   } catch(e) {
     toast('Erro ao enviar foto: ' + e.message, true);
   }
@@ -2682,7 +2688,7 @@ function renderMonitorias() {
     const gEsc = g.replace(/'/g,"\\'");
     return `<div class="pdi-card" onclick="abrirGestorMonitorias('${gEsc}')">
       <div class="pdi-card-head">
-        <div class="avatar">${avatarHtml}</div>
+        <div class="avatar" ${gp?`style="cursor:pointer" title="Clique para trocar a foto" onclick="event.stopPropagation();abrirUploadGestorFoto('${gEsc}')"`:''}>${avatarHtml}</div>
         <div><div class="nm">${g}</div><div class="un">${unidade}</div></div>
       </div>
       <div class="pdi-card-stats">
