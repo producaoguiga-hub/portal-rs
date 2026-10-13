@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portal R&S — Perbras</title>
+<title>Gestor+ — Perbras</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -388,7 +388,7 @@
 <div id="loginScreen">
   <div class="login-card">
     <img src="perbraslogo.png" alt="Perbras">
-    <h1>Portal R&S — Entrar</h1>
+    <h1>Gestor+ — Entrar</h1>
     <div class="fg" style="margin-bottom:10px"><label>E-mail</label><input id="loginEmail" type="email" placeholder="seu@email.com" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="fg"><label>Senha</label><input id="loginSenha" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="login-err" id="loginErr"></div>
@@ -400,7 +400,7 @@
 <nav class="sidebar">
   <div class="sidebar-logo">
     <img src="perbraslogo.png" alt="Perbras">
-    <span class="sidebar-subtitle">Portal R&S</span>
+    <span class="sidebar-subtitle">Gestor+</span>
   </div>
   <button class="nav-item active admin-only" onclick="goPage('rsgestao',this)"><i class="ti ti-briefcase"></i><span>R&amp;S Gestão</span></button>
   <button class="nav-item admin-only" id="navItemPdi" onclick="goPage('pdi',this)"><i class="ti ti-target-arrow"></i><span>PDI Gestão</span></button>
@@ -1177,7 +1177,7 @@ async function bootstrap() {
   }
 
   if (!profile) {
-    r$('loginErr').textContent = 'Seu usuário não tem acesso configurado ainda. Peça para o RH liberar seu perfil no Portal R&S.';
+    r$('loginErr').textContent = 'Seu usuário não tem acesso configurado ainda. Peça para o RH liberar seu perfil no Gestor+.';
     r$('loginErr').style.display = 'block';
     document.body.classList.remove('authed');
     return;
