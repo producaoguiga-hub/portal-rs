@@ -96,8 +96,9 @@
         </div>
         <div class="fg">
           <label>Nome do Gestor em Treinamento<span class="req">*</span></label>
-          <input type="text" id="fGestor" list="dlNomes" required>
-          <datalist id="dlNomes"></datalist>
+          <select id="fGestorSel" required onchange="onGestorSelChange()"></select>
+          <input type="text" id="fGestorNovo" placeholder="Digite o nome completo da pessoa" style="display:none;margin-top:6px">
+          <div style="font-size:11.5px;color:#7a8a94;margin-top:5px">Não encontrou o nome? Escolha "Pessoa nova" — mas confira antes, pra não duplicar alguém que já está na lista com outro sobrenome.</div>
         </div>
         <div class="fg">
           <label>Unidade<span class="req">*</span></label>
@@ -157,8 +158,18 @@ const PERGUNTAS = [
 ];
 
 function mkDatalist(id, arr) { document.getElementById(id).innerHTML = arr.map(v=>`<option value="${v.replace(/"/g,'&quot;')}">`).join(''); }
-mkDatalist('dlNomes', NOMES_CONHECIDOS);
 mkDatalist('dlUnidades', UNIDADES);
+
+const selGestor = document.getElementById('fGestorSel');
+selGestor.innerHTML = '<option value="">— Selecione —</option>'
+  + [...NOMES_CONHECIDOS].sort((a,b)=>a.localeCompare(b)).map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join('')
+  + '<option value="__novo__">+ Pessoa nova (não está na lista)</option>';
+
+function onGestorSelChange() {
+  const novo = selGestor.value === '__novo__';
+  document.getElementById('fGestorNovo').style.display = novo ? '' : 'none';
+  if (novo) document.getElementById('fGestorNovo').focus();
+}
 
 document.getElementById('perguntas').innerHTML = PERGUNTAS.map(p => `
   <div class="card">
@@ -205,9 +216,13 @@ async function submitForm() {
   const form = document.getElementById('monForm');
   if (!form.checkValidity()) { form.reportValidity(); return; }
 
+  const gestorSelVal = selGestor.value;
+  const gestorNome = (gestorSelVal === '__novo__' ? document.getElementById('fGestorNovo').value : gestorSelVal).trim();
+  if (!gestorNome) { showErr('Selecione o gestor em treinamento (ou digite o nome, se for pessoa nova).'); return; }
+
   const payload = {
     monitor_nome: document.getElementById('fMonitor').value.trim(),
-    gestor_nome: document.getElementById('fGestor').value.trim(),
+    gestor_nome: gestorNome,
     unidade: document.getElementById('fUnidade').value.trim(),
     duracao: document.getElementById('fDuracao').value.trim(),
     pontos_melhoria: document.getElementById('fMelhoria').value.trim(),
