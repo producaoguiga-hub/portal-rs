@@ -6,6 +6,7 @@
 <title>Gestor+ — Perbras</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   /* Perbras Brand Colors:
      Azul Perbras #1A88FF | Azul Oceano #2ED7ED | Verde Energia #BCFF48
@@ -298,6 +299,12 @@
   .mon-qa-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
   .mon-qa-head .q { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
   .mon-qa-coment { font-size: 13px; color: var(--text2); line-height: 1.6; background: var(--bg2); border-radius: 8px; padding: 10px 12px; }
+  .mon-qform { padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .mon-qform:last-child { border-bottom: none; }
+  .mon-qform-head { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .mon-qform-head .q { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+  .mon-qform-head select { width: 68px; flex-shrink: 0; }
+  .mon-qform textarea { min-height: 50px; }
 
   /* Meu PDI (visão do gestor) */
   @keyframes mpIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -682,6 +689,9 @@
     <div class="toolbar">
       <input type="text" id="monFiltro" placeholder="Buscar por gestor ou monitor..." oninput="renderMonitorias()" style="min-width:240px">
       <button class="btn" onclick="r$('monFiltro').value='';renderMonitorias()"><i class="ti ti-x"></i> Limpar</button>
+      <button class="btn admin-only" onclick="r$('monPdfInput').click()"><i class="ti ti-file-upload"></i> Importar de PDF</button>
+      <input type="file" id="monPdfInput" accept="application/pdf" style="display:none" onchange="onMonitoriaPdfSelected(this)">
+      <button class="btn btn-primary admin-only" onclick="abrirNovaMonitoria()"><i class="ti ti-plus"></i> Nova monitoria</button>
     </div>
     <div class="card psp">
       <div class="psp-top">
@@ -958,6 +968,35 @@
     <div class="modal-footer">
       <button class="btn" onclick="fecharModal('mMonitoria')">Fechar</button>
       <button class="btn btn-danger admin-only" id="monFichaExcluir" onclick="excluirMonitoriaFicha()"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn btn-primary admin-only" onclick="editarMonitoriaFicha()"><i class="ti ti-edit"></i> Editar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MONITORIA (criar/editar, inclusive pré-preenchido a partir de PDF) -->
+<div class="modal-overlay" id="mMonitoriaForm">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-title" id="monFormTitulo">Nova monitoria</div>
+    <div class="obs-box" id="monFormPdfNote" style="display:none;margin-bottom:1rem;background:var(--amber-bg);color:var(--amber-text)">
+      <i class="ti ti-alert-triangle"></i> Preenchido a partir do PDF. Nomes, unidade e comentários vieram do texto do arquivo — confira.
+      <b>As notas de 1 a 5 e o NPS não dá pra ler com certeza do PDF, então ficaram em branco: preencha olhando o arquivo original.</b>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Nome do Monitor</label><input id="mfMonitor" type="text"></div>
+      <div class="fg span2"><label>Gestor em treinamento</label>
+        <select id="mfGestorSel" onchange="onMonGestorSelChange()"></select>
+        <input id="mfGestorNovo" type="text" placeholder="Digite o nome do novo gestor" style="display:none;margin-top:6px">
+      </div>
+      <div class="fg"><label>Unidade</label><input id="mfUnidade" type="text" list="dlMonUnidades"><datalist id="dlMonUnidades"></datalist></div>
+      <div class="fg"><label>Duração</label><input id="mfDuracao" type="text" placeholder="Ex: 2 meses"></div>
+      <div class="fg"><label>NPS — recomendaria o gestor (0 a 10)</label><input id="mfNps" type="number" min="0" max="10"></div>
+    </div>
+    <div class="section-label">Avaliação</div>
+    <div id="mfPerguntas"></div>
+    <div class="fg" style="margin-top:4px"><label>Pontos de melhoria / treinamentos sugeridos</label><textarea id="mfMelhoria"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mMonitoriaForm')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarMonitoriaForm()"><i class="ti ti-check"></i> Salvar</button>
     </div>
   </div>
 </div>
@@ -2712,6 +2751,220 @@ function monFichaNavStep(delta) {
   const i = monNavList.indexOf(viewMonitoriaId);
   const next = (i + delta + monNavList.length) % monNavList.length;
   abrirMonitoriaFicha(monNavList[next], monNavList);
+}
+
+// ============================================================
+// MONITORIA — criar / editar (manual ou pré-preenchido via PDF)
+// ============================================================
+let monFormEditId = null;
+
+function monRosterNomes() {
+  const set = new Set([
+    ...Object.keys(gestorProfiles),
+    ...pdis.map(p=>p.gestor_nome).filter(Boolean),
+    ...monitorias.map(m=>m.gestor_nome).filter(Boolean),
+  ]);
+  return [...set].sort((a,b)=>a.localeCompare(b));
+}
+
+function populateMonitoriaFormSels(selecionado) {
+  const sel = r$('mfGestorSel');
+  const nomes = monRosterNomes();
+  sel.innerHTML = '<option value="">— Selecione —</option>'
+    + nomes.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join('')
+    + '<option value="__novo__">+ Novo gestor...</option>';
+  if (selecionado && nomes.includes(selecionado)) sel.value = selecionado;
+  else if (selecionado) { sel.value = '__novo__'; r$('mfGestorNovo').value = selecionado; r$('mfGestorNovo').style.display = ''; }
+  else { r$('mfGestorNovo').value = ''; r$('mfGestorNovo').style.display = 'none'; }
+
+  const unidades = [...new Set([...PDI_UNIDADES_SEED, ...pdis.map(p=>p.unidade).filter(Boolean), ...monitorias.map(m=>m.unidade).filter(Boolean)])].sort((a,b)=>a.localeCompare(b));
+  mkDatalist('dlMonUnidades', unidades);
+}
+
+function onMonGestorSelChange() {
+  const novo = r$('mfGestorSel').value === '__novo__';
+  r$('mfGestorNovo').style.display = novo ? '' : 'none';
+  if (novo) r$('mfGestorNovo').focus();
+}
+
+function renderMonFormPerguntas() {
+  r$('mfPerguntas').innerHTML = MON_PERGUNTAS.map(p => `
+    <div class="mon-qform">
+      <div class="mon-qform-head">
+        <span class="q">${p.titulo}</span>
+        <select id="mf_nota_${p.campo}"><option value="">Nota</option>${[1,2,3,4,5].map(n=>`<option value="${n}">${n}</option>`).join('')}</select>
+      </div>
+      <textarea id="mf_coment_${p.campo}" placeholder="Comentário..."></textarea>
+    </div>`).join('');
+}
+
+function limparMonitoriaForm() {
+  renderMonFormPerguntas();
+  r$('mfMonitor').value = ''; r$('mfUnidade').value = ''; r$('mfDuracao').value = ''; r$('mfNps').value = ''; r$('mfMelhoria').value = '';
+  MON_PERGUNTAS.forEach(p => { r$('mf_nota_'+p.campo).value = ''; r$('mf_coment_'+p.campo).value = ''; });
+  populateMonitoriaFormSels(null);
+  r$('monFormPdfNote').style.display = 'none';
+}
+
+function preencherMonitoriaForm(m) {
+  renderMonFormPerguntas();
+  r$('mfMonitor').value = m.monitor_nome || '';
+  r$('mfUnidade').value = m.unidade || '';
+  r$('mfDuracao').value = m.duracao || '';
+  r$('mfNps').value = m.nps!=null ? m.nps : '';
+  r$('mfMelhoria').value = m.pontos_melhoria || '';
+  populateMonitoriaFormSels(m.gestor_nome || null);
+  MON_PERGUNTAS.forEach(p => {
+    r$('mf_nota_'+p.campo).value = m['nota_'+p.campo]!=null ? m['nota_'+p.campo] : '';
+    r$('mf_coment_'+p.campo).value = m['coment_'+p.campo] || '';
+  });
+}
+
+function abrirNovaMonitoria() {
+  monFormEditId = null;
+  limparMonitoriaForm();
+  r$('monFormTitulo').textContent = 'Nova monitoria';
+  r$('mMonitoriaForm').classList.add('open');
+}
+
+function editarMonitoriaFicha() {
+  const m = monitorias.find(x=>x.id===viewMonitoriaId); if(!m) return;
+  monFormEditId = m.id;
+  preencherMonitoriaForm(m);
+  r$('monFormTitulo').textContent = 'Editar monitoria';
+  fecharModal('mMonitoria');
+  r$('mMonitoriaForm').classList.add('open');
+}
+
+async function salvarMonitoriaForm() {
+  const selVal = r$('mfGestorSel').value;
+  const gestor_nome = (selVal==='__novo__' ? r$('mfGestorNovo').value : selVal).trim();
+  if (!gestor_nome) { toast('Selecione o gestor, ou cadastre um novo.', true); return; }
+  const monitor_nome = r$('mfMonitor').value.trim();
+  if (!monitor_nome) { toast('Preencha o nome do monitor.', true); return; }
+
+  const data = {
+    monitor_nome, gestor_nome,
+    unidade: r$('mfUnidade').value.trim() || null,
+    duracao: r$('mfDuracao').value.trim() || null,
+    pontos_melhoria: r$('mfMelhoria').value.trim() || null,
+    nps: r$('mfNps').value!=='' ? parseInt(r$('mfNps').value,10) : null,
+  };
+  MON_PERGUNTAS.forEach(p => {
+    const nota = r$('mf_nota_'+p.campo).value;
+    data['nota_'+p.campo] = nota!=='' ? parseInt(nota,10) : null;
+    data['coment_'+p.campo] = r$('mf_coment_'+p.campo).value.trim() || null;
+  });
+
+  try {
+    if (monFormEditId) { await dbUpdate('monitorias', monFormEditId, data); toast('Monitoria atualizada!'); }
+    else { await dbInsert('monitorias', data); toast('Monitoria cadastrada!'); }
+    fecharModal('mMonitoriaForm'); monFormEditId = null;
+    monitorias = await dbGet('monitorias'); renderMonitorias();
+  } catch(e) { toast('Erro ao salvar: '+e.message, true); }
+}
+
+// ── Importar avaliação de um PDF (Microsoft Forms) ──────────────────────
+if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+async function extrairTextoPdf(file) {
+  const buf = await file.arrayBuffer();
+  const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+  let texto = '';
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const content = await page.getTextContent();
+    let lastY = null, line = '';
+    for (const item of content.items) {
+      if (lastY !== null && Math.abs(item.transform[5] - lastY) > 2) { texto += line + '\n'; line = ''; }
+      line += item.str;
+      lastY = item.transform[5];
+    }
+    texto += line + '\n';
+  }
+  return texto;
+}
+
+const MON_PDF_KEYWORDS = {
+  postura: ['postura','conduta','maturidade','comportamento'],
+  busca_info: ['buscar e obter','buscar informa','obter informa','se integrar','aprender os processos'],
+  organizacao: ['organizar','gerenciar o tempo','cumprir prazos'],
+  resolutivo: ['resolutivo','resolver as demandas','problemas que aparecem'],
+  questionamento: ['nível de questionamento','nivel de questionamento'],
+  lideranca: ['envolveu com as equipes','papel de liderança','papel de lideranca'],
+  comunicacao: ['comunicação do gestor','comunicacao do gestor','transparência e clareza','transparencia e clareza'],
+  aprendizado: ['capacidade de aprendizado','entendimento das atividades','entendimento das rotinas'],
+  humildade: ['humildade','escuta críticas','escuta criticas'],
+  perfil_valores: ['perfil compatível','perfil compativel','valores da perbras'],
+};
+
+function monAccentFold(s) { return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+
+function parseMonitoriaPdfText(text) {
+  const norm = text.replace(/\r\n/g, '\n');
+  const marks = [];
+  const re = /^(\d{1,3})\.\s+/gm;
+  let m;
+  while ((m = re.exec(norm))) marks.push({ idx: m.index, num: m[1] });
+
+  const qas = marks.map((cur, i) => {
+    const end = i+1 < marks.length ? marks[i+1].idx : norm.length;
+    const body = norm.slice(cur.idx, end).replace(/^\d{1,3}\.\s+/, '');
+    const starIdx = body.indexOf('*');
+    const question = (starIdx===-1 ? body : body.slice(0, starIdx)).trim();
+    const answer = (starIdx===-1 ? '' : body.slice(starIdx+1)).trim();
+    return { question, answer };
+  });
+
+  const out = { monitor_nome: '', gestor_nome: '', unidade: '', duracao: '', pontos_melhoria: '' };
+  MON_PERGUNTAS.forEach(p => out['coment_'+p.campo] = '');
+
+  for (const qa of qas) {
+    const q = monAccentFold(qa.question);
+    const ans = qa.answer;
+    const numericOnly = /^[\d\s]+$/.test(ans) && ans.length > 0;
+    if (!ans || numericOnly) continue;
+
+    if (!out.monitor_nome && (q.includes('seu nome') || (q.includes('nome') && q.includes('monitor') && !q.includes('monitorad')))) { out.monitor_nome = ans; continue; }
+    if (!out.gestor_nome && q.includes('nome') && (q.includes('monitorad') || q.includes('treinamento') || q.includes('gestor novo') || q.includes('novo gestor'))) { out.gestor_nome = ans; continue; }
+    if (!out.unidade && q.includes('unidade')) { out.unidade = ans; continue; }
+    if (!out.duracao && (q.includes('duração') || q.includes('duracao') || (q.includes('tempo') && (q.includes('acompanhamento')||q.includes('monitoria')||q.includes('treinamento'))))) { out.duracao = ans; continue; }
+    if (!out.pontos_melhoria && q.includes('melhoria')) { out.pontos_melhoria = ans; continue; }
+
+    let matched = false;
+    for (const [campo, words] of Object.entries(MON_PDF_KEYWORDS)) {
+      if (!out['coment_'+campo] && words.some(w => q.includes(monAccentFold(w)))) { out['coment_'+campo] = ans; matched = true; break; }
+    }
+    if (matched) continue;
+  }
+
+  return { out, qas, rawText: norm };
+}
+
+async function onMonitoriaPdfSelected(input) {
+  const file = input.files[0]; if (!file) return;
+  input.value = '';
+  toast('Lendo o PDF...');
+  try {
+    const text = await extrairTextoPdf(file);
+    const { out } = parseMonitoriaPdfText(text);
+
+    monFormEditId = null;
+    renderMonFormPerguntas();
+    r$('mfMonitor').value = out.monitor_nome;
+    r$('mfUnidade').value = out.unidade;
+    r$('mfDuracao').value = out.duracao;
+    r$('mfMelhoria').value = out.pontos_melhoria;
+    r$('mfNps').value = '';
+    populateMonitoriaFormSels(out.gestor_nome || null);
+    MON_PERGUNTAS.forEach(p => { r$('mf_nota_'+p.campo).value = ''; r$('mf_coment_'+p.campo).value = out['coment_'+p.campo] || ''; });
+
+    r$('monFormTitulo').textContent = 'Nova monitoria (de PDF — revise antes de salvar)';
+    r$('monFormPdfNote').style.display = '';
+    r$('mMonitoriaForm').classList.add('open');
+  } catch(e) {
+    toast('Não consegui ler esse PDF: '+e.message, true);
+  }
 }
 
 function renderMinhaMonitoria() {
