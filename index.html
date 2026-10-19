@@ -306,6 +306,22 @@
   .mon-qform-head select { width: 68px; flex-shrink: 0; }
   .mon-qform textarea { min-height: 50px; }
 
+  /* Minha Trajetória (visão do gestor) */
+  .traj-timeline-head { display: flex; justify-content: space-between; align-items: center; margin: 1.25rem 0 .75rem; flex-wrap: wrap; gap: 10px; }
+  .traj-timeline { position: relative; padding-left: 26px; }
+  .traj-item { position: relative; padding-bottom: 1.5rem; }
+  .traj-item:last-child { padding-bottom: 0; }
+  .traj-item::before { content: ''; position: absolute; left: -22px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
+  .traj-item::after { content: ''; position: absolute; left: -17px; top: 18px; bottom: -8px; width: 2px; background: var(--border); }
+  .traj-item:last-child::after { display: none; }
+  .traj-item.marco-inicio::before { background: var(--green-text); box-shadow: 0 0 0 3px var(--green-bg); }
+  .traj-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; box-shadow: var(--shadow); cursor: pointer; }
+  .traj-card.sem-clique { cursor: default; }
+  .traj-card .data { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+  .traj-card .titulo { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .traj-card .desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+  .traj-card img { max-width: 100%; max-height: 220px; border-radius: 10px; margin-top: 8px; display: block; object-fit: cover; }
+
   /* Meu PDI (visão do gestor) */
   @keyframes mpIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .mp-anim { animation: mpIn .5s cubic-bezier(.4,0,.2,1) both; }
@@ -427,6 +443,7 @@
   <button class="nav-item admin-only" onclick="goPage('monitorias',this)"><i class="ti ti-clipboard-check"></i><span>Monitorias</span></button>
   <button class="nav-item gestor-only" id="navItemMeuPdi" onclick="goPage('meupdi',this)"><i class="ti ti-target-arrow"></i><span>Meu PDI</span></button>
   <button class="nav-item gestor-only" onclick="goPage('minhamonitoria',this)"><i class="ti ti-clipboard-check"></i><span>Minha Monitoria</span></button>
+  <button class="nav-item gestor-only" onclick="goPage('trajetoria',this)"><i class="ti ti-map-pin-heart"></i><span>Minha Trajetória</span></button>
   <div class="sidebar-foot">
     <div class="sidebar-user" id="sidebarUser"></div>
     <button class="nav-item" onclick="authSignOut()"><i class="ti ti-logout"></i><span>Sair</span></button>
@@ -725,6 +742,19 @@
     <div id="mmHeader" class="card mp-anim" style="animation-delay:.02s"></div>
     <div id="mmList" class="mp-anim" style="animation-delay:.1s"></div>
     <div id="mmEmpty" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma monitoria registrada ainda pra você</div>
+  </div>
+
+  <!-- MINHA TRAJETÓRIA (visão do gestor) -->
+  <div class="page" id="page-trajetoria">
+    <div class="page-title">Minha Trajetória</div>
+    <div id="trajAniversario" class="mp-spotlight celebrate mp-anim" style="display:none;margin-bottom:1rem"></div>
+    <div id="trajHeader" class="card mp-anim" style="animation-delay:.02s"></div>
+    <div id="trajSemVinculo" class="empty" style="display:none"><i class="ti ti-user-question" style="font-size:28px;display:block;margin-bottom:8px"></i>Seu cadastro ainda não foi vinculado ao registro de admissão — pede pro RH vincular, pra aparecer seu canal de entrada e tempo de casa aqui.</div>
+    <div class="traj-timeline-head">
+      <div class="card-title" style="margin:0">Linha do tempo</div>
+      <button class="btn btn-primary" onclick="abrirNovoMarco()"><i class="ti ti-plus"></i> Adicionar marco</button>
+    </div>
+    <div id="trajTimeline" class="mp-anim" style="animation-delay:.1s"></div>
   </div>
 
 </main>
@@ -1026,6 +1056,41 @@
   </div>
 </div>
 
+<!-- MODAL MARCO DA TRAJETÓRIA (o próprio gestor) -->
+<div class="modal-overlay" id="mMarco">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title" id="marcoModalTitulo">Novo marco</div>
+    <div class="fg"><label>Data</label><input id="marcoData" type="date"></div>
+    <div class="fg"><label>Título</label><input id="marcoTitulo" type="text" placeholder="Ex: Minha primeira unidade"></div>
+    <div class="fg"><label>Descrição <span style="font-weight:400;color:var(--text3)">(opcional)</span></label><textarea id="marcoDescricao" placeholder="Conta um pouco sobre esse momento..."></textarea></div>
+    <div class="fg">
+      <label>Foto <span style="font-weight:400;color:var(--text3)">(opcional)</span></label>
+      <input type="file" id="marcoFotoInput" accept="image/*" onchange="onMarcoFotoSelecionada(this)">
+      <div id="marcoFotoPreviewWrap" style="margin-top:8px;display:none"><img id="marcoFotoPreview" style="max-width:160px;border-radius:10px;display:block"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mMarco')">Cancelar</button>
+      <button class="btn btn-danger" id="marcoExcluirBtn" style="display:none" onclick="excluirMarcoAtual()"><i class="ti ti-trash"></i> Excluir</button>
+      <button class="btn btn-primary" id="marcoSalvarBtn" onclick="salvarMarco()"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VINCULAR ADMITIDO (admin) -->
+<div class="modal-overlay" id="mVincularAdmitido">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title">Vincular ao registro de Admitido</div>
+    <p style="font-size:12.5px;color:var(--text2);margin-bottom:1rem" id="vincularAdmitidoSub"></p>
+    <div class="fg"><label>Qual registro de Admitidos é essa pessoa?</label>
+      <select id="vincularAdmitidoSel"></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mVincularAdmitido')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarVinculoAdmitido()"><i class="ti ti-check"></i> Vincular</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL MONITORIA (criar/editar, inclusive pré-preenchido a partir de PDF) -->
 <div class="modal-overlay" id="mMonitoriaForm">
   <div class="modal" style="max-width:760px">
@@ -1158,6 +1223,9 @@ async function dbDelete(table, id) {
 // STATE
 // ============================================================
 let candidatos=[], custos=[], turmas=[], editId=null, viewId=null, charts={};
+let pessoas=[], meuCandidato=null, meusMarcos=[];
+function pessoaPorNome(nome) { return pessoas.find(p=>p.nome===nome); }
+function candidatoVinculadoDaPessoa(pessoaId) { return candidatos.find(c=>c.pessoa_id===pessoaId); }
 let pdis=[], editPDIId=null, viewPDIId=null;
 let monitorias=[], viewMonitoriaId=null;
 const MON_PERGUNTAS = [
@@ -1216,16 +1284,28 @@ async function init() {
   populatePDISels(); // de novo, agora que "monitorias" já carregou, pra entrar no roster do seletor de gestor do PDI
   if (profile && profile.role === 'gestor') renderMinhaMonitoria();
   else renderMonitorias();
+
+  // Pessoas / Trajetória: mesma lógica — se ainda não existir, não quebra o resto.
+  try {
+    pessoas = await dbGet('pessoas');
+  } catch(e) {
+    pessoas = [];
+    console.warn('"pessoas" não encontrada ainda, ou sem permissão.', e.message);
+  }
+  if (profile && profile.role === 'gestor') await carregarTrajetoria();
 }
 
 // ============================================================
 // BOOTSTRAP (login + perfil + liberação de tela)
 // ============================================================
 async function loadProfile() {
-  let r = await authFetch(`${SUPA_URL}/profiles?id=eq.${session.user.id}&select=role,gestor_nome,foto_url`);
+  let r = await authFetch(`${SUPA_URL}/profiles?id=eq.${session.user.id}&select=role,gestor_nome,foto_url,pessoa_id`);
   if (r.status === 400) {
-    // Fallback: a coluna foto_url pode ainda não existir (profiles_photo.sql não rodado nesse
-    // projeto ainda) — não deixa isso travar o login de ninguém, só perde a foto por enquanto.
+    // Fallback: a coluna pessoa_id (ou foto_url) pode ainda não existir nesse projeto —
+    // não deixa isso travar o login de ninguém, só perde o recurso novo por enquanto.
+    r = await authFetch(`${SUPA_URL}/profiles?id=eq.${session.user.id}&select=role,gestor_nome,foto_url`);
+  }
+  if (r.status === 400) {
     r = await authFetch(`${SUPA_URL}/profiles?id=eq.${session.user.id}&select=role,gestor_nome`);
   }
   if (!r.ok) throw new Error(await r.text());
@@ -2347,6 +2427,10 @@ function renderPDIGestores() {
       <div class="pbar"><div class="pbar-fill${pct===100?' full':''}" style="width:${pct}%"></div></div>
       ${atrasadas?`<div style="margin-top:8px"><span class="badge b-r">${atrasadas} atrasada${atrasadas!==1?'s':''}</span></div>`:''}
       <div class="pdi-mini-list">${items.slice(0,4).map(p=>`<div class="pdi-mini-item"><span class="pdi-dot" style="background:${pdiDotColor(pdiEffectiveStatus(p))}"></span><span class="txt">${p.detalhe_desenvolvimento||p.acao||'Ação PDI'}</span></div>`).join('')}${items.length>4?`<div style="font-size:11px;color:var(--text3)">+${items.length-4} outra${items.length-4!==1?'s':''} ${items.length-4!==1?'ações':'ação'}</div>`:''}</div>
+      ${(()=>{ const pessoa=pessoaPorNome(g); const cand=pessoa?candidatoVinculadoDaPessoa(pessoa.id):null;
+        return `<div style="margin-top:10px;font-size:11px" onclick="event.stopPropagation()">${cand
+          ? `<span style="color:var(--text3)">Admitido: <b style="color:var(--text2)">${cand.nome}</b></span> · <button class="link-name" style="font-size:11px" onclick="abrirVincularAdmitido('${gNomeEsc}')">trocar</button>`
+          : `<button class="link-name" style="font-size:11px" onclick="abrirVincularAdmitido('${gNomeEsc}')"><i class="ti ti-link"></i> Vincular Admitido</button>`}</div>`; })()}
     </div>`;
   }).join('');
 }
@@ -3273,6 +3357,253 @@ function renderMinhaMonitoria() {
         </div>
       </div>`;
     }).join('');
+}
+
+// ============================================================
+// MINHA TRAJETÓRIA (visão do gestor)
+// ============================================================
+async function carregarTrajetoria() {
+  if (!profile || !profile.pessoa_id) { meuCandidato = null; meusMarcos = []; renderTrajetoria(); return; }
+  try {
+    const r = await authFetch(`${SUPA_URL}/candidatos?pessoa_id=eq.${profile.pessoa_id}&select=nome,fonte,recrutador,dt_contr,turma_nome&limit=1`);
+    const rows = r.ok ? await r.json() : [];
+    meuCandidato = rows[0] || null;
+  } catch(e) { meuCandidato = null; }
+  try {
+    meusMarcos = await dbGet('trajetoria_marcos');
+  } catch(e) { meusMarcos = []; }
+  renderTrajetoria();
+}
+
+function calcTempoCasa(dtStr) {
+  const inicio = new Date(dtStr+'T00:00:00');
+  const hoje = new Date();
+  let anos = hoje.getFullYear() - inicio.getFullYear();
+  let meses = hoje.getMonth() - inicio.getMonth();
+  if (hoje.getDate() < inicio.getDate()) meses--;
+  if (meses < 0) { anos--; meses += 12; }
+  return { anos: Math.max(anos,0), meses: Math.max(meses,0) };
+}
+
+function formatTempoCasa(dtStr) {
+  const { anos, meses } = calcTempoCasa(dtStr);
+  const partes = [];
+  if (anos) partes.push(`${anos} ano${anos!==1?'s':''}`);
+  if (meses || !anos) partes.push(`${meses} ${meses===1?'mês':'meses'}`);
+  return partes.join(' e ') + ' na Perbras';
+}
+
+// Comemora no dia exato do aniversário de contratação (ou nos ~3 dias depois,
+// caso ela não entre no portal bem naquele dia), a partir de 1 ano completo.
+function aniversarioInfo(dtStr) {
+  const inicio = new Date(dtStr+'T00:00:00');
+  const hoje = new Date();
+  const anosCompletos = hoje.getFullYear() - inicio.getFullYear();
+  if (anosCompletos < 1) return null;
+  const aniversarioEsteAno = new Date(hoje.getFullYear(), inicio.getMonth(), inicio.getDate());
+  const diffDias = Math.round((hoje - aniversarioEsteAno) / 864e5);
+  if (diffDias < 0 || diffDias > 3) return null;
+  return { anos: anosCompletos };
+}
+
+function renderTrajetoria() {
+  const headEl = r$('trajHeader'); if (!headEl) return;
+  const aniEl = r$('trajAniversario');
+  const semVinculoEl = r$('trajSemVinculo');
+  const me = (profile && profile.gestor_nome) || '—';
+
+  if (!meuCandidato || !meuCandidato.dt_contr) {
+    headEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="avatar" style="width:52px;height:52px;font-size:18px">${initials(me)}</div>
+        <div><div style="font-size:15px;font-weight:600">${me}</div></div>
+      </div>`;
+    semVinculoEl.style.display = '';
+    aniEl.style.display = 'none';
+  } else {
+    semVinculoEl.style.display = 'none';
+    const canal = [meuCandidato.fonte, meuCandidato.recrutador].filter(Boolean).join(' · ');
+    headEl.innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div class="avatar" style="width:52px;height:52px;font-size:18px">${initials(me)}</div>
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:15px;font-weight:600">${me}</div>
+          <div style="font-size:12.5px;color:var(--text2);margin-top:2px">${formatTempoCasa(meuCandidato.dt_contr)}</div>
+        </div>
+        <div style="text-align:right;font-size:12px;color:var(--text2)">
+          <div>Chegou em <b style="color:var(--text)">${fmt(meuCandidato.dt_contr)}</b></div>
+          ${canal?`<div style="margin-top:2px">Veio por <b style="color:var(--text)">${canal}</b></div>`:''}
+        </div>
+      </div>`;
+    const ani = aniversarioInfo(meuCandidato.dt_contr);
+    if (ani) {
+      aniEl.style.display = 'flex';
+      aniEl.innerHTML = `
+        <div class="mp-spotlight-body">
+          <i class="ti ti-confetti mp-spotlight-ico"></i>
+          <div class="mp-spotlight-msg">Parabéns, <b>${me.split(' ')[0]}</b>! Hoje marca <b>${ani.anos} ano${ani.anos!==1?'s':''}</b> de Perbras. Muito obrigado por fazer parte dessa jornada 🎉</div>
+        </div>`;
+    } else {
+      aniEl.style.display = 'none';
+    }
+  }
+
+  const timelineEl = r$('trajTimeline');
+  const marcos = [...meusMarcos].sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  const itens = [];
+  if (meuCandidato && meuCandidato.dt_contr) {
+    itens.push(`<div class="traj-item marco-inicio">
+      <div class="traj-card sem-clique">
+        <div class="data">${fmt(meuCandidato.dt_contr)}</div>
+        <div class="titulo">Chegada na Perbras 🌱</div>
+        <div class="desc">${[meuCandidato.turma_nome, [meuCandidato.fonte,meuCandidato.recrutador].filter(Boolean).join(' · ')].filter(Boolean).join(' — ')||'O começo da sua jornada por aqui.'}</div>
+      </div>
+    </div>`);
+  }
+  marcos.forEach(m => {
+    itens.push(`<div class="traj-item">
+      <div class="traj-card" onclick="abrirEditarMarco('${m.id}')">
+        <div class="data">${m.data?fmt(m.data):'Sem data'}</div>
+        <div class="titulo">${m.titulo||'Marco'}</div>
+        ${m.descricao?`<div class="desc">${m.descricao}</div>`:''}
+        ${m.foto_url?`<img src="${m.foto_url}" loading="lazy" decoding="async">`:''}
+      </div>
+    </div>`);
+  });
+  timelineEl.innerHTML = itens.length ? `<div class="traj-timeline">${itens.join('')}</div>` : `<div class="empty"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum marco adicionado ainda — clica em "Adicionar marco" e começa a contar sua história aqui.</div>`;
+}
+
+let marcoEditId = null;
+let marcoFotoFile = null;
+let marcoFotoAnteriorUrl = null;
+
+function abrirNovoMarco() {
+  marcoEditId = null; marcoFotoFile = null; marcoFotoAnteriorUrl = null;
+  r$('marcoModalTitulo').textContent = 'Novo marco';
+  r$('marcoData').value = new Date().toISOString().slice(0,10);
+  r$('marcoTitulo').value = ''; r$('marcoDescricao').value = '';
+  r$('marcoFotoInput').value = ''; r$('marcoFotoPreviewWrap').style.display = 'none';
+  r$('marcoExcluirBtn').style.display = 'none';
+  r$('mMarco').classList.add('open');
+}
+
+function abrirEditarMarco(id) {
+  const m = meusMarcos.find(x=>x.id===id); if (!m) return;
+  marcoEditId = id; marcoFotoFile = null; marcoFotoAnteriorUrl = m.foto_url || null;
+  r$('marcoModalTitulo').textContent = 'Editar marco';
+  r$('marcoData').value = m.data || '';
+  r$('marcoTitulo').value = m.titulo || '';
+  r$('marcoDescricao').value = m.descricao || '';
+  r$('marcoFotoInput').value = '';
+  if (m.foto_url) { r$('marcoFotoPreview').src = m.foto_url; r$('marcoFotoPreviewWrap').style.display = ''; }
+  else r$('marcoFotoPreviewWrap').style.display = 'none';
+  r$('marcoExcluirBtn').style.display = '';
+  r$('mMarco').classList.add('open');
+}
+
+function onMarcoFotoSelecionada(input) {
+  marcoFotoFile = input.files[0] || null;
+  if (marcoFotoFile) {
+    r$('marcoFotoPreview').src = URL.createObjectURL(marcoFotoFile);
+    r$('marcoFotoPreviewWrap').style.display = '';
+  }
+}
+
+async function uploadFotoMarco(file) {
+  let f = file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const maxDim = 1000;
+    let { width, height } = bitmap;
+    if (width > maxDim || height > maxDim) {
+      const scale = maxDim / Math.max(width, height);
+      width = Math.round(width*scale); height = Math.round(height*scale);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+    if (blob && blob.size < file.size) f = new File([blob], (file.name||'marco').replace(/\.\w+$/,'')+'.jpg', { type: 'image/jpeg' });
+  } catch(e) { /* sobe o arquivo original se a compressão falhar */ }
+  const ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const path='marcos/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
+  const res=await fetch(`${SUPA_STORAGE}/object/avatars/${path}`,{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+SUPA_KEY,'x-upsert':'true','Content-Type':f.type||'image/jpeg'},
+    body:f
+  });
+  if(!res.ok) throw new Error(await res.text());
+  return `${SUPA_STORAGE}/object/public/avatars/${path}`;
+}
+
+async function salvarMarco() {
+  const titulo = r$('marcoTitulo').value.trim();
+  if (!titulo) { toast('Dá um título pro marco :)', true); return; }
+  const btn = r$('marcoSalvarBtn');
+  btn.disabled = true;
+  try {
+    let foto_url = marcoFotoAnteriorUrl;
+    if (marcoFotoFile) foto_url = await uploadFotoMarco(marcoFotoFile);
+    const data = {
+      pessoa_id: profile.pessoa_id,
+      data: r$('marcoData').value || null,
+      titulo,
+      descricao: r$('marcoDescricao').value.trim() || null,
+      foto_url,
+    };
+    if (marcoEditId) await dbUpdate('trajetoria_marcos', marcoEditId, data);
+    else await dbInsert('trajetoria_marcos', data);
+    fecharModal('mMarco');
+    toast(marcoEditId ? 'Marco atualizado!' : 'Marco adicionado! 🎉');
+    meusMarcos = await dbGet('trajetoria_marcos');
+    renderTrajetoria();
+  } catch(e) {
+    toast('Não consegui salvar: '+e.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function excluirMarcoAtual() {
+  if (!marcoEditId) return;
+  if (!confirm('Excluir esse marco da sua trajetória?')) return;
+  try {
+    await dbDelete('trajetoria_marcos', marcoEditId);
+    fecharModal('mMarco');
+    toast('Marco excluído.');
+    meusMarcos = await dbGet('trajetoria_marcos');
+    renderTrajetoria();
+  } catch(e) { toast('Erro: '+e.message, true); }
+}
+
+// ── Vincular gestor a um registro de Admitidos (admin) ──────────
+function abrirVincularAdmitido(gestorNome) {
+  const pessoa = pessoaPorNome(gestorNome);
+  if (!pessoa) { toast('Essa pessoa ainda não tem registro em "pessoas" — confira se rodou o pessoas_schema.sql.', true); return; }
+  r$('vincularAdmitidoSub').textContent = `Qual cadastro de Admitidos corresponde a ${gestorNome}?`;
+  const vinculadoAtual = candidatoVinculadoDaPessoa(pessoa.id);
+  const sel = r$('vincularAdmitidoSel');
+  const opcoes = [...candidatos].sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  sel.innerHTML = '<option value="">— Nenhum —</option>'
+    + opcoes.map(c=>`<option value="${c.id}">${c.nome}${c.turma_nome?' — '+c.turma_nome:''}${c.pessoa_id && c.pessoa_id!==pessoa.id?' (já vinculado a outra pessoa)':''}</option>`).join('');
+  sel.value = vinculadoAtual ? vinculadoAtual.id : '';
+  sel.dataset.pessoaId = pessoa.id;
+  r$('mVincularAdmitido').classList.add('open');
+}
+
+async function salvarVinculoAdmitido() {
+  const sel = r$('vincularAdmitidoSel');
+  const pessoaId = sel.dataset.pessoaId;
+  const novoCandidatoId = sel.value || null;
+  try {
+    const anterior = candidatoVinculadoDaPessoa(pessoaId);
+    if (anterior && anterior.id !== novoCandidatoId) await dbUpdate('candidatos', anterior.id, { pessoa_id: null });
+    if (novoCandidatoId) await dbUpdate('candidatos', novoCandidatoId, { pessoa_id: pessoaId });
+    fecharModal('mVincularAdmitido');
+    toast('Vínculo atualizado!');
+    candidatos = await dbGet('candidatos');
+    renderPDI();
+  } catch(e) { toast('Erro ao vincular: '+e.message, true); }
 }
 
 // ── Importador CSV (Microsoft Lists) ──────────────────────────
