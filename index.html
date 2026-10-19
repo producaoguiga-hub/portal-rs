@@ -620,6 +620,7 @@
       <select id="pfStatus" onchange="renderPDI()"><option value="">Todos os status</option></select>
       <button class="btn" onclick="limparFiltrosPDI()"><i class="ti ti-x"></i> Limpar</button>
       <span style="flex:1"></span>
+      <button class="btn admin-only" onclick="copiarLinkPublico('pdi_self.html', this)"><i class="ti ti-link"></i> Copiar link do Self</button>
       <button class="btn admin-only" onclick="abrirImportPDI()"><i class="ti ti-file-upload"></i> Importar do Lists</button>
       <button class="btn btn-primary admin-only" onclick="abrirModal('pdi')"><i class="ti ti-plus"></i> Nova ação PDI</button>
     </div>
@@ -685,10 +686,11 @@
   <!-- MONITORIAS (admin) -->
   <div class="page" id="page-monitorias">
     <div class="page-title">Monitorias</div>
-    <p style="font-size:12.5px;color:var(--text2);margin:-1rem 0 1.25rem;max-width:620px;line-height:1.6">Avaliações feitas pelos monitores sobre gestores novos, ao fim do período de monitoria/rotação. Link público pra enviar aos monitores: <code style="background:var(--bg2);padding:1px 6px;border-radius:4px">monitoria_form.html</code></p>
+    <p style="font-size:12.5px;color:var(--text2);margin:-1rem 0 1.25rem;max-width:620px;line-height:1.6">Avaliações feitas pelos monitores sobre gestores novos, ao fim do período de monitoria/rotação.</p>
     <div class="toolbar">
       <input type="text" id="monFiltro" placeholder="Buscar por gestor ou monitor..." oninput="renderMonitorias()" style="min-width:240px">
       <button class="btn" onclick="r$('monFiltro').value='';renderMonitorias()"><i class="ti ti-x"></i> Limpar</button>
+      <button class="btn admin-only" onclick="copiarLinkPublico('monitoria_form.html', this)"><i class="ti ti-link"></i> Copiar link da Monitoria</button>
       <button class="btn admin-only" onclick="r$('monPdfInput').click()"><i class="ti ti-file-upload"></i> Importar de PDF</button>
       <input type="file" id="monPdfInput" accept="application/pdf" style="display:none" onchange="onMonitoriaPdfSelected(this)">
       <button class="btn btn-primary admin-only" onclick="abrirNovaMonitoria()"><i class="ti ti-plus"></i> Nova monitoria</button>
@@ -1280,12 +1282,33 @@ function initials(n) { const p=n.trim().split(' '); return (p[0][0]+(p[p.length-
 function cnt(arr,k) { return arr.reduce((a,c)=>{ a[c[k]]=(a[c[k]]||0)+1; return a; },{}); }
 function mkLeg(id,labels,colors) { const el=document.getElementById(id); if(!el) return; el.innerHTML=labels.map((l,i)=>`<span><span class="sw" style="background:${colors[i]}"></span>${l}</span>`).join(''); }
 function dc(id) { if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+// Rótulos longos em gráfico de barra horizontal "vazam" pra fora do canvas e ficam
+// cortados sem aviso (o começo some, não só o fim). Trunca com reticências aqui —
+// o tooltip ao passar o mouse continua mostrando o nome completo.
+function pdiTickTrunc(value) { const label = this.getLabelForValue(value); return (label && label.length > 18) ? label.slice(0,17)+'…' : label; }
 function toast(m, err=false) {
   const t=document.getElementById('toast');
   t.textContent=m; t.style.background=err?'#791F1F':'#27500A';
   t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
 }
 function r$(id) { return document.getElementById(id); }
+
+function copiarLinkPublico(arquivo, btnEl) {
+  const url = location.origin + '/' + arquivo;
+  const avisar = () => {
+    toast('Link copiado: ' + url);
+    if (btnEl) {
+      const original = btnEl.innerHTML;
+      btnEl.innerHTML = '<i class="ti ti-check"></i> Copiado!';
+      setTimeout(() => { btnEl.innerHTML = original; }, 1800);
+    }
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(avisar).catch(() => toast('Não consegui copiar automaticamente — link: ' + url, true));
+  } else {
+    toast('Copie manualmente: ' + url, true);
+  }
+}
 
 // ============================================================
 // CHARTS
@@ -1301,7 +1324,30 @@ function previewFoto(input) {
   reader.readAsDataURL(file);
 }
 
+// Fotos de celular costumam vir com vários MB, mas o avatar nunca aparece maior
+// que uns 80px — redimensiona e comprime antes de subir, sem mudar nada visualmente,
+// só deixando o carregamento das telas com vários avatares mais leve e rápido.
+async function comprimirFotoAvatar(file) {
+  if (!file.type || !file.type.startsWith('image/') || file.type==='image/gif') return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const maxDim = 480;
+    let { width, height } = bitmap;
+    if (width > maxDim || height > maxDim) {
+      const scale = maxDim / Math.max(width, height);
+      width = Math.round(width*scale); height = Math.round(height*scale);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.82));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], (file.name||'foto').replace(/\.\w+$/, '')+'.jpg', { type: 'image/jpeg' });
+  } catch(e) { return file; }
+}
+
 async function uploadFoto(file) {
+  file = await comprimirFotoAvatar(file);
   const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z]/g,'');
   const path=Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
   const res=await fetch(`${SUPA_STORAGE}/object/avatars/${path}`,{
@@ -1373,7 +1419,7 @@ function renderCharts() {
     const pmK=Object.keys(pmCnt).sort((a,b)=>pmCnt[b]-pmCnt[a]);
     const pmV=pmK.map(k=>pmCnt[k]);
     dc('cMotivos');
-    charts['cMotivos']=new Chart(r$('cMotivos'),{type:'bar',data:{labels:pmK,datasets:[{data:pmV,backgroundColor:'#FF8F1F',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+    charts['cMotivos']=new Chart(r$('cMotivos'),{type:'bar',data:{labels:pmK,datasets:[{data:pmV,backgroundColor:'#FF8F1F',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10},callback:pdiTickTrunc}}}}});
   }else{r$('cardMotivos').style.display='none';dc('cMotivos');}
 
   const medias=TL_FIELDS.map((f,i)=>{
@@ -1500,7 +1546,7 @@ function renderAnalise() {
     const tots=labels.map((_,i)=>ativos[i]+desl[i]);
     const sorted=labels.map((_,i)=>i).sort((a,b)=>tots[b]-tots[a]);
     dc(canvasId);
-    charts[canvasId]=new Chart(r$(canvasId),{type:'bar',data:{labels:sorted.map(i=>labels[i]),datasets:[{label:'Ativos',data:sorted.map(i=>ativos[i]),backgroundColor:'#1A88FF',borderRadius:3,stack:'s'},{label:'Desligados',data:sorted.map(i=>desl[i]),backgroundColor:'#FF8F1F',borderRadius:3,stack:'s'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const tot=ativos[sorted[ctx.dataIndex]]+desl[sorted[ctx.dataIndex]];const pct=tot?Math.round(ctx.raw/tot*100):0;return ctx.dataset.label+': '+ctx.raw+' ('+pct+'%)';} }}},scales:{x:{stacked:true,grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:2,font:{size:10}}},y:{stacked:true,grid:{display:false},ticks:{font:{size:10}}}}}});
+    charts[canvasId]=new Chart(r$(canvasId),{type:'bar',data:{labels:sorted.map(i=>labels[i]),datasets:[{label:'Ativos',data:sorted.map(i=>ativos[i]),backgroundColor:'#1A88FF',borderRadius:3,stack:'s'},{label:'Desligados',data:sorted.map(i=>desl[i]),backgroundColor:'#FF8F1F',borderRadius:3,stack:'s'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const tot=ativos[sorted[ctx.dataIndex]]+desl[sorted[ctx.dataIndex]];const pct=tot?Math.round(ctx.raw/tot*100):0;return ctx.dataset.label+': '+ctx.raw+' ('+pct+'%)';} }}},scales:{x:{stacked:true,grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:2,font:{size:10}}},y:{stacked:true,grid:{display:false},ticks:{font:{size:10},callback:pdiTickTrunc}}}}});
   }
   catChart('anEstado',[],  'estado');
   catChart('anFonte', [],  'fonte');
@@ -1528,7 +1574,7 @@ function renderTurnover() {
   const mK=Object.keys(mCnt).sort((a,b)=>mCnt[b]-mCnt[a]);
   const mV=mK.map(k=>mCnt[k]);
   dc('tvMotivos');
-  if(mK.length){charts['tvMotivos']=new Chart(r$('tvMotivos'),{type:'bar',data:{labels:mK,datasets:[{data:mV,backgroundColor:'#1A88FF',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});}
+  if(mK.length){charts['tvMotivos']=new Chart(r$('tvMotivos'),{type:'bar',data:{labels:mK,datasets:[{data:mV,backgroundColor:'#1A88FF',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10},callback:pdiTickTrunc}}}}});}
   // Por iniciativa doughnut
   mkLeg('tvLgInit',['Funcionário','Empresa'],['#1A88FF','#FF8F1F']);
   dc('tvIniciativa');
@@ -1542,7 +1588,7 @@ function renderTurnover() {
   // Tabela
   r$('tvEmpty').style.display=desl.length?'none':'block';
   r$('tvTabela').innerHTML=desl.slice().sort((a,b)=>(b.dt_desl||'').localeCompare(a.dt_desl||'')).map(c=>{const perm=mesesEntre(c.dt_contr,c.dt_desl);return`<tr>
-    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${c.foto_url?`<img src="${c.foto_url}">`:`${initials(c.nome)}`}</div><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></div></td>
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${c.foto_url?`<img src="${c.foto_url}" loading="lazy" decoding="async">`:`${initials(c.nome)}`}</div><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></div></td>
     <td>${(c.turma_nome||'').replace('Turma ','')}</td>
     <td style="color:var(--text2)">${(c.cargo||'').replace('Gestor ','')}</td>
     <td>${c.dt_desl?fmt(c.dt_desl):'—'}</td>
@@ -1555,7 +1601,7 @@ function renderCandidatos() {
   const f=candidatos.filter(c=>(!tf||c.turma_nome===tf)&&(!sf||c.status===sf)&&(!cf||c.cargo===cf));
   r$('emptyCand').style.display=f.length?'none':'block';
   r$('tbCand').innerHTML=f.map(c=>`<tr>
-    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${c.foto_url?`<img src="${c.foto_url}">`:`${initials(c.nome)}`}</div><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></div></td>
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${c.foto_url?`<img src="${c.foto_url}" loading="lazy" decoding="async">`:`${initials(c.nome)}`}</div><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></div></td>
     <td style="color:var(--text2)">${(c.cargo||'').replace('Gestor ','')}</td>
     <td>${(c.turma_nome||'').replace('Turma ','')}</td>
     <td>${c.estado||'—'}</td><td>${c.fonte||'—'}</td>
@@ -1574,7 +1620,7 @@ function verCandidato(id) {
   viewId=id;
   r$('fichaView').style.display='block'; r$('formCand').style.display='none';
   r$('mCandTitulo').textContent='Ficha do admitido';
-  r$('fichaAvatar').innerHTML=c.foto_url?`<img src="${c.foto_url}">`:`${initials(c.nome)}`;
+  r$('fichaAvatar').innerHTML=c.foto_url?`<img src="${c.foto_url}" loading="lazy" decoding="async">`:`${initials(c.nome)}`;
   r$('fichaNome').textContent=c.nome;
   r$('fichaSub').textContent=(c.cargo||'')+(c.turma_nome?' · '+c.turma_nome:'');
   r$('fichaGrid').innerHTML=[
@@ -2138,12 +2184,12 @@ function renderPDIDash() {
   const gK=Object.keys(gCnt).sort((a,b)=>gCnt[b]-gCnt[a]).slice(0,10);
   const gV=gK.map(k=>gCnt[k]);
   dc('pdiCGestor');
-  charts['pdiCGestor']=new Chart(r$('pdiCGestor'),{type:'bar',data:{labels:gK,datasets:[{data:gV,backgroundColor:'#1A88FF',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  charts['pdiCGestor']=new Chart(r$('pdiCGestor'),{type:'bar',data:{labels:gK,datasets:[{data:gV,backgroundColor:'#1A88FF',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10},callback:pdiTickTrunc}}}}});
 
   const cnCnt={}; f.forEach(p=>{ pdiSplit(p.canal_mapeamento).forEach(c=>{cnCnt[c]=(cnCnt[c]||0)+1;}); });
   const cnK=Object.keys(cnCnt).sort((a,b)=>cnCnt[b]-cnCnt[a]); const cnV=cnK.map(k=>cnCnt[k]);
   dc('pdiCCanal');
-  charts['pdiCCanal']=new Chart(r$('pdiCCanal'),{type:'bar',data:{labels:cnK,datasets:[{data:cnV,backgroundColor:'#2ED7ED',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  charts['pdiCCanal']=new Chart(r$('pdiCCanal'),{type:'bar',data:{labels:cnK,datasets:[{data:cnV,backgroundColor:'#2ED7ED',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10},callback:pdiTickTrunc}}}}});
 
   const orCnt=cnt(f.filter(p=>p.origem_acao),'origem_acao'); const orK=Object.keys(orCnt); const orV=orK.map(k=>orCnt[k]);
   const multiCols=['#1A88FF','#2ED7ED','#BCFF48','#FF8F1F','#7F77DD'];
@@ -2156,13 +2202,13 @@ function renderPDIDash() {
 
   const acCnt=cnt(f.filter(p=>p.acao),'acao'); const acK=Object.keys(acCnt).sort((a,b)=>acCnt[b]-acCnt[a]); const acV=acK.map(k=>acCnt[k]);
   dc('pdiCAcao');
-  charts['pdiCAcao']=new Chart(r$('pdiCAcao'),{type:'bar',data:{labels:acK,datasets:[{data:acV,backgroundColor:'#BCFF48',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}});
+  charts['pdiCAcao']=new Chart(r$('pdiCAcao'),{type:'bar',data:{labels:acK,datasets:[{data:acV,backgroundColor:'#BCFF48',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10},callback:pdiTickTrunc}}}}});
 }
 
 function pdiRowCardHtml(p) {
   const st = pdiEffectiveStatus(p);
   const gp = gestorProfiles[p.gestor_nome];
-  const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(p.gestor_nome||'?');
+  const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}" loading="lazy" decoding="async">` : initials(p.gestor_nome||'?');
   const titulo = p.detalhe_desenvolvimento || p.acao || 'Ação de PDI';
   const subParts = [p.acao, p.origem_acao].filter(Boolean);
   const badges = [
@@ -2239,7 +2285,7 @@ function renderPDIGestores() {
     const atrasadas = items.filter(p=>pdiEffectiveStatus(p)==='Atrasado').length;
     const pct = items.length ? Math.round(concl/items.length*100) : 0;
     const gp = gestorProfiles[g];
-    const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(g);
+    const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}" loading="lazy" decoding="async">` : initials(g);
     const gNomeEsc = g.replace(/'/g,"\\'");
     return `<div class="pdi-card" onclick="abrirGestorCard('${gNomeEsc}')">
       <div class="pdi-card-head">
@@ -2300,7 +2346,7 @@ function renderMeuPDI() {
   const ringBg = `conic-gradient(#BCFF48 ${pct*3.6}deg, rgba(255,255,255,0.18) 0deg)`;
   headerEl.innerHTML = `
     <div class="mp-ring${celebrate?' celebrate':''}" style="background:${ringBg}">
-      <div class="avatar" onclick="r$('mpFotoInput').click()" title="Clique para trocar a foto">${foto?`<img src="${foto}">`:initials(me)}</div>
+      <div class="avatar" onclick="r$('mpFotoInput').click()" title="Clique para trocar a foto">${foto?`<img src="${foto}" loading="lazy" decoding="async">`:initials(me)}</div>
     </div>
     <div style="flex:1;min-width:180px">
       <div class="mp-nome">${me}${celebrate?' <span title="PDI 100% concluído!">🎉</span>':''}</div>
@@ -2693,7 +2739,7 @@ function renderMonitorias() {
     const npsVals = items.map(m=>m.nps).filter(n=>n!=null);
     const npsMedia = npsVals.length ? Math.round(npsVals.reduce((a,b)=>a+b,0)/npsVals.length) : null;
     const gp = gestorProfiles[g];
-    const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(g);
+    const avatarHtml = gp && gp.foto_url ? `<img src="${gp.foto_url}" loading="lazy" decoding="async">` : initials(g);
     const gEsc = g.replace(/'/g,"\\'");
     return `<div class="pdi-card" onclick="abrirGestorMonitorias('${gEsc}')">
       <div class="pdi-card-head">
@@ -2727,7 +2773,7 @@ function abrirMonitoriaFicha(id, navList) {
   monNavList = (navList && navList.includes(id)) ? navList : [id];
   const media = monMedia(m);
   const gp = gestorProfiles[m.gestor_nome];
-  r$('monFichaAvatar').innerHTML = gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(m.gestor_nome||'?');
+  r$('monFichaAvatar').innerHTML = gp && gp.foto_url ? `<img src="${gp.foto_url}" loading="lazy" decoding="async">` : initials(m.gestor_nome||'?');
   r$('monFichaNome').textContent = m.gestor_nome||'—';
   r$('monFichaSub').textContent = [m.unidade, 'Monitor: '+(m.monitor_nome||'—'), m.duracao].filter(Boolean).join(' · ');
   r$('monFichaNota').innerHTML = media!=null ? `<span class="mon-nota ${monNotaClass(media)}" style="font-size:18px;padding:6px 14px">${media.toFixed(1)}</span>` : '';
