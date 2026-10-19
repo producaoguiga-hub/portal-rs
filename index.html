@@ -357,6 +357,19 @@
   .mp-spotlight-nav button i { font-size: 11px; }
   .mp-spotlight-dots { font-size: 10px; color: var(--text3); white-space: nowrap; }
 
+  /* Concluir ação de PDI (gestor) */
+  .concluir-hero { text-align: center; padding: 0.5rem 0 1.25rem; }
+  .concluir-hero i { font-size: 40px; color: var(--green-text); display: block; margin-bottom: 10px; animation: popIn .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .concluir-hero .tt { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+  .concluir-hero .sub { font-size: 13px; color: var(--text2); line-height: 1.5; max-width: 420px; margin: 0 auto; }
+  .nps-pick { display: flex; gap: 5px; margin-top: 6px; }
+  .nps-pick button { position: relative; overflow: hidden; flex: 1; padding: 10px 0; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text2); font-weight: 600; font-size: 13px; cursor: pointer; transition: all .15s; }
+  .nps-pick button:hover { border-color: var(--blue); }
+  .nps-pick button.sel { border-color: var(--blue); background: var(--blue-bg); color: var(--blue-text); }
+  .nps-pick-lbls { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--text3); margin-top: 4px; }
+  @media (max-width: 480px) { .nps-pick { flex-wrap: wrap; } .nps-pick button { flex: 1 0 15%; } }
+
   /* Login / acesso */
   #loginScreen { display: none; position: fixed; inset: 0; z-index: 500; align-items: center; justify-content: center; background: var(--bg3); padding: 1.5rem; }
   body:not(.authed) #loginScreen { display: flex; }
@@ -876,10 +889,19 @@
       <div class="obs-box" id="pdiFichaDetalhe" style="margin-bottom:1rem"></div>
       <div class="card-title" style="margin-bottom:6px">Feedback DRE</div>
       <div class="obs-box" id="pdiFichaFeedback"></div>
+      <div id="pdiFichaConclusaoWrap" style="display:none">
+        <div class="card-title" style="margin:1rem 0 6px"><i class="ti ti-confetti" style="color:var(--green-text)"></i> Conclusão do gestor</div>
+        <div class="obs-box" style="display:flex;flex-direction:column;gap:10px">
+          <div id="pdiFichaConclusaoComentario"></div>
+          <div id="pdiFichaConclusaoAnexo"></div>
+          <div id="pdiFichaConclusaoNps" style="font-size:12.5px;color:var(--text2)"></div>
+        </div>
+      </div>
       <div class="modal-footer">
         <button class="btn" onclick="fecharModal('mPDI')">Fechar</button>
         <button class="btn btn-danger admin-only" onclick="excluirFichaPDI()"><i class="ti ti-trash"></i> Excluir</button>
         <button class="btn btn-primary admin-only" onclick="editarFichaPDI()"><i class="ti ti-edit"></i> Editar</button>
+        <button class="btn btn-primary gestor-only" id="pdiFichaConcluirBtn" onclick="abrirConcluirPDI()"><i class="ti ti-circle-check"></i> Marcar como concluída</button>
       </div>
     </div>
 
@@ -929,6 +951,35 @@
 <datalist id="dlCompetencias"></datalist>
 <datalist id="dlTipos"></datalist>
 <datalist id="dlDirecoes"></datalist>
+
+<!-- MODAL CONCLUIR AÇÃO DE PDI (o próprio gestor) -->
+<div class="modal-overlay" id="mConcluirPDI">
+  <div class="modal" style="max-width:560px">
+    <div class="concluir-hero">
+      <i class="ti ti-confetti"></i>
+      <div class="tt">Mandou bem! 🎉</div>
+      <div class="sub" id="concluirAcaoTitulo">Conta pra gente como foi — isso ajuda a melhorar o PDI de todo mundo.</div>
+    </div>
+    <div class="fg">
+      <label>De 0 a 10, o quanto essa ação te ajudou no seu desenvolvimento?</label>
+      <div class="nps-pick" id="concluirNpsRow"></div>
+      <div class="nps-pick-lbls"><span>Não ajudou nada</span><span>Ajudou muitíssimo</span></div>
+    </div>
+    <div class="fg">
+      <label>Quer deixar um comentário? <span style="font-weight:400;color:var(--text3)">(opcional)</span></label>
+      <textarea id="concluirComentario" placeholder="Como foi fazer essa ação? O que você aprendeu ou mudaria?"></textarea>
+    </div>
+    <div class="fg">
+      <label>Anexar certificado ou comprovante <span style="font-weight:400;color:var(--text3)">(opcional)</span></label>
+      <input type="file" id="concluirAnexoInput" accept="image/*,.pdf" onchange="onConcluirAnexoSelecionado(this)">
+      <div id="concluirAnexoNome" style="font-size:12px;color:var(--text2);margin-top:4px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mConcluirPDI')">Cancelar</button>
+      <button class="btn btn-primary" id="concluirSalvarBtn" onclick="salvarConclusaoPDI()"><i class="ti ti-check"></i> Confirmar conclusão</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL IMPORTAR PDI (CSV do Microsoft Lists) -->
 <div class="modal-overlay" id="mPDIImport">
@@ -2479,6 +2530,7 @@ function mpSpotlightRender(nomeCompleto) {
       <i class="ti ${cfg.ico} mp-spotlight-ico"></i>
       <div class="mp-spotlight-msg">Olá, <b>${primeiroNome}</b>! ${cfg.verbo(titulo)}</div>
       ${p.acao_pdi_link?`<div class="mp-spotlight-linkbox">${pdiLinkFieldHtml(p.acao_pdi_link, 'Abrir link da ação')}</div>`:''}
+      <button class="btn" style="margin-top:8px;font-size:12px;padding:6px 10px" onclick="abrirConcluirPDI('${p.id}')"><i class="ti ti-circle-check"></i> Já concluí essa ação</button>
     </div>
     ${mpSpotlightList.length>1?`
     <div class="mp-spotlight-nav">
@@ -2611,7 +2663,106 @@ function verPDI(id, navList) {
   if (p.acao_pdi_link) r$('pdiFichaAcaoLink').innerHTML = pdiLinkFieldHtml(p.acao_pdi_link);
   r$('pdiFichaDetalhe').textContent=p.detalhe_desenvolvimento||'Nenhum detalhe registrado.';
   r$('pdiFichaFeedback').textContent=p.feedback_dre||'Nenhum feedback registrado.';
+
+  const temConclusao = !!(p.conclusao_comentario || p.conclusao_nps!=null || p.conclusao_anexo_url);
+  r$('pdiFichaConclusaoWrap').style.display = temConclusao ? '' : 'none';
+  if (temConclusao) {
+    r$('pdiFichaConclusaoComentario').textContent = p.conclusao_comentario || 'Sem comentário.';
+    r$('pdiFichaConclusaoAnexo').innerHTML = p.conclusao_anexo_url ? `<a href="${p.conclusao_anexo_url}" target="_blank" rel="noopener"><i class="ti ti-paperclip"></i> Ver anexo enviado</a>` : '';
+    r$('pdiFichaConclusaoNps').textContent = p.conclusao_nps!=null ? `Nota que o gestor deu pra essa ação: ${p.conclusao_nps}/10` : '';
+  }
+  const podeConcluir = st !== 'Concluído' && st !== 'Descontinuado';
+  r$('pdiFichaConcluirBtn').style.display = podeConcluir ? '' : 'none';
+
   r$('mPDI').classList.add('open');
+}
+
+// ── Conclusão de ação de PDI pelo gestor ────────────────────────
+let concluirPDIId = null;
+let concluirPDINps = null;
+let concluirAnexoFile = null;
+
+function renderConcluirNpsRow() {
+  r$('concluirNpsRow').innerHTML = Array.from({length:11},(_,n)=>
+    `<button type="button" onclick="pickConcluirNps(${n})">${n}</button>`).join('');
+}
+
+function pickConcluirNps(n) {
+  concluirPDINps = n;
+  r$('concluirNpsRow').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('sel', i===n));
+}
+
+function abrirConcluirPDI(idOverride) {
+  const p = pdis.find(x=>x.id===(idOverride||viewPDIId)); if(!p) return;
+  concluirPDIId = p.id; concluirPDINps = null; concluirAnexoFile = null;
+  r$('concluirAcaoTitulo').textContent = `“${p.detalhe_desenvolvimento || p.acao || 'Ação de PDI'}” — conta pra gente como foi.`;
+  r$('concluirComentario').value = '';
+  r$('concluirAnexoInput').value = '';
+  r$('concluirAnexoNome').textContent = '';
+  renderConcluirNpsRow();
+  fecharModal('mPDI');
+  r$('mConcluirPDI').classList.add('open');
+}
+
+function onConcluirAnexoSelecionado(input) {
+  concluirAnexoFile = input.files[0] || null;
+  r$('concluirAnexoNome').textContent = concluirAnexoFile ? `Selecionado: ${concluirAnexoFile.name}` : '';
+}
+
+async function uploadAnexoPDI(file) {
+  // Mesmo bucket das fotos de perfil (já público e já funcionando), só numa
+  // "pasta" separada — evita precisar configurar um bucket novo no Supabase.
+  let f = file;
+  if (file.type && file.type.startsWith('image/') && file.type !== 'image/gif') {
+    try {
+      const bitmap = await createImageBitmap(file);
+      const maxDim = 1600;
+      let { width, height } = bitmap;
+      if (width > maxDim || height > maxDim) {
+        const scale = maxDim / Math.max(width, height);
+        width = Math.round(width*scale); height = Math.round(height*scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.88));
+      if (blob && blob.size < file.size) f = new File([blob], (file.name||'anexo').replace(/\.\w+$/,'')+'.jpg', { type: 'image/jpeg' });
+    } catch(e) { /* se falhar, sobe o arquivo original */ }
+  }
+  const ext=(f.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const path='anexos/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
+  const res=await fetch(`${SUPA_STORAGE}/object/avatars/${path}`,{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+SUPA_KEY,'x-upsert':'true','Content-Type':f.type||'application/octet-stream'},
+    body:f
+  });
+  if(!res.ok) throw new Error(await res.text());
+  return `${SUPA_STORAGE}/object/public/avatars/${path}`;
+}
+
+async function salvarConclusaoPDI() {
+  if (concluirPDINps==null) { toast('Escolhe uma nota de 0 a 10 antes de confirmar :)', true); return; }
+  const btn = r$('concluirSalvarBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Enviando...';
+  try {
+    let anexoUrl = null;
+    if (concluirAnexoFile) anexoUrl = await uploadAnexoPDI(concluirAnexoFile);
+    const data = {
+      status_acao: 'Concluído',
+      concluido_em: new Date().toISOString(),
+      conclusao_comentario: r$('concluirComentario').value.trim() || null,
+      conclusao_nps: concluirPDINps,
+    };
+    if (anexoUrl) data.conclusao_anexo_url = anexoUrl;
+    await dbUpdate('pdi', concluirPDIId, data);
+    fecharModal('mConcluirPDI');
+    toast('Ação concluída! Parabéns 🎉');
+    pdis = await dbGet('pdi'); populatePDISels(); renderPDI();
+  } catch(e) {
+    toast('Não consegui registrar a conclusão: '+e.message, true);
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-check"></i> Confirmar conclusão';
+  }
 }
 
 function fichaNavStep(delta) {
