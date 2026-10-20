@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gestor+ — Perbras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -406,6 +409,124 @@
   body:not(.role-gestor) .gestor-only { display: none !important; }
   body.role-participante .admin-only { display: none !important; }
 
+  /* ============================================================
+     Identidade visual Perbras (Transição de Marca: PERBRAS_CORES.pdf,
+     PERBRAS_GRAFISMO_PANTONE.pdf, fundo do Teams).
+     - Tipografia IBM Plex Sans; cores chapadas, sem degradê.
+     - Grafismo: blocos com corte a 45°, tom sobre tom.
+     Fica aqui no fim pra sobrepor o estilo antigo sem mexer nele.
+     ============================================================ */
+  :root {
+    --perbras-azul: #1A88FF; --perbras-azul-claro: #1F95FF;
+    --perbras-oceano: #2ED7ED; --perbras-verde: #BCFF48; --perbras-laranja: #FF8F1F;
+    --perbras-petroleo: #091C28; --perbras-petroleo-claro: #172F3F;
+    --grafismo-azul: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080' preserveAspectRatio='xMaxYMax slice'%3E%3Cpath fill='%231F95FF' d='M1356 0H1920L1356 550Z'/%3E%3Cpath fill='%231F95FF' d='M390 1080L920 550H1356V1080Z'/%3E%3C/svg%3E");
+    --grafismo-petroleo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080' preserveAspectRatio='xMaxYMax slice'%3E%3Cpath fill='%23172F3F' d='M1356 0H1920L1356 550Z'/%3E%3Cpath fill='%23172F3F' d='M390 1080L920 550H1356V1080Z'/%3E%3C/svg%3E");
+  }
+  body, button, input, select, textarea { font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif; }
+
+  /* Grafismo vertical próprio da barra lateral (padrão das peças verticais do
+     PERBRAS_GRAFISMO_PANTONE.pdf): duas colunas de mesma largura, cortes a 45°
+     exatos e tudo encostado nas bordas — escala junto com a largura do menu. */
+  .sidebar { background: var(--perbras-petroleo) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 330'%3E%3Cpath fill='%23172F3F' d='M0 0L110 110V330H0Z'/%3E%3Cpath fill='%23172F3F' d='M110 220H220V330H110Z'/%3E%3C/svg%3E") no-repeat left bottom / 100% auto; }
+  @media (max-width: 900px) { .sidebar { background-image: none; } }
+  .nav-item.active { background: var(--perbras-azul); color: #fff; font-weight: 600; box-shadow: none; }
+  .nav-item.active i { color: var(--perbras-verde); }
+  .nav-item.active::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; background: var(--perbras-verde); }
+
+  /* Título de página com a "seta" da marca (como no fundo do Teams) */
+  .page-title { font-weight: 700; font-size: 22px; letter-spacing: -0.01em; padding-left: 16px; position: relative; }
+  .page-title::before { content: ''; position: absolute; left: 0; top: 50%; width: 8px; height: 16px; transform: translateY(-50%);
+    background: var(--perbras-azul); clip-path: polygon(0 0, 100% 50%, 0 100%); }
+
+  .btn-primary { background: var(--perbras-azul); color: #fff; }
+  .btn-primary:hover { filter: none; background: var(--perbras-azul-claro); }
+
+  .pbar-fill { background: var(--perbras-azul); }
+  .pbar-fill.full { background: var(--perbras-verde); }
+  .pdi-card { background-image: linear-gradient(var(--bg), var(--bg)), linear-gradient(var(--border2), var(--border2)); }
+  .pdi-card:hover { background-image: linear-gradient(var(--bg), var(--bg)), linear-gradient(var(--perbras-azul), var(--perbras-azul)); }
+
+  .mp-header { background: var(--perbras-petroleo) var(--grafismo-petroleo) no-repeat right bottom / cover; }
+  .mp-header::after { display: none; }
+  .mp-pct { background: none; color: var(--perbras-verde); -webkit-text-fill-color: var(--perbras-verde); }
+
+  /* Login: fundo azul Perbras com o grafismo, igual ao material institucional */
+  #loginScreen { background: var(--perbras-azul) var(--grafismo-azul) no-repeat right bottom / cover; }
+  .login-card { border: none; border-radius: 4px; box-shadow: 0 20px 48px rgba(9,28,40,0.28); }
+  .login-card h1 { font-size: 17px; font-weight: 700; }
+
+  /* ============================================================
+     Monitoria — consolidado (pilares + resumo + pontos)
+     ============================================================ */
+  .mc-hero { display: flex; align-items: center; gap: 18px; padding: 1.5rem 1.75rem; border-radius: var(--radius-lg); margin-bottom: 1rem; color: #fff;
+    background: var(--perbras-petroleo) var(--grafismo-petroleo) no-repeat right bottom / cover; }
+  .mc-hero .avatar { width: 56px; height: 56px; font-size: 19px; background: var(--perbras-petroleo-claro); color: #fff; }
+  .mc-hero .nm { font-size: 19px; font-weight: 700; }
+  .mc-hero .sub { font-size: 12.5px; color: rgba(255,255,255,0.65); margin-top: 3px; }
+  .mc-hero .media { margin-left: auto; text-align: right; }
+  .mc-hero .media .v { font-size: 32px; font-weight: 700; line-height: 1; color: var(--perbras-verde); }
+  .mc-hero .media .l { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-top: 4px; }
+  .mc-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 1rem; margin-bottom: 1rem; }
+  .mc-radar { position: relative; height: 280px; }
+  .mc-pilar { margin-bottom: 14px; }
+  .mc-pilar:last-child { margin-bottom: 0; }
+  .mc-pilar-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .mc-pilar-head b { font-weight: 600; }
+  .mc-pilar-bar { height: 8px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+  .mc-pilar-bar span { display: block; height: 100%; background: var(--perbras-azul); }
+  .mc-resumo { font-size: 14px; line-height: 1.7; color: var(--text); }
+  .mc-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .mc-list li { position: relative; padding-left: 20px; font-size: 13.5px; line-height: 1.55; color: var(--text); }
+  .mc-list li::before { content: ''; position: absolute; left: 0; top: 6px; width: 7px; height: 10px; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+  .mc-pos .card-title i { color: #4a8a00; }
+  .mc-pos .mc-list li::before { background: #6fb300; }
+  .mc-dev .card-title i { color: var(--perbras-laranja); }
+  .mc-dev .mc-list li::before { background: var(--perbras-laranja); }
+  .mc-status { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 3px 8px; border-radius: 4px; }
+  .mc-status.publicado { background: var(--green-bg); color: var(--green-text); }
+  .mc-status.rascunho { background: var(--amber-bg); color: var(--amber-text); }
+  .mc-status.pendente { background: var(--bg3); color: var(--text2); }
+  .mc-edit textarea { min-height: 96px; }
+
+  /* Meu PDI: mensagem em destaque + status compacto */
+  .mp-top { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr); gap: 14px; margin-bottom: 1rem; align-items: stretch; }
+  .mp-top .mp-spotlight { padding: 1.6rem 1.75rem; border-radius: var(--radius-lg); border: none; color: #fff; justify-content: center;
+    background: var(--perbras-azul) var(--grafismo-azul) no-repeat right bottom / cover; }
+  .mp-top .mp-spotlight-ico { font-size: 22px; color: var(--perbras-verde); margin-bottom: 10px; }
+  .mp-top .mp-spotlight-msg { font-size: 18px; line-height: 1.5; font-weight: 500; color: #fff; max-width: 60ch; }
+  .mp-top .mp-spotlight-msg b { color: #fff; font-weight: 700; }
+  .mp-top .mp-spotlight-linkbox { margin-top: 14px; padding: 10px 14px; font-size: 13px; background: rgba(255,255,255,0.14); color: #fff; border-radius: 4px; }
+  .mp-top .mp-spotlight-linkbox * { color: #fff; }
+  .mp-top .mp-spotlight .btn { margin-top: 16px !important; font-size: 13px !important; padding: 9px 16px !important; background: #fff; color: var(--perbras-azul); border-color: #fff; font-weight: 600; }
+  .mp-top .mp-spotlight-nav { color: #fff; font-size: 12px; }
+  .mp-top .mp-spotlight-nav button { background: rgba(255,255,255,0.18); border-color: transparent; color: #fff; }
+  .mp-top .mp-spotlight.urgent { background: var(--perbras-laranja) none; }
+  .mp-top .mp-spotlight.urgent .mp-spotlight-ico, .mp-top .mp-spotlight.urgent .mp-spotlight-msg b { color: #fff; }
+  .mp-top .mp-spotlight.urgent .btn { color: #b54d00; }
+  .mp-top .mp-spotlight.celebrate { background: var(--perbras-verde) none; color: var(--perbras-petroleo); }
+  .mp-top .mp-spotlight.celebrate .mp-spotlight-msg, .mp-top .mp-spotlight.celebrate .mp-spotlight-msg b, .mp-top .mp-spotlight.celebrate .mp-spotlight-ico { color: var(--perbras-petroleo); }
+  .mp-statusbox { margin: 0; }
+  .mp-status-inner { display: flex; align-items: center; gap: 16px; }
+  .mp-status-donut { position: relative; width: 110px; height: 110px; flex-shrink: 0; }
+  .mp-kpis { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mp-kpis .metric { padding: 9px 11px; }
+  .mp-kpis .metric .lbl { font-size: 11px; }
+  .mp-kpis .metric .val { font-size: 20px; }
+  @media (max-width: 900px) { .mp-top { grid-template-columns: 1fr; } }
+
+  /* "Próxima ação": borda na cor da marca + brilho pulsando devagar pra chamar
+     atenção sem incomodar (o atrasado mantém o pulso vermelho que já tinha). */
+  .mp-next:not(.urgent) { border: 1.5px solid var(--perbras-azul); animation: mpNextGlow 2.4s ease-in-out infinite; }
+  .mp-next:not(.urgent) .mp-next-ico { color: var(--perbras-azul); }
+  .mp-next.urgent { border: 1.5px solid var(--red-text); }
+  @keyframes mpNextGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(26,136,255,0); border-color: rgba(26,136,255,0.55); }
+    50%      { box-shadow: 0 0 0 5px rgba(26,136,255,0.16); border-color: rgba(26,136,255,1); }
+  }
+  @media (prefers-reduced-motion: reduce) { .mp-next, .mp-next.urgent { animation: none; } }
+  @media (max-width: 900px) { .mc-grid { grid-template-columns: 1fr; } }
+
   @media (max-width: 900px) {
     .sidebar { width: 60px; }
     .sidebar-logo span, .sidebar-subtitle, .nav-item span { display: none; }
@@ -716,11 +837,16 @@
     <div class="mp-header card mp-anim" id="mpHeader" style="animation-delay:.02s"></div>
     <div class="mp-next mp-anim" id="mpNext" style="display:none;animation-delay:.08s"></div>
     <div class="mp-alert mp-anim" id="mpAlert" style="display:none;animation-delay:.12s"></div>
-    <div class="chart-row mp-anim" style="margin-bottom:1rem;animation-delay:.16s">
-      <div class="card"><div class="card-title">Minhas ações por status</div><div class="legend" id="mpLgStatus"></div><div style="position:relative;height:190px"><canvas id="mpCStatus"></canvas></div></div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div class="metric-grid" id="mpKPIs" style="align-content:start;margin-bottom:0"></div>
-        <div id="mpSpotlight" class="mp-spotlight" style="display:none;flex:1"></div>
+    <!-- A mensagem pra pessoa é o destaque; o status fica num quadro compacto ao lado -->
+    <div class="mp-top mp-anim" style="animation-delay:.16s">
+      <div id="mpSpotlight" class="mp-spotlight" style="display:none"></div>
+      <div class="card mp-statusbox">
+        <div class="card-title">Minhas ações por status</div>
+        <div class="mp-status-inner">
+          <div class="mp-status-donut"><canvas id="mpCStatus"></canvas></div>
+          <div class="mp-kpis" id="mpKPIs"></div>
+        </div>
+        <div class="legend" id="mpLgStatus" style="display:none"></div>
       </div>
     </div>
     <div id="mpGroups" class="mp-anim" style="animation-delay:.2s"></div>
@@ -754,9 +880,9 @@
   <!-- MINHA MONITORIA (gestor) -->
   <div class="page" id="page-minhamonitoria">
     <div class="page-title">Minha Monitoria</div>
-    <div id="mmHeader" class="card mp-anim" style="animation-delay:.02s"></div>
-    <div id="mmList" class="mp-anim" style="animation-delay:.1s"></div>
-    <div id="mmEmpty" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma monitoria registrada ainda pra você</div>
+    <!-- Só o consolidado publicado pelo RH: nada de respostas/monitores individuais -->
+    <div id="mmConteudo"></div>
+    <div id="mmEmpty" class="empty" style="display:none"><i class="ti ti-hourglass" style="font-size:28px;display:block;margin-bottom:8px"></i>O consolidado da sua monitoria ainda não foi publicado pelo RH.<br>Assim que estiver pronto, ele aparece aqui.</div>
   </div>
 
   <!-- MINHA TRAJETÓRIA (visão do gestor) -->
@@ -1075,6 +1201,34 @@
   </div>
 </div>
 
+<!-- MODAL CONSOLIDADO DA MONITORIA (RH: gera com IA, revisa e publica) -->
+<div class="modal-overlay" id="mConsolidado">
+  <div class="modal" style="max-width:820px">
+    <div id="mcHero"></div>
+    <div id="mcAviso" class="mp-alert" style="display:none"></div>
+    <div class="mc-grid">
+      <div class="card" style="margin:0"><div class="card-title">Pilares</div><div id="mcPilaresAdm"></div></div>
+      <div class="card mc-edit" style="margin:0">
+        <div class="card-title">Como o gestor vai ver</div>
+        <p style="font-size:12.5px;color:var(--text2);line-height:1.6">Resumo e pontos escritos em tom construtivo, <b>sem citar monitores nem copiar frases</b>. Gere com IA, revise o texto e publique. Nada aparece pro gestor antes de você publicar.</p>
+        <button class="btn" id="mcBtnIA" onclick="gerarConsolidadoIA()" style="margin-top:10px"><i class="ti ti-sparkles"></i> Gerar rascunho com IA</button>
+        <button class="btn" onclick="abrirMonitoriasIndividuais()" style="margin-top:10px"><i class="ti ti-list-details"></i> Ver avaliações individuais</button>
+      </div>
+    </div>
+    <div class="form-grid mc-edit" style="grid-template-columns:1fr">
+      <div class="fg"><label>Resumo executivo</label><textarea id="mcResumo"></textarea></div>
+      <div class="fg"><label>Pontos positivos <span style="font-weight:400;color:var(--text3)">(um por linha)</span></label><textarea id="mcPositivos"></textarea></div>
+      <div class="fg"><label>Pontos a desenvolver <span style="font-weight:400;color:var(--text3)">(um por linha)</span></label><textarea id="mcDesenvolver"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mConsolidado')">Fechar</button>
+      <button class="btn btn-danger" id="mcBtnDespublicar" onclick="salvarConsolidado('rascunho', true)" style="display:none"><i class="ti ti-eye-off"></i> Despublicar</button>
+      <button class="btn" onclick="salvarConsolidado('rascunho')"><i class="ti ti-device-floppy"></i> Salvar rascunho</button>
+      <button class="btn btn-primary" id="mcBtnPublicar" onclick="salvarConsolidado('publicado')"><i class="ti ti-send"></i> Publicar pro gestor</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL MONITORIA (detalhe de uma avaliação) -->
 <div class="modal-overlay" id="mMonitoria">
   <div class="modal" style="max-width:680px">
@@ -1330,15 +1484,20 @@ async function init() {
   renderPDI();
 
   // Monitorias: mesma lógica — se a tabela ainda não existir, não quebra o resto.
-  try {
-    monitorias = await dbGet('monitorias');
-  } catch(e) {
-    monitorias = [];
-    console.warn('Aba "Monitorias": tabela "monitorias" não encontrada ainda, ou sem permissão.', e.message);
+  // O gestor não lê as respostas dos monitores: só o consolidado publicado.
+  if (profile && profile.role === 'gestor') {
+    renderMinhaMonitoria();
+  } else {
+    try {
+      monitorias = await dbGet('monitorias');
+    } catch(e) {
+      monitorias = [];
+      console.warn('Aba "Monitorias": tabela "monitorias" não encontrada ainda, ou sem permissão.', e.message);
+    }
+    await carregarConsolidados();
+    populatePDISels(); // de novo, agora que "monitorias" já carregou, pra entrar no roster do seletor de gestor do PDI
+    renderMonitorias();
   }
-  populatePDISels(); // de novo, agora que "monitorias" já carregou, pra entrar no roster do seletor de gestor do PDI
-  if (profile && profile.role === 'gestor') renderMinhaMonitoria();
-  else renderMonitorias();
 
   // Pessoas / Trajetória: mesma lógica — se ainda não existir, não quebra o resto.
   try {
@@ -1486,6 +1645,7 @@ function toast(m, err=false) {
   t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
 }
 function r$(id) { return document.getElementById(id); }
+function escHtml(s) { return String(s ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch])); }
 
 function copiarLinkPublico(arquivo, btnEl) {
   const url = location.origin + '/' + arquivo;
@@ -3067,6 +3227,7 @@ function renderMonitorias() {
         ${mediaGeral!=null?`<span class="mon-nota ${monNotaClass(mediaGeral)}">${mediaGeral.toFixed(1)}</span>`:''}
       </div>
       ${npsMedia!=null?`<div style="font-size:11.5px;color:var(--text2);margin-top:6px">Recomendaria o gestor (NPS 0–10): <b style="color:var(--text)">${npsMedia}</b></div>`:''}
+      ${(st => `<div style="margin-top:8px"><span class="mc-status ${st.cls}">${st.txt}</span></div>`)(consolidadoStatus(g, items.length))}
       <div class="pdi-mini-list">${items.slice(0,3).map(m=>`<div class="pdi-mini-item"><span class="pdi-dot" style="background:${monDotColor(monMedia(m))}"></span><span class="txt">Monitor: ${m.monitor_nome||'—'} · ${m.duracao||'—'}</span></div>`).join('')}${items.length>3?`<div style="font-size:11px;color:var(--text3)">+${items.length-3} outra${items.length-3!==1?'s':''} ${items.length-3!==1?'avaliações':'avaliação'}</div>`:''}</div>
     </div>`;
   }).join('') + `</div>`;
@@ -3078,9 +3239,199 @@ function monDotColor(media) {
 }
 
 let monNavList = [];
+// ============================================================
+// MONITORIA — CONSOLIDADO (o que o gestor vê)
+// O gestor nunca lê as respostas dos monitores: vê só os 4 pilares, um
+// resumo executivo e pontos positivos / a desenvolver, que o RH gera com
+// IA, revisa e publica (tabela monitoria_consolidado).
+// ============================================================
+const MON_PILARES = [
+  { pilar: 'Postura e Valores',        campos: ['postura','humildade','perfil_valores'] },
+  { pilar: 'Aprendizado',              campos: ['busca_info','aprendizado','questionamento'] },
+  { pilar: 'Execução',                 campos: ['organizacao','resolutivo'] },
+  { pilar: 'Liderança e Comunicação',  campos: ['lideranca','comunicacao'] },
+];
+let consolidados = {};       // gestor_nome -> linha de monitoria_consolidado (admin)
+let consolidadoAtual = null; // gestor aberto no modal
+
+function monPilares(items) {
+  return MON_PILARES.map(p => {
+    const ns = items.flatMap(m => p.campos.map(c => m['nota_'+c])).filter(n => n != null);
+    return { pilar: p.pilar, media: ns.length ? +(ns.reduce((a,b)=>a+b,0)/ns.length).toFixed(2) : null };
+  });
+}
+function monMediaGeral(items) {
+  const ms = items.map(monMedia).filter(n=>n!=null);
+  return ms.length ? +(ms.reduce((a,b)=>a+b,0)/ms.length).toFixed(2) : null;
+}
+
+async function carregarConsolidados() {
+  try {
+    const r = await authFetch(`${SUPA_URL}/monitoria_consolidado?select=*`);
+    if (!r.ok) throw new Error(await r.text());
+    consolidados = Object.fromEntries((await r.json()).map(c => [c.gestor_nome, c]));
+  } catch(e) {
+    consolidados = {};
+    console.warn('"monitoria_consolidado" não encontrada ainda — rode monitoria_consolidado.sql.', e.message);
+  }
+}
+
+function consolidadoStatus(nome, nAtual) {
+  const c = consolidados[nome];
+  if (!c) return { cls: 'pendente', txt: 'Consolidado pendente' };
+  if (c.status !== 'publicado') return { cls: 'rascunho', txt: 'Rascunho' };
+  if (c.n_monitorias !== nAtual) return { cls: 'rascunho', txt: 'Publicado · desatualizado' };
+  return { cls: 'publicado', txt: 'Publicado' };
+}
+
+function mcPilaresHtml(pilares) {
+  return (pilares||[]).map(p => `<div class="mc-pilar">
+    <div class="mc-pilar-head"><b>${p.pilar}</b><span>${p.media!=null ? Number(p.media).toFixed(1) : '—'}</span></div>
+    <div class="mc-pilar-bar"><span style="width:${p.media!=null ? (p.media/5*100) : 0}%"></span></div>
+  </div>`).join('');
+}
+
 function abrirGestorMonitorias(nome) {
-  const navList = monitorias.filter(m=>m.gestor_nome===nome).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).map(m=>m.id);
-  if (navList.length) abrirMonitoriaFicha(navList[0], navList);
+  consolidadoAtual = nome;
+  const items = monitorias.filter(m=>m.gestor_nome===nome);
+  const c = consolidados[nome] || {};
+  const media = monMediaGeral(items);
+  const unidade = (items.find(m=>m.unidade)||{}).unidade || '';
+  const st = consolidadoStatus(nome, items.length);
+  const gp = gestorProfiles[nome];
+  r$('mcHero').innerHTML = `<div class="mc-hero">
+    <div class="avatar">${gp && gp.foto_url ? `<img src="${gp.foto_url}">` : initials(nome)}</div>
+    <div><div class="nm">${nome}</div><div class="sub">${[unidade, items.length+' '+(items.length!==1?'monitorias':'monitoria')].filter(Boolean).join(' · ')}</div>
+      <div style="margin-top:8px"><span class="mc-status ${st.cls}">${st.txt}</span></div></div>
+    <div class="media"><div class="v">${media!=null?media.toFixed(1):'—'}</div><div class="l">Média geral</div></div>
+  </div>`;
+  const aviso = r$('mcAviso');
+  if (c.status === 'publicado' && c.n_monitorias !== items.length) {
+    aviso.innerHTML = `<i class="ti ti-alert-triangle"></i> Chegaram monitorias novas desde a publicação (${c.n_monitorias} → ${items.length}). Gere de novo ou revise e publique pra atualizar o que o gestor vê.`;
+    aviso.style.display = 'flex';
+  } else aviso.style.display = 'none';
+  r$('mcPilaresAdm').innerHTML = mcPilaresHtml(monPilares(items));
+  r$('mcResumo').value = c.resumo || '';
+  r$('mcPositivos').value = (c.pontos_positivos||[]).join('\n');
+  r$('mcDesenvolver').value = (c.pontos_desenvolver||[]).join('\n');
+  r$('mcBtnDespublicar').style.display = c.status === 'publicado' ? '' : 'none';
+  r$('mcBtnPublicar').innerHTML = c.status === 'publicado' ? '<i class="ti ti-send"></i> Atualizar publicação' : '<i class="ti ti-send"></i> Publicar pro gestor';
+  r$('mConsolidado').classList.add('open');
+}
+
+function abrirMonitoriasIndividuais() {
+  const navList = monitorias.filter(m=>m.gestor_nome===consolidadoAtual).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).map(m=>m.id);
+  if (!navList.length) return;
+  r$('mConsolidado').classList.remove('open');
+  abrirMonitoriaFicha(navList[0], navList);
+}
+
+const linhas = txt => txt.split('\n').map(s => s.replace(/^[-•*\s]+/, '').trim()).filter(Boolean);
+
+async function salvarConsolidado(status, despublicar=false) {
+  const nome = consolidadoAtual; if (!nome) return;
+  const items = monitorias.filter(m=>m.gestor_nome===nome);
+  const dados = {
+    gestor_nome: nome,
+    resumo: r$('mcResumo').value.trim(),
+    pontos_positivos: linhas(r$('mcPositivos').value),
+    pontos_desenvolver: linhas(r$('mcDesenvolver').value),
+    status,
+    updated_at: new Date().toISOString(),
+  };
+  if (status === 'publicado') {
+    if (!dados.resumo || !dados.pontos_positivos.length || !dados.pontos_desenvolver.length) {
+      toast('Preencha o resumo e ao menos um ponto positivo e um a desenvolver antes de publicar.', true); return;
+    }
+    // Foto do momento da publicação: é só isso que o gestor lê.
+    Object.assign(dados, { pilares: monPilares(items), media_geral: monMediaGeral(items), n_monitorias: items.length, publicado_em: new Date().toISOString() });
+  }
+  if (despublicar && !confirm(`Tirar o consolidado de ${nome} do ar? O gestor deixa de ver até você publicar de novo.`)) return;
+  try {
+    const r = await authFetch(`${SUPA_URL}/monitoria_consolidado?on_conflict=gestor_nome`, {
+      method: 'POST', body: JSON.stringify(dados),
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' }
+    });
+    if (!r.ok) throw new Error(await r.text());
+    consolidados[nome] = (await r.json())[0];
+    toast(status === 'publicado' ? 'Publicado! O gestor já vê o consolidado.' : despublicar ? 'Consolidado despublicado.' : 'Rascunho salvo.');
+    renderMonitorias();
+    abrirGestorMonitorias(nome);
+  } catch(e) { toast('Erro ao salvar: ' + e.message, true); }
+}
+
+// Rascunho com a mesma IA da Avaliação 360º (função /api/claude do app da 360,
+// servida em /av360/ — só atende quem está logado no portal).
+async function gerarConsolidadoIA() {
+  const nome = consolidadoAtual; if (!nome) return;
+  const items = monitorias.filter(m=>m.gestor_nome===nome);
+  if (!items.length) return;
+  const temTexto = r$('mcResumo').value.trim() || r$('mcPositivos').value.trim() || r$('mcDesenvolver').value.trim();
+  if (temTexto && !confirm('Isso substitui o texto que está nos campos pelo rascunho da IA. Continuar?')) return;
+
+  const pilares = monPilares(items);
+  const comentarios = MON_PILARES.map(p => {
+    const cs = items.flatMap(m => p.campos.map(c => {
+      const pergunta = (MON_PERGUNTAS.find(q=>q.campo===c)||{}).titulo || c;
+      const nota = m['nota_'+c], txt = (m['coment_'+c]||'').trim();
+      return txt ? `- (${pergunta}; nota ${nota ?? '—'}/5) ${txt}` : null;
+    })).filter(Boolean);
+    return `## ${p.pilar} — média ${pilares.find(x=>x.pilar===p.pilar).media ?? '—'}/5\n${cs.join('\n') || '- (sem comentários)'}`;
+  }).join('\n\n');
+  const melhorias = items.map(m => (m.pontos_melhoria||'').trim()).filter(Boolean).map(t => `- ${t}`).join('\n') || '- (nenhum)';
+
+  const prompt = `Você é do RH de uma empresa de óleo e gás e vai escrever o consolidado de MONITORIA de um gestor em início de carreira na função, a partir das avaliações de ${items.length} monitor(es).
+
+O texto será lido PELO PRÓPRIO GESTOR. Regras obrigatórias:
+- Tom construtivo, respeitoso e direto, em português do Brasil, falando sobre o gestor na 3ª pessoa ("demonstra", "pode desenvolver").
+- NUNCA cite nomes de monitores, quantos monitores disseram algo, nem quem disse o quê.
+- NUNCA copie frases dos comentários: reescreva com suas palavras, de forma que nenhum monitor seja reconhecível pelo jeito de escrever.
+- Não invente fatos que não estejam nas avaliações. Não mencione notas numéricas no texto.
+- "Pontos a desenvolver" devem ser comportamentos observáveis e acionáveis, sem julgamento pessoal.
+
+Escala das notas: 1 a 5.
+
+Avaliações agrupadas por pilar:
+${comentarios}
+
+Pontos de melhoria / treinamentos sugeridos pelos monitores:
+${melhorias}
+
+Entregue:
+- resumo: resumo executivo em 3 a 5 frases.
+- pontos_positivos: 3 a 5 itens, uma frase curta cada.
+- pontos_desenvolver: 3 a 5 itens, uma frase curta cada, cada um já indicando um caminho prático.`;
+
+  const schema = {
+    type: 'object',
+    properties: {
+      resumo: { type: 'string' },
+      pontos_positivos: { type: 'array', items: { type: 'string' } },
+      pontos_desenvolver: { type: 'array', items: { type: 'string' } },
+    },
+    required: ['resumo', 'pontos_positivos', 'pontos_desenvolver'],
+    additionalProperties: false,
+  };
+
+  const btn = r$('mcBtnIA'); btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Gerando...';
+  try {
+    if (session.expires_at < Date.now() + 60000) await authRefresh();
+    const r = await fetch('/av360/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify({ prompt, schema })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || `Erro ${r.status}`);
+    const out = JSON.parse(j.text);
+    r$('mcResumo').value = out.resumo || '';
+    r$('mcPositivos').value = (out.pontos_positivos||[]).join('\n');
+    r$('mcDesenvolver').value = (out.pontos_desenvolver||[]).join('\n');
+    toast('Rascunho gerado. Revise antes de publicar.');
+  } catch(e) {
+    toast('Não foi possível gerar com IA: ' + e.message, true);
+  }
+  btn.disabled = false; btn.innerHTML = '<i class="ti ti-sparkles"></i> Gerar rascunho com IA';
 }
 
 function abrirMonitoriaFicha(id, navList) {
@@ -3407,37 +3758,52 @@ async function onMonitoriaPdfSelected(input) {
   }
 }
 
-function renderMinhaMonitoria() {
-  const headerEl = r$('mmHeader'); if (!headerEl) return;
-  const mine = monitorias.slice().sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')); // já vem só com as avaliações do gestor logado (RLS)
-  r$('mmEmpty').style.display = mine.length ? 'none' : 'block';
+// Visão do gestor: só o consolidado que o RH publicou (o banco não devolve
+// rascunho nem as respostas dos monitores pra ele).
+async function renderMinhaMonitoria() {
+  const el = r$('mmConteudo'); if (!el) return;
+  let c = null;
+  try {
+    const r = await authFetch(`${SUPA_URL}/monitoria_consolidado?select=*&status=eq.publicado`);
+    if (r.ok) c = (await r.json())[0] || null;
+  } catch(e) { console.warn('Consolidado da monitoria:', e.message); }
 
-  const medias = mine.map(monMedia).filter(n=>n!=null);
-  const mediaGeral = medias.length ? (medias.reduce((a,b)=>a+b,0)/medias.length) : null;
+  r$('mmEmpty').style.display = c ? 'none' : 'block';
+  if (!c) { el.innerHTML = ''; return; }
 
-  headerEl.innerHTML = `
-    <div style="display:flex;align-items:center;gap:14px">
-      <div class="avatar" style="width:52px;height:52px;font-size:18px">${initials((profile&&profile.gestor_nome)||'?')}</div>
-      <div style="flex:1">
-        <div style="font-size:15px;font-weight:600">${(profile&&profile.gestor_nome)||'—'}</div>
-        <div style="font-size:12.5px;color:var(--text2);margin-top:2px">${mine.length} ${mine.length!==1?'avaliações':'avaliação'} de monitoria</div>
-      </div>
-      ${mediaGeral!=null?`<span class="mon-nota ${monNotaClass(mediaGeral)}" style="font-size:18px;padding:6px 14px">${mediaGeral.toFixed(1)}</span>`:''}
+  const nome = (profile && profile.gestor_nome) || c.gestor_nome;
+  const fotoUrl = profile && profile.foto_url;
+  const pilares = c.pilares || [];
+  const li = arr => (arr||[]).map(t => `<li>${escHtml(t)}</li>`).join('');
+  el.innerHTML = `
+    <div class="mc-hero mp-anim">
+      <div class="avatar">${fotoUrl ? `<img src="${fotoUrl}">` : initials(nome)}</div>
+      <div><div class="nm">${escHtml(nome)}</div>
+        <div class="sub">Consolidado de ${c.n_monitorias} ${c.n_monitorias!==1?'avaliações':'avaliação'} de monitoria${c.publicado_em ? ' · publicado em '+new Date(c.publicado_em).toLocaleDateString('pt-BR') : ''}</div></div>
+      <div class="media"><div class="v">${c.media_geral!=null ? Number(c.media_geral).toFixed(1) : '—'}</div><div class="l">Média geral (1 a 5)</div></div>
+    </div>
+    <div class="mc-grid mp-anim" style="animation-delay:.05s">
+      <div class="card" style="margin:0"><div class="card-title">Seus pilares</div><div class="mc-radar"><canvas id="mmRadar"></canvas></div></div>
+      <div class="card" style="margin:0"><div class="card-title">Nota por pilar</div>${mcPilaresHtml(pilares)}</div>
+    </div>
+    <div class="card mp-anim" style="animation-delay:.1s"><div class="card-title"><i class="ti ti-file-description"></i> Resumo executivo</div><div class="mc-resumo">${escHtml(c.resumo||'')}</div></div>
+    <div class="mc-grid mp-anim" style="animation-delay:.15s">
+      <div class="card mc-pos" style="margin:0"><div class="card-title"><i class="ti ti-thumb-up"></i> Pontos positivos</div><ul class="mc-list">${li(c.pontos_positivos)}</ul></div>
+      <div class="card mc-dev" style="margin:0"><div class="card-title"><i class="ti ti-trending-up"></i> Pontos a desenvolver</div><ul class="mc-list">${li(c.pontos_desenvolver)}</ul></div>
     </div>`;
 
-  const navIds = mine.map(m=>m.id);
-  const navListJs = '[' + navIds.map(id=>`'${id}'`).join(',') + ']';
-  r$('mmList').innerHTML = mine
-    .map(m => {
-      const media = monMedia(m);
-      return `<div class="pdi-group" style="cursor:pointer" onclick="abrirMonitoriaFicha('${m.id}', ${navListJs})">
-        <div class="pdi-group-head open" style="cursor:pointer">
-          <i class="ti ti-clipboard-check"></i> Monitor: ${m.monitor_nome||'—'}
-          <span class="cnt">${m.unidade||''} · ${m.duracao||''}</span>
-          <span style="margin-left:auto">${media!=null?`<span class="mon-nota ${monNotaClass(media)}">${media.toFixed(1)}</span>`:''}</span>
-        </div>
-      </div>`;
-    }).join('');
+  if (charts.mmRadar) charts.mmRadar.destroy();
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const grid = dark ? 'rgba(255,255,255,0.12)' : 'rgba(9,28,40,0.12)';
+  charts.mmRadar = new Chart(r$('mmRadar'), {
+    type: 'radar',
+    data: { labels: pilares.map(p => p.pilar), datasets: [{
+      data: pilares.map(p => p.media), borderColor: '#1A88FF', backgroundColor: 'rgba(26,136,255,0.18)',
+      pointBackgroundColor: '#1A88FF', borderWidth: 2 }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, display: false }, grid: { color: grid }, angleLines: { color: grid },
+        pointLabels: { color: dark ? '#dceef8' : '#091C28', font: { family: 'IBM Plex Sans', size: 12, weight: '600' } } } } }
+  });
 }
 
 // ============================================================
