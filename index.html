@@ -919,6 +919,14 @@
       <div class="obs-box" id="pdiFichaDetalhe" style="margin-bottom:1rem"></div>
       <div class="card-title" style="margin-bottom:6px">Feedback DRE</div>
       <div class="obs-box" id="pdiFichaFeedback"></div>
+      <div id="pdiFichaAcompWrap" style="display:none">
+        <div class="card-title" style="margin:1rem 0 6px"><i class="ti ti-message-circle-2" style="color:var(--blue)"></i> Atualização de andamento</div>
+        <div class="obs-box admin-only" id="pdiFichaAcompLeitura" style="margin-bottom:1rem"></div>
+        <div class="gestor-only" id="pdiFichaAcompEditor" style="display:none;margin-bottom:1rem">
+          <textarea id="pdiAcompResumoInput" placeholder="Como está indo essa ação? Tem alguma dificuldade? Deixa um resumo rápido..." style="min-height:70px;width:100%"></textarea>
+          <button class="btn" style="margin-top:8px" onclick="salvarAcompanhamentoPDI()"><i class="ti ti-check"></i> Salvar atualização</button>
+        </div>
+      </div>
       <div id="pdiFichaConclusaoWrap" style="display:none">
         <div class="card-title" style="margin:1rem 0 6px"><i class="ti ti-confetti" style="color:var(--green-text)"></i> Conclusão do gestor</div>
         <div class="obs-box" style="display:flex;flex-direction:column;gap:10px">
@@ -2758,6 +2766,13 @@ function verPDI(id, navList) {
   const podeConcluir = st !== 'Concluído' && st !== 'Descontinuado';
   r$('pdiFichaConcluirBtn').style.display = podeConcluir ? '' : 'none';
 
+  r$('pdiFichaAcompWrap').style.display = (podeConcluir || p.acompanhamento_resumo) ? '' : 'none';
+  r$('pdiFichaAcompLeitura').textContent = p.acompanhamento_resumo
+    ? p.acompanhamento_resumo + (p.acompanhamento_resumo_em ? ` (${fmt(p.acompanhamento_resumo_em.slice(0,10))})` : '')
+    : 'Nenhuma atualização registrada ainda.';
+  r$('pdiFichaAcompEditor').style.display = podeConcluir ? '' : 'none';
+  r$('pdiAcompResumoInput').value = p.acompanhamento_resumo || '';
+
   r$('mPDI').classList.add('open');
 }
 
@@ -2847,6 +2862,17 @@ async function salvarConclusaoPDI() {
   } finally {
     btn.disabled = false; btn.innerHTML = '<i class="ti ti-check"></i> Confirmar conclusão';
   }
+}
+
+async function salvarAcompanhamentoPDI() {
+  const texto = r$('pdiAcompResumoInput').value.trim();
+  if (!texto) { toast('Escreve uma atualização rápida antes de salvar :)', true); return; }
+  try {
+    await dbUpdate('pdi', viewPDIId, { acompanhamento_resumo: texto, acompanhamento_resumo_em: new Date().toISOString() });
+    toast('Atualização salva!');
+    pdis = await dbGet('pdi'); populatePDISels(); renderPDI();
+    verPDI(viewPDIId, fichaNavList);
+  } catch(e) { toast('Não consegui salvar: '+e.message, true); }
 }
 
 function fichaNavStep(delta) {
