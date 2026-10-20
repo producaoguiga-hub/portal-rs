@@ -460,6 +460,7 @@
   <button class="nav-item" id="navItemAv360" onclick="goPage('av360',this)"><i class="ti ti-users-group"></i><span>Avaliação 360º</span></button>
   <div class="sidebar-foot">
     <div class="sidebar-user" id="sidebarUser"></div>
+    <button class="nav-item" onclick="abrirTrocarSenha()"><i class="ti ti-key"></i><span>Trocar senha</span></button>
     <button class="nav-item" onclick="authSignOut()"><i class="ti ti-logout"></i><span>Sair</span></button>
   </div>
 </nav>
@@ -907,6 +908,23 @@
     <div class="modal-footer">
       <button class="btn" onclick="fecharModal('mTurma')">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarTurma()"><i class="ti ti-check"></i> Salvar turma</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TROCAR SENHA (qualquer usuário logado) -->
+<div class="modal-overlay" id="mSenha">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">Trocar minha senha</div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="fg"><label>Senha atual</label><input id="tsAtual" type="password" autocomplete="current-password"></div>
+      <div class="fg"><label>Nova senha</label><input id="tsNova1" type="password" placeholder="mínimo 8 caracteres" autocomplete="new-password"></div>
+      <div class="fg"><label>Repita a nova senha</label><input id="tsNova2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')trocarSenha()"></div>
+    </div>
+    <div class="login-err" id="tsErr"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mSenha')">Cancelar</button>
+      <button class="btn btn-primary" id="tsBtn" onclick="trocarSenha()"><i class="ti ti-check"></i> Salvar nova senha</button>
     </div>
   </div>
 </div>
@@ -3878,6 +3896,39 @@ async function definirSenha() {
     r$('senhaCard').style.display = 'none';
     r$('loginCard').style.display = 'block';
     await bootstrap();
+  } catch(e) {
+    errEl.textContent = e.message; errEl.style.display = 'block';
+  }
+  btn.disabled = false;
+}
+
+// Trocar a própria senha (quem entrou com a senha padrão, por exemplo).
+// Confere a senha atual antes: um computador deixado logado não basta pra
+// alguém trocar a senha de outra pessoa.
+function abrirTrocarSenha() {
+  ['tsAtual','tsNova1','tsNova2'].forEach(id => r$(id).value = '');
+  r$('tsErr').style.display = 'none';
+  r$('mSenha').classList.add('open');
+  r$('tsAtual').focus();
+}
+
+async function trocarSenha() {
+  const atual = r$('tsAtual').value, s1 = r$('tsNova1').value, s2 = r$('tsNova2').value;
+  const errEl = r$('tsErr'); errEl.style.display = 'none';
+  const erro = !atual ? 'Informe sua senha atual.'
+    : s1.length < 8 ? 'A nova senha precisa ter pelo menos 8 caracteres.'
+    : s1 !== s2 ? 'As duas senhas novas não são iguais.'
+    : s1 === atual ? 'A nova senha precisa ser diferente da atual.' : null;
+  if (erro) { errEl.textContent = erro; errEl.style.display = 'block'; return; }
+  const btn = r$('tsBtn'); btn.disabled = true;
+  try {
+    try { await authSignIn(session.user.email, atual); }
+    catch(e) { throw new Error('Senha atual incorreta.'); }
+    const r = await authFetch(`${SUPA_AUTH_URL}/user`, { method: 'PUT', body: JSON.stringify({ password: s1 }) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.msg || j.error_description || 'Não foi possível salvar a senha.');
+    fecharModal('mSenha');
+    toast('Senha alterada! Use a nova senha no próximo acesso.');
   } catch(e) {
     errEl.textContent = e.message; errEl.style.display = 'block';
   }
