@@ -1436,7 +1436,7 @@ function goPage(id, btn) {
   if(btn) btn.classList.add('active');
   // A 360 é um app à parte (servido em /av360/ pelo proxy do vercel.json),
   // que usa a mesma sessão de login. Só carrega na primeira vez que abrir a aba.
-  if(id==='av360') { const f=r$('av360Frame'); if(!f.src) f.src='/av360/'; }
+  if(id==='av360') { const f=r$('av360Frame'); if(!f.src) f.src='/av360/index.html'; }
 }
 
 // Abas internas de "R&S Gestão" (Visão geral / Candidatos / Custos / Turmas / Linha do tempo)
