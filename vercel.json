@@ -1,0 +1,8 @@
+{
+  "redirects": [
+    { "source": "/av360", "destination": "/av360/", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/av360/:path*", "destination": "https://avaliacao360-chi.vercel.app/:path*" }
+  ]
+}

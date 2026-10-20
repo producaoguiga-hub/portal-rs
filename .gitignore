@@ -14,3 +14,7 @@ monitoria_import*.sql
 
 # E-mails reais de gestores. Fica só local, nunca no repositório público.
 pdi_email_backfill.sql
+
+# Importação dos dados reais da Avaliação 360º — avaliações com comentários
+# sensíveis sobre gestores específicos. Fica só local, nunca no repositório.
+av360_import*.sql
