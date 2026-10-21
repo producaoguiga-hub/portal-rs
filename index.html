@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestor+ — Perbras</title>
+<title>Mais Gestor — Perbras</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -452,9 +452,34 @@
   .mp-pct { background: none; color: var(--perbras-verde); -webkit-text-fill-color: var(--perbras-verde); }
 
   /* Login: fundo azul Perbras com o grafismo, igual ao material institucional */
-  #loginScreen { background: var(--perbras-azul) var(--grafismo-azul) no-repeat right bottom / cover; }
-  .login-card { border: none; border-radius: 4px; box-shadow: 0 20px 48px rgba(9,28,40,0.28); }
-  .login-card h1 { font-size: 17px; font-weight: 700; }
+  /* Login Mais Gestor: marca à esquerda (petróleo + grafismo), acesso à direita */
+  #loginScreen { padding: 0; background: var(--bg); }
+  body:not(.authed) #loginScreen { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, 1fr); align-items: stretch; justify-content: stretch; }
+  .login-brand { position: relative; display: flex; align-items: center; justify-content: center; padding: 4rem 3rem;
+    background: var(--perbras-petroleo) var(--grafismo-petroleo) no-repeat right bottom / cover; }
+  .login-brand-logo { width: min(520px, 82%); max-width: 100%; height: auto; animation: pageIn .6s cubic-bezier(.4,0,.2,1) both; }
+  .login-brand-perbras { position: absolute; left: 3rem; bottom: 2.25rem; display: flex; align-items: center; gap: 10px;
+    font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+  .login-brand-perbras img { height: 18px; width: auto; filter: brightness(0) invert(1); opacity: .85; }
+  .login-side { display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; background: var(--bg); }
+  .login-card { width: 100%; max-width: 360px; padding: 0; border: none; border-radius: 0; box-shadow: none; background: transparent; }
+  .login-card h1 { font-size: 28px; font-weight: 700; text-align: left; margin-bottom: 6px; }
+  .login-sub { font-size: 13.5px; color: var(--text2); margin-bottom: 1.75rem; }
+  .login-card .fg input { height: 44px; font-size: 14px; }
+  .login-card .btn-primary { height: 46px; font-size: 14px; }
+  @media (max-width: 800px) {
+    body:not(.authed) #loginScreen { grid-template-columns: 1fr; grid-template-rows: auto 1fr; overflow-y: auto; }
+    .login-brand { padding: 2.5rem 1.5rem 3.25rem; }
+    .login-brand-logo { width: min(280px, 75%); }
+    .login-brand-perbras { left: 50%; transform: translateX(-50%); bottom: 1rem; }
+    .login-side { align-items: flex-start; padding: 2rem 1.5rem; }
+  }
+
+  /* Logo Mais Gestor no topo do menu */
+  .sidebar-logo img.sidebar-logo-mg { max-height: none; max-width: 172px; width: 100%; filter: none; }
+  .sidebar-subtitle { display: flex; align-items: center; gap: 6px; }
+  .sidebar-subtitle img { height: 12px; max-width: none; filter: brightness(0) invert(1); opacity: .55; margin-top: 4px; }
+  @media (max-width: 900px) { .sidebar-logo-mg { display: none; } }
 
   /* ============================================================
      Monitoria — consolidado (pilares + resumo + pontos)
@@ -779,9 +804,15 @@
 
 <!-- LOGIN -->
 <div id="loginScreen">
+  <!-- Metade da marca: logo Mais Gestor sobre o petróleo com o grafismo -->
+  <div class="login-brand">
+    <img class="login-brand-logo" src="maisgestor_logo_branca.png" alt="Mais Gestor — portal de desenvolvimento do gestor">
+    <div class="login-brand-perbras"><span>uma iniciativa</span><img src="perbras_logo_horizontal.png" alt="Perbras"></div>
+  </div>
+  <!-- Metade do acesso -->
+  <div class="login-side">
   <!-- Chegou por link de convite / "esqueci a senha" (e-mail do Supabase) -->
   <div class="login-card" id="senhaCard" style="display:none">
-    <img src="perbraslogo.png" alt="Perbras">
     <h1>Defina sua senha</h1>
     <p style="font-size:12.5px;color:var(--text-muted,#666);text-align:center;margin:-0.75rem 0 1.25rem" id="senhaCardEmail"></p>
     <div class="fg" style="margin-bottom:10px"><label>Nova senha</label><input id="novaSenha1" type="password" placeholder="mínimo 8 caracteres" autocomplete="new-password"></div>
@@ -790,20 +821,21 @@
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" id="senhaBtn" onclick="definirSenha()"><i class="ti ti-lock-check"></i> Salvar e entrar</button>
   </div>
   <div class="login-card" id="loginCard">
-    <img src="perbraslogo.png" alt="Perbras">
-    <h1>Gestor+ — Entrar</h1>
+    <h1>Entrar</h1>
+    <p class="login-sub">Use seu e-mail Perbras e a sua senha.</p>
     <div class="fg" style="margin-bottom:10px"><label>E-mail</label><input id="loginEmail" type="email" placeholder="seu@email.com" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="fg"><label>Senha</label><input id="loginSenha" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="login-err" id="loginErr"></div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" id="loginBtn" onclick="doLogin()"><i class="ti ti-login-2"></i> Entrar</button>
+  </div>
   </div>
 </div>
 
 <!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <img src="perbraslogo.png" alt="Perbras">
-    <span class="sidebar-subtitle">Gestor+</span>
+    <img class="sidebar-logo-mg" src="maisgestor_logo_branca.png" alt="Mais Gestor">
+    <span class="sidebar-subtitle"><img src="perbras_logo_horizontal.png" alt="Perbras"></span>
   </div>
   <button class="nav-item active admin-only" onclick="goPage('rsgestao',this)"><i class="ti ti-briefcase"></i><span>R&amp;S Gestão</span></button>
   <button class="nav-item admin-only" id="navItemPdi" onclick="goPage('pdi',this)"><i class="ti ti-target-arrow"></i><span>PDI Gestão</span></button>
@@ -1981,7 +2013,7 @@ async function bootstrap() {
   }
 
   if (!profile) {
-    r$('loginErr').textContent = 'Seu usuário não tem acesso configurado ainda. Peça para o RH liberar seu perfil no Gestor+.';
+    r$('loginErr').textContent = 'Seu usuário não tem acesso configurado ainda. Peça para o RH liberar seu perfil no Mais Gestor.';
     r$('loginErr').style.display = 'block';
     document.body.classList.remove('authed');
     return;
