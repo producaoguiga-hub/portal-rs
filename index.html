@@ -564,6 +564,68 @@
   .mc-ind b { display: block; font-size: 13px; font-weight: 600; }
   .mc-ind span:not(.mon-nota) { font-size: 12px; color: var(--text2); }
 
+  /* Painel do PDI (RH) — cores de status validadas pra daltonismo nesta ordem:
+     concluído · em andamento · atrasado · descontinuado · não iniciado */
+  :root { --st-concl: #5E9E00; --st-and: #1A88FF; --st-atr: #FF8F1F; --st-desc: #7F77DD; --st-nao: #B5C2CC; }
+  @media (prefers-color-scheme: dark) { :root { --st-concl: #9ACD32; --st-and: #2ED7ED; --st-desc: #AFA9EC; --st-nao: #5E7482; } }
+  .psp-bar { gap: 2px; background: transparent; height: 12px; }
+  .psp-bar span:first-child { border-radius: 4px 0 0 4px; } .psp-bar span:last-child { border-radius: 0 4px 4px 0; }
+  .psp-bar span:only-child { border-radius: 4px; }
+  .pd-kpis { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
+  .pd-kpi { background: var(--bg); border-radius: var(--radius-lg); padding: 1rem 1.2rem; box-shadow: var(--shadow); }
+  .pd-kpi .l { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 5px; }
+  .pd-kpi .v { font-size: 30px; font-weight: 700; line-height: 1.1; margin-top: 6px; color: var(--text); }
+  .pd-kpi .s { font-size: 11.5px; color: var(--text3); margin-top: 4px; }
+  .pd-kpi.hero { background: var(--perbras-petroleo) var(--grafismo-petroleo) no-repeat right bottom / cover; color: #fff; }
+  .pd-kpi.hero .l, .pd-kpi.hero .s { color: rgba(255,255,255,0.7); }
+  .pd-kpi.hero .v { color: var(--perbras-verde); font-size: 40px; }
+  .pd-kpi.alerta { cursor: pointer; border-left: 4px solid var(--st-atr); transition: transform .15s; }
+  .pd-kpi.alerta:hover { transform: translateY(-2px); }
+  .pd-kpi.alerta .l i { color: var(--st-atr); }
+  .pd-kpi.alerta.zero { border-left-color: var(--st-concl); cursor: default; }
+  .pd-kpi.alerta.zero .l i { color: var(--st-concl); }
+  .pd-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 14px; margin-bottom: 1rem; }
+  .pd-row > .card { margin: 0; }
+  .pd-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .pd-sub { font-size: 11.5px; color: var(--text3); }
+  .pd-atencao .card-title i { color: var(--st-atr); }
+  .pd-at { display: flex; align-items: center; gap: 10px; padding: 10px 6px; border-bottom: 0.5px solid var(--border); cursor: pointer; border-radius: 4px; }
+  .pd-at:last-of-type { border-bottom: none; }
+  .pd-at:hover { background: var(--bg2); }
+  .pd-at-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--st-atr); }
+  .pd-at.vence .pd-at-dot { background: var(--st-and); }
+  .pd-at-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .pd-at-txt b { font-size: 13px; font-weight: 600; }
+  .pd-at-txt span { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pd-at-prazo { font-size: 11.5px; font-weight: 600; white-space: nowrap; padding: 3px 8px; border-radius: 4px; background: var(--amber-bg); color: var(--amber-text); }
+  .pd-at.vence .pd-at-prazo { background: var(--blue-bg); color: var(--blue-text); }
+  .pd-mais { font-size: 12px; color: var(--text2); padding: 10px 6px 0; }
+  .pd-ok { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--green-text); background: var(--green-bg); border-radius: var(--radius); padding: 14px; }
+  .pd-leg { margin-bottom: 10px; gap: 6px; }
+  .pd-leg .psp-chip { padding: 4px 10px; font-size: 11.5px; }
+  .pd-g { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+  .pd-g .avatar { width: 30px; height: 30px; font-size: 11px; flex-shrink: 0; }
+  .pd-g-main { flex: 1; min-width: 0; }
+  .pd-g-top { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; margin-bottom: 5px; }
+  .pd-g-top b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pd-g-top span { color: var(--text2); white-space: nowrap; font-size: 11.5px; }
+  .pd-g-top em { font-style: normal; color: var(--amber-text); font-weight: 600; }
+  .pd-g-bar { display: flex; gap: 2px; height: 10px; min-width: 24px; }
+  .pd-g-bar span:first-child { border-radius: 4px 0 0 4px; } .pd-g-bar span:last-child { border-radius: 0 4px 4px 0; }
+  .pd-g-bar span:only-child { border-radius: 4px; }
+  .pd-toggle { margin-top: 10px; width: 100%; justify-content: center; }
+  .pd-sec-t { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); margin: 14px 0 8px; }
+  .pd-sec-t:first-of-type { margin-top: 2px; }
+  .pd-bl { margin-bottom: 9px; }
+  .pd-bl-txt { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; margin-bottom: 4px; }
+  .pd-bl-txt span { color: var(--text); }
+  .pd-bl-txt b { font-weight: 600; white-space: nowrap; }
+  .pd-bl-txt small { font-weight: 400; color: var(--text3); }
+  .pd-bl-bar { height: 8px; background: var(--bg2); border-radius: 4px; overflow: hidden; }
+  .pd-bl-bar span { display: block; height: 100%; background: var(--perbras-azul); border-radius: 4px; }
+  .pd-vazio { font-size: 12px; color: var(--text3); }
+  @media (max-width: 1000px) { .pd-kpis { grid-template-columns: 1fr 1fr; } .pd-row { grid-template-columns: 1fr; } }
+
   /* Cabeçalho da Minha Trajetória */
   .traj-hero { display: flex; align-items: center; gap: 22px; padding: 1.75rem 2rem; border-radius: var(--radius-lg); margin-bottom: 1rem; color: #fff;
     background: var(--perbras-azul) var(--grafismo-azul) no-repeat right bottom / cover; }
@@ -956,24 +1018,32 @@
 
     <!-- Painel -->
     <div id="pdiDashView">
+      <!-- 1. Indicadores -->
+      <div class="pd-kpis" id="pdKpis"></div>
+      <!-- 2. Status de todas as ações (uma barra, sem repetir em rosca) -->
       <div class="card psp">
-        <div class="psp-top">
-          <div class="psp-total"><div class="val mp-count" id="pspTotal" data-target="0">0</div><div class="lbl">ações de PDI</div></div>
-          <div class="psp-divider"></div>
-          <div class="psp-total"><div class="val mp-count" id="pspGestores" data-target="0">0</div><div class="lbl">gestores com PDI</div></div>
-        </div>
+        <div class="card-title" style="margin-bottom:12px">Status das ações</div>
         <div class="psp-bar" id="pspBar"></div>
         <div class="psp-chips" id="pspChips"></div>
       </div>
-      <div class="chart-row">
-        <div class="card"><div class="card-title">Status das ações</div><div class="legend" id="pdiLgStatus"></div><div style="position:relative;height:220px"><canvas id="pdiCStatus"></canvas></div></div>
-        <div class="card"><div class="card-title">Ações por gestor</div><div style="position:relative;height:220px"><canvas id="pdiCGestor"></canvas></div></div>
+      <!-- 3. O que precisa de ação + progresso de cada gestor -->
+      <div class="pd-row">
+        <div class="card pd-atencao" id="pdAtencaoCard"><div class="pd-card-head"><div class="card-title" style="margin:0"><i class="ti ti-alert-triangle"></i> Precisa de atenção</div><span class="pd-sub" id="pdAtencaoSub"></span></div><div id="pdAtencao"></div></div>
+        <div class="card"><div class="pd-card-head"><div class="card-title" style="margin:0">Progresso por gestor</div><span class="pd-sub">ordenado por pendências</span></div>
+          <div class="psp-chips pd-leg" id="pdGestLeg"></div>
+          <div id="pdGestores"></div>
+        </div>
       </div>
-      <div class="chart-row3">
-        <div class="card"><div class="card-title">Canal de mapeamento</div><div style="position:relative;height:170px"><canvas id="pdiCCanal"></canvas></div></div>
-        <div class="card"><div class="card-title">Origem da ação</div><div style="position:relative;height:170px"><canvas id="pdiCOrigem"></canvas></div></div>
-        <div class="card"><div class="card-title">Tipo de necessidade</div><div style="position:relative;height:170px"><canvas id="pdiCTipo"></canvas></div></div>
-        <div class="card"><div class="card-title">Tipo de ação</div><div style="position:relative;height:170px"><canvas id="pdiCAcao"></canvas></div></div>
+      <!-- 4. Análise: origem e conteúdo das ações -->
+      <div class="pd-row">
+        <div class="card"><div class="card-title">De onde vêm as ações</div>
+          <div class="pd-sec-t">Canal de mapeamento</div><div id="pdCanal"></div>
+          <div class="pd-sec-t">Origem da ação</div><div id="pdOrigem"></div>
+        </div>
+        <div class="card"><div class="card-title">O que está sendo desenvolvido</div>
+          <div class="pd-sec-t">Tipo de necessidade</div><div id="pdNecessidade"></div>
+          <div class="pd-sec-t">Tipo de ação</div><div id="pdAcao"></div>
+        </div>
       </div>
     </div>
 
@@ -2843,57 +2913,95 @@ function renderPDI() {
   if(r$('pdiGestoresView') && r$('pdiGestoresView').style.display!=='none') renderPDIGestores();
 }
 
+// Painel do PDI (RH): indicadores → status → o que precisa de ação →
+// progresso por gestor → origem e conteúdo das ações. Tudo em HTML (nomes
+// inteiros, sem rótulo cortado); cores de status validadas pra daltonismo
+// na ordem abaixo (verde e laranja nunca lado a lado).
+const PD_STATUS_ORDEM = ['Concluído','Em andamento','Atrasado','Descontinuado','Não iniciado'];
+const PD_STATUS_VAR = { 'Concluído':'--st-concl', 'Em andamento':'--st-and', 'Atrasado':'--st-atr', 'Descontinuado':'--st-desc', 'Não iniciado':'--st-nao' };
+let pdGestoresTodos = false;
+
+function pdBarList(cnt, total, max=6) {
+  const ent = Object.entries(cnt).sort((a,b) => b[1]-a[1]);
+  if (!ent.length) return '<div class="pd-vazio">Sem dados no filtro atual.</div>';
+  const top = ent.slice(0, max), resto = ent.slice(max);
+  if (resto.length) top.push([`Outros (${resto.length})`, resto.reduce((s,[,v]) => s+v, 0)]);
+  const mx = Math.max(...top.map(([,v]) => v));
+  return top.map(([k,v]) => `<div class="pd-bl" title="${escHtml(k)}: ${v}">
+    <div class="pd-bl-txt"><span>${escHtml(k)}</span><b>${v}<small> · ${total ? Math.round(v/total*100) : 0}%</small></b></div>
+    <div class="pd-bl-bar"><span style="width:${v/mx*100}%"></span></div>
+  </div>`).join('');
+}
+
 function renderPDIDash() {
   const f = pdiFiltered();
-  const total=f.length;
-  const gestoresSet=new Set(f.map(p=>p.gestor_nome).filter(Boolean));
+  const total = f.length;
+  const hoje = new Date().toISOString().slice(0,10);
+  const em30 = new Date(Date.now() + 30*864e5).toISOString().slice(0,10);
+  const stCnt = {}; f.forEach(p => { const s = pdiEffectiveStatus(p); stCnt[s] = (stCnt[s]||0) + 1; });
+  const pct = n => total ? Math.round(n/total*100) : 0;
+  const abertas = p => !['Concluído','Descontinuado'].includes(p.status_acao);
+  const vencendo = f.filter(p => abertas(p) && p.data_termino_programada && p.data_termino_programada >= hoje && p.data_termino_programada <= em30);
+  const atrasadas = f.filter(p => pdiEffectiveStatus(p) === 'Atrasado');
+  const gestores = [...new Set(f.map(p => p.gestor_nome).filter(Boolean))];
 
-  // Uma única contagem por status (efetivo: considera atraso de prazo), usada
-  // no painel numérico, na barra segmentada e no gráfico de rosca — sem duplicar
-  // "concluídas" em cards separados como antes.
-  const stCnt={}; f.forEach(p=>{ const s=pdiEffectiveStatus(p); stCnt[s]=(stCnt[s]||0)+1; });
-  const stColors={'Concluído':'#BCFF48','Em andamento':'#1A88FF','Atrasado':'#FF8F1F','Não iniciado':'#8a9fad','Descontinuado':'#7F77DD'};
-  const pct=n=>total?Math.round(n/total*100):0;
+  // 1. Indicadores (o destaque é a taxa de conclusão)
+  r$('pdKpis').innerHTML = `
+    <div class="pd-kpi hero"><div class="l">Taxa de conclusão</div><div class="v">${pct(stCnt['Concluído']||0)}%</div><div class="s">${stCnt['Concluído']||0} de ${total} ações concluídas</div></div>
+    <div class="pd-kpi"><div class="l">Ações de PDI</div><div class="v">${total}</div><div class="s">${gestores.length} gestores com PDI</div></div>
+    <div class="pd-kpi alerta${atrasadas.length?'':' zero'}" onclick="r$('pdAtencaoCard').scrollIntoView({behavior:'smooth',block:'center'})" title="Ver a lista">
+      <div class="l"><i class="ti ti-alert-triangle"></i> Atrasadas</div><div class="v">${atrasadas.length}</div><div class="s">${atrasadas.length ? 'ver quais são ↓' : 'nenhuma no momento'}</div></div>
+    <div class="pd-kpi"><div class="l"><i class="ti ti-clock"></i> Vencem em 30 dias</div><div class="v">${vencendo.length}</div><div class="s">ainda em aberto</div></div>`;
 
-  r$('pspTotal').dataset.target = total;
-  r$('pspGestores').dataset.target = gestoresSet.size;
-  animateCounts(document.getElementById('pdiDashView'));
-
-  r$('pspBar').innerHTML = PDI_STATUS.filter(s=>stCnt[s]).map(s =>
-    `<span style="width:${pct(stCnt[s])}%;background:${stColors[s]}" title="${s}: ${stCnt[s]}"></span>`
-  ).join('');
-  r$('pspChips').innerHTML = PDI_STATUS.filter(s=>stCnt[s]).map(s =>
-    `<span class="psp-chip"><span class="dot" style="background:${stColors[s]}"></span>${s}: <b>${stCnt[s]}</b><span class="pct">${pct(stCnt[s])}%</span></span>`
+  // 2. Status
+  const ordem = PD_STATUS_ORDEM.filter(s => stCnt[s]);
+  r$('pspBar').innerHTML = ordem.map(s => `<span style="width:${pct(stCnt[s])}%;background:var(${PD_STATUS_VAR[s]})" title="${s}: ${stCnt[s]} (${pct(stCnt[s])}%)"></span>`).join('');
+  r$('pspChips').innerHTML = ordem.map(s =>
+    `<span class="psp-chip"><span class="dot" style="background:var(${PD_STATUS_VAR[s]})"></span>${s}: <b>${stCnt[s]}</b><span class="pct">${pct(stCnt[s])}%</span></span>`
   ).join('') || '<span style="color:var(--text3);font-size:12.5px">Nenhuma ação no filtro atual.</span>';
 
-  const stK=PDI_STATUS.filter(s=>stCnt[s]); const stV=stK.map(k=>stCnt[k]);
-  mkLeg('pdiLgStatus', stK, stK.map(k=>stColors[k]));
-  dc('pdiCStatus');
-  charts['pdiCStatus']=new Chart(r$('pdiCStatus'),{type:'doughnut',data:{labels:stK,datasets:[{data:stV,backgroundColor:stK.map(k=>stColors[k]),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}});
+  // 3a. Precisa de atenção: atrasadas (mais antigas primeiro) e depois as que vencem logo
+  const dias = d => Math.round((new Date(d+'T00:00') - new Date(hoje+'T00:00')) / 864e5);
+  const lista = [
+    ...atrasadas.sort((a,b) => (a.data_termino_programada||'').localeCompare(b.data_termino_programada||'')).map(p => ({ p, tipo: 'atr', txt: p.data_termino_programada ? `${-dias(p.data_termino_programada)}d de atraso` : 'atrasada' })),
+    ...vencendo.filter(p => !atrasadas.includes(p)).sort((a,b) => a.data_termino_programada.localeCompare(b.data_termino_programada)).map(p => ({ p, tipo: 'vence', txt: `vence em ${dias(p.data_termino_programada)}d` })),
+  ];
+  const idsJs = JSON.stringify(lista.map(x => x.p.id)).replace(/"/g, "'");
+  r$('pdAtencaoSub').textContent = lista.length ? `${atrasadas.length} atrasada${atrasadas.length!==1?'s':''} · ${vencendo.length} vencendo` : '';
+  r$('pdAtencao').innerHTML = lista.length ? lista.slice(0, 8).map(({p, tipo, txt}) => `
+    <div class="pd-at ${tipo}" onclick="verPDI('${p.id}', ${idsJs})">
+      <span class="pd-at-dot"></span>
+      <div class="pd-at-txt"><b>${escHtml(p.gestor_nome||'—')}</b><span>${escHtml(p.detalhe_desenvolvimento || p.acao || 'Ação de PDI')}</span></div>
+      <span class="pd-at-prazo">${txt}</span>
+    </div>`).join('') + (lista.length > 8 ? `<div class="pd-mais">+ ${lista.length-8} — veja em "Todas as ações"</div>` : '')
+    : '<div class="pd-ok"><i class="ti ti-circle-check"></i> Nada atrasado nem vencendo nos próximos 30 dias.</div>';
 
-  const gCnt={}; f.forEach(p=>{ if(p.gestor_nome) gCnt[p.gestor_nome]=(gCnt[p.gestor_nome]||0)+1; });
-  const gK=Object.keys(gCnt).sort((a,b)=>gCnt[b]-gCnt[a]).slice(0,10);
-  const gV=gK.map(k=>gCnt[k]);
-  dc('pdiCGestor');
-  charts['pdiCGestor']=new Chart(r$('pdiCGestor'),{type:'bar',data:{labels:gK,datasets:[{data:gV,backgroundColor:'#1A88FF',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10},callback:pdiTickTrunc}}}}});
+  // 3b. Progresso por gestor (barra empilhada por status, mais pendência no topo)
+  r$('pdGestLeg').innerHTML = ordem.map(s => `<span class="psp-chip"><span class="dot" style="background:var(${PD_STATUS_VAR[s]})"></span>${s}</span>`).join('');
+  const linhas = gestores.map(g => {
+    const its = f.filter(p => p.gestor_nome === g), c = {};
+    its.forEach(p => { const s = pdiEffectiveStatus(p); c[s] = (c[s]||0) + 1; });
+    return { g, n: its.length, c };
+  }).sort((a,b) => (b.c['Atrasado']||0) - (a.c['Atrasado']||0) || (b.n-(b.c['Concluído']||0)) - (a.n-(a.c['Concluído']||0)) || a.g.localeCompare(b.g));
+  const maxN = Math.max(1, ...linhas.map(l => l.n));
+  const mostrar = pdGestoresTodos ? linhas : linhas.slice(0, 10);
+  r$('pdGestores').innerHTML = mostrar.map(({g, n, c}) => {
+    const gp = gestorProfiles[g];
+    return `<div class="pd-g">
+      <div class="avatar">${gp && gp.foto_url ? `<img src="${gp.foto_url}" loading="lazy">` : initials(g)}</div>
+      <div class="pd-g-main">
+        <div class="pd-g-top"><b>${escHtml(g)}</b><span>${c['Concluído']||0}/${n} concluídas${c['Atrasado'] ? ` · <em>${c['Atrasado']} atrasada${c['Atrasado']>1?'s':''}</em>` : ''}</span></div>
+        <div class="pd-g-bar" style="width:${n/maxN*100}%">${PD_STATUS_ORDEM.filter(s => c[s]).map(s => `<span style="flex:${c[s]};background:var(${PD_STATUS_VAR[s]})" title="${s}: ${c[s]}"></span>`).join('')}</div>
+      </div>
+    </div>`;
+  }).join('') + (linhas.length > 10 ? `<button class="btn pd-toggle" onclick="pdGestoresTodos=!pdGestoresTodos;renderPDIDash()">${pdGestoresTodos ? 'Mostrar só os 10 primeiros' : `Mostrar todos os ${linhas.length} gestores`}</button>` : '');
 
-  const cnCnt={}; f.forEach(p=>{ pdiSplit(p.canal_mapeamento).forEach(c=>{cnCnt[c]=(cnCnt[c]||0)+1;}); });
-  const cnK=Object.keys(cnCnt).sort((a,b)=>cnCnt[b]-cnCnt[a]); const cnV=cnK.map(k=>cnCnt[k]);
-  dc('pdiCCanal');
-  charts['pdiCCanal']=new Chart(r$('pdiCCanal'),{type:'bar',data:{labels:cnK,datasets:[{data:cnV,backgroundColor:'#2ED7ED',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10},callback:pdiTickTrunc}}}}});
-
-  const orCnt=cnt(f.filter(p=>p.origem_acao),'origem_acao'); const orK=Object.keys(orCnt); const orV=orK.map(k=>orCnt[k]);
-  const multiCols=['#1A88FF','#2ED7ED','#BCFF48','#FF8F1F','#7F77DD'];
-  dc('pdiCOrigem');
-  charts['pdiCOrigem']=new Chart(r$('pdiCOrigem'),{type:'doughnut',data:{labels:orK,datasets:[{data:orV,backgroundColor:multiCols.slice(0,orK.length),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:true,position:'bottom',labels:{font:{size:9},boxWidth:8,padding:6}}}}});
-
-  const tpCnt=cnt(f.filter(p=>p.tipo_necessidade),'tipo_necessidade'); const tpK=Object.keys(tpCnt); const tpV=tpK.map(k=>tpCnt[k]);
-  dc('pdiCTipo');
-  charts['pdiCTipo']=new Chart(r$('pdiCTipo'),{type:'doughnut',data:{labels:tpK,datasets:[{data:tpV,backgroundColor:multiCols.slice(0,tpK.length),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{display:true,position:'bottom',labels:{font:{size:9},boxWidth:8,padding:6}}}}});
-
-  const acCnt=cnt(f.filter(p=>p.acao),'acao'); const acK=Object.keys(acCnt).sort((a,b)=>acCnt[b]-acCnt[a]); const acV=acK.map(k=>acCnt[k]);
-  dc('pdiCAcao');
-  charts['pdiCAcao']=new Chart(r$('pdiCAcao'),{type:'bar',data:{labels:acK,datasets:[{data:acV,backgroundColor:'#BCFF48',borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,0.1)'},ticks:{stepSize:1,font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10},callback:pdiTickTrunc}}}}});
+  // 4. Origem e conteúdo
+  const cnCnt = {}; f.forEach(p => pdiSplit(p.canal_mapeamento).forEach(c => { cnCnt[c] = (cnCnt[c]||0) + 1; }));
+  r$('pdCanal').innerHTML = pdBarList(cnCnt, total);
+  r$('pdOrigem').innerHTML = pdBarList(cnt(f.filter(p => p.origem_acao), 'origem_acao'), total);
+  r$('pdNecessidade').innerHTML = pdBarList(cnt(f.filter(p => p.tipo_necessidade), 'tipo_necessidade'), total);
+  r$('pdAcao').innerHTML = pdBarList(cnt(f.filter(p => p.acao), 'acao'), total);
 }
 
 function pdiRowCardHtml(p) {
