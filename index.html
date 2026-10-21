@@ -564,6 +564,21 @@
   .mc-ind b { display: block; font-size: 13px; font-weight: 600; }
   .mc-ind span:not(.mon-nota) { font-size: 12px; color: var(--text2); }
 
+  /* Cabeçalho da Minha Trajetória */
+  .traj-hero { display: flex; align-items: center; gap: 22px; padding: 1.75rem 2rem; border-radius: var(--radius-lg); margin-bottom: 1rem; color: #fff;
+    background: var(--perbras-azul) var(--grafismo-azul) no-repeat right bottom / cover; }
+  .traj-hero .avatar { width: 78px; height: 78px; font-size: 26px; flex-shrink: 0; background: rgba(255,255,255,0.18); color: #fff; border: 3px solid rgba(255,255,255,0.6); }
+  .th-txt { flex: 1; min-width: 0; }
+  .th-ola { font-size: 24px; font-weight: 700; }
+  .th-frase { font-size: 16px; line-height: 1.55; margin-top: 6px; max-width: 64ch; color: rgba(255,255,255,0.95); }
+  .th-frase b { font-weight: 700; }
+  .th-nivel { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; background: rgba(9,28,40,0.28); border-radius: 4px; padding: 7px 12px; font-size: 13px; }
+  .th-nivel span { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,0.7); }
+  .th-nivel b { color: var(--perbras-verde); font-size: 15px; }
+  .th-nivel em { font-style: normal; color: rgba(255,255,255,0.85); }
+  .th-canal { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 10px; }
+  @media (max-width: 700px) { .traj-hero { flex-direction: column; align-items: flex-start; } }
+
   /* Trilha de conhecimento */
   .tr-hero { display: flex; align-items: center; gap: 24px; padding: 1.5rem 1.75rem; border-radius: var(--radius-lg); margin-bottom: 1rem; color: #fff;
     background: var(--perbras-petroleo) var(--grafismo-petroleo) no-repeat right bottom / cover; }
@@ -620,6 +635,11 @@
   .aux-st.vence { background: var(--amber-bg); color: var(--amber-text); }
   .aux-st.agend { background: var(--blue-bg); color: var(--blue-text); }
   .aux-st.enc { background: var(--bg3); color: var(--text2); }
+  .aux-st.pago { background: var(--purple-bg); color: var(--purple-text); }
+  .aux-card.pago { border-left-color: #7F77DD; }
+  .aux-hist { display: flex; gap: 3px; align-items: flex-end; height: 34px; margin-top: 8px; }
+  .aux-hist span { flex: 1; background: var(--blue-bg); border-radius: 2px 2px 0 0; min-height: 3px; position: relative; }
+  .aux-hist span.ult { background: var(--perbras-azul); }
   @media (max-width: 700px) { .tr-hero { flex-direction: column; align-items: flex-start; } .tr-hero-pts { text-align: left; } }
 
   /* Avaliar seu Monitor */
@@ -1060,7 +1080,7 @@
       <div id="taAuxKpis"></div>
       <div class="toolbar">
         <input type="text" id="taAuxFiltro" placeholder="Buscar por nome ou tipo..." oninput="renderAuxiliosAdm()" style="min-width:240px">
-        <select id="taAuxStatus" onchange="renderAuxiliosAdm()"><option value="">Todos</option><option value="Ativo" selected>Ativos</option><option value="Vence em breve">Vencendo em 30 dias</option><option value="Encerrado">Encerrados</option></select>
+        <select id="taAuxStatus" onchange="renderAuxiliosAdm()"><option value="">Todos</option><option value="Ativo" selected>Ativos</option><option value="Vence em breve">Vencendo em 30 dias</option><option value="Encerrado">Encerrados</option><option value="Pago">Pagamentos únicos</option></select>
         <button class="btn btn-primary" onclick="abrirAuxilio()" style="margin-left:auto"><i class="ti ti-plus"></i> Novo auxílio / incentivo</button>
       </div>
       <div id="taAuxLista"></div>
@@ -1409,7 +1429,7 @@
     <div class="modal-title" id="auxTitulo">Novo auxílio / incentivo</div>
     <div class="form-grid">
       <div class="fg span2"><label>Pessoa</label><input id="auxPessoa" type="text" list="dlAuxPessoas" placeholder="Digite o nome"><datalist id="dlAuxPessoas"></datalist></div>
-      <div class="fg"><label>Tipo</label><select id="auxTipo" onchange="auxSugerirValor()"><option>Auxílio Moradia</option><option>Auxílio Mobilidade</option><option>Bônus</option><option>Incentivo</option><option>Outro</option></select></div>
+      <div class="fg"><label>Tipo</label><select id="auxTipo" onchange="auxSugerirValor()"><option>Auxílio Moradia</option><option>Auxílio Mobilidade</option><option>Ressarcimento de mudança</option><option>Bônus</option><option>Incentivo</option><option>Outro</option></select></div>
       <div class="fg"><label>Região</label><select id="auxRegiao" onchange="auxSugerirValor()"><option value="">—</option><option>Norte</option><option>Nordeste</option><option>Sul</option><option>Sudeste</option></select></div>
       <div class="fg"><label>Porte da cidade</label><select id="auxPorte" onchange="auxSugerirValor()"><option value="">—</option><option>Capital</option><option>Médio porte</option><option>Pequeno porte</option></select></div>
       <div class="fg"><label>Cidade</label><input id="auxCidade" type="text" placeholder="Ex: Catu/BA"></div>
@@ -4456,34 +4476,43 @@ function aniversarioInfo(dtStr) {
   return { anos: anosCompletos };
 }
 
+// "faz 2 anos e 7 meses" / "faz 1 ano" / "faz 3 meses" / "faz 12 dias"
+function tempoCasaFrase(chegada) {
+  const hoje = new Date();
+  let meses = (hoje.getFullYear() - chegada.getFullYear()) * 12 + (hoje.getMonth() - chegada.getMonth());
+  if (hoje.getDate() < chegada.getDate()) meses--;
+  if (meses < 1) { const d = Math.max(0, Math.floor((hoje - chegada) / 864e5)); return `faz ${d} dia${d!==1?'s':''}`; }
+  const a = Math.floor(meses / 12), m = meses % 12;
+  const partes = [a ? `${a} ano${a!==1?'s':''}` : null, m ? `${m} ${m!==1?'meses':'mês'}` : null].filter(Boolean);
+  return 'faz ' + partes.join(' e ');   // "fazer" com tempo decorrido é impessoal: sempre "faz"
+}
+
 function renderTrajetoria() {
   const headEl = r$('trajHeader'); if (!headEl) return;
   const aniEl = r$('trajAniversario');
   const semVinculoEl = r$('trajSemVinculo');
   const me = (profile && profile.gestor_nome) || '—';
 
+  // Cabeçalho: chegada + tempo de casa por extenso + nível (o nível da trilha
+  // é preenchido por renderTrilhaGestor, que carrega depois).
+  const fotoMe = profile && profile.foto_url;
+  const avatarMe = `<div class="avatar">${fotoMe ? `<img src="${fotoMe}">` : initials(me)}</div>`;
+  const nivelHtml = `<div class="th-nivel"><span>Seu nível</span><b>Gestor Jr</b><em id="trajNivelTrilha"></em></div>`;
+  headEl.className = 'traj-hero mp-anim';
   if (!meuCandidato || !meuCandidato.dt_contr) {
-    headEl.innerHTML = `
-      <div style="display:flex;align-items:center;gap:14px">
-        <div class="avatar" style="width:52px;height:52px;font-size:18px">${initials(me)}</div>
-        <div><div style="font-size:15px;font-weight:600">${me}</div></div>
-      </div>`;
+    headEl.innerHTML = `${avatarMe}<div class="th-txt"><div class="th-ola">Olá, ${escHtml(me.split(' ')[0])}!</div>${nivelHtml}</div>`;
     semVinculoEl.style.display = '';
     aniEl.style.display = 'none';
   } else {
     semVinculoEl.style.display = 'none';
     const canal = [meuCandidato.fonte, meuCandidato.recrutador].filter(Boolean).join(' · ');
-    headEl.innerHTML = `
-      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-        <div class="avatar" style="width:52px;height:52px;font-size:18px">${initials(me)}</div>
-        <div style="flex:1;min-width:200px">
-          <div style="font-size:15px;font-weight:600">${me}</div>
-          <div style="font-size:12.5px;color:var(--text2);margin-top:2px">${formatTempoCasa(meuCandidato.dt_contr)}</div>
-        </div>
-        <div style="text-align:right;font-size:12px;color:var(--text2)">
-          <div>Chegou em <b style="color:var(--text)">${fmt(meuCandidato.dt_contr)}</b></div>
-          ${canal?`<div style="margin-top:2px">Veio por <b style="color:var(--text)">${canal}</b></div>`:''}
-        </div>
+    const chegada = new Date(meuCandidato.dt_contr + 'T00:00');
+    headEl.innerHTML = `${avatarMe}
+      <div class="th-txt">
+        <div class="th-ola">Olá, ${escHtml(me.split(' ')[0])}!</div>
+        <div class="th-frase">Você chegou na Perbras em <b>${chegada.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</b> — ${tempoCasaFrase(chegada)} que você está aqui com a gente.</div>
+        ${nivelHtml}
+        ${canal || meuCandidato.turma_nome ? `<div class="th-canal">${[meuCandidato.turma_nome, canal ? 'veio por ' + canal : null].filter(Boolean).map(escHtml).join(' · ')}</div>` : ''}
       </div>`;
     const ani = aniversarioInfo(meuCandidato.dt_contr);
     if (ani) {
@@ -5009,6 +5038,8 @@ async function renderTrilhaGestor() {
   const pid = profile && profile.pessoa_id;
   if (!pid || !trilhaEtapas.length) { el.innerHTML = ''; return; }
   const res = trilhaResumo(pid);
+  const nivelEl = r$('trajNivelTrilha');
+  if (nivelEl) nivelEl.textContent = '· ' + res.nivel.nome + ' na trilha';
   if (!trilhaOpenCats.size) {
     const primeira = trilhaEtapas.find(e => e.ativo && !trilhaProg.some(p => p.pessoa_id === pid && p.etapa_id === e.id));
     if (primeira) trilhaOpenCats.add(primeira.categoria);
@@ -5071,6 +5102,7 @@ async function desfazerEtapa() {
 // Status de um auxílio
 function auxStatus(a) {
   const hoje = hojeISO();
+  if (a.recorrencia === 'Pagamento único') return { cls: 'pago', txt: 'Pago em ' + new Date(a.inicio+'T00:00').toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }) };
   if (a.encerrado_em || (a.fim && a.fim < hoje)) return { cls: 'enc', txt: 'Encerrado' };
   if (a.inicio > hoje) return { cls: 'agend', txt: 'Agendado' };
   if (a.fim) {
@@ -5079,7 +5111,9 @@ function auxStatus(a) {
   }
   return { cls: 'ativo', txt: 'Ativo' };
 }
-const AUX_ICO = { 'Auxílio Moradia': 'ti-home', 'Auxílio Mobilidade': 'ti-truck', 'Bônus': 'ti-gift', 'Incentivo': 'ti-award', 'Outro': 'ti-coin' };
+const AUX_ICO = { 'Auxílio Moradia': 'ti-home', 'Auxílio Mobilidade': 'ti-truck', 'Ressarcimento de mudança': 'ti-package', 'Bônus': 'ti-gift', 'Incentivo': 'ti-award', 'Outro': 'ti-coin' };
+// Unidade (vinda da folha) ou cidade (cadastro manual)
+const auxLocal = a => a.unidade || a.cidade || '';
 
 function renderAuxiliosGestor() {
   const el = r$('trajAuxilios'); if (!el) return;
@@ -5092,7 +5126,8 @@ function renderAuxiliosGestor() {
       <div style="flex:1;min-width:0">
         <div class="aux-tipo">${escHtml(a.tipo)} <span class="aux-st ${st.cls}">${st.txt}</span></div>
         <div class="aux-valor">${brl(a.valor)}${a.recorrencia==='Mensal'?'<small> / mês</small>':''}</div>
-        <div class="aux-vig">Ativado em ${fmt(a.inicio)} · ${a.fim ? 'vigente até '+fmt(a.fim) : 'sem data de término'}${a.cidade?' · '+escHtml(a.cidade):''}</div>
+        <div class="aux-vig">${a.recorrencia==='Pagamento único' ? 'Pagamento único' : `Ativado em ${fmt(a.inicio)} · ${a.fim ? (st.cls==='enc'?'encerrado em ':'vigente até ')+fmt(a.fim) : 'sem data de término'}`}${auxLocal(a)?' · '+escHtml(auxLocal(a)):''}</div>
+        ${a.recorrencia==='Mensal' && (a.historico||[]).length > 1 ? (() => { const h = a.historico, mx = Math.max(...h.map(x=>x.valor)); return `<div class="aux-hist" title="Valores pagos por mês">${h.map((x,i)=>`<span class="${i===h.length-1?'ult':''}" style="height:${Math.max(8, x.valor/mx*100)}%" title="${x.mes.split('-').reverse().join('/')}: ${brl(x.valor)}"></span>`).join('')}</div>`; })() : ''}
       </div>
     </div>`; }).join('')}</div></div>`;
 }
@@ -5153,16 +5188,17 @@ function renderAuxiliosAdm() {
   const f = auxilios.filter(a => {
     const st = auxStatus(a);
     if (filtroSt === 'Ativo' && !['ativo','vence','agend'].includes(st.cls)) return false;
+    if (filtroSt === 'Pago' && st.cls !== 'pago') return false;
     if (filtroSt === 'Vence em breve' && st.cls !== 'vence') return false;
     if (filtroSt === 'Encerrado' && st.cls !== 'enc') return false;
     return !termo || nomeDe(a.pessoa_id).toLowerCase().includes(termo) || a.tipo.toLowerCase().includes(termo);
   });
   lista.innerHTML = f.length ? `<div class="table-wrap"><table>
-    <thead><tr><th>Pessoa</th><th>Tipo</th><th>Valor</th><th>Ativado em</th><th>Vigente até</th><th>Cidade</th><th>Status</th></tr></thead>
+    <thead><tr><th>Pessoa</th><th>Tipo</th><th>Valor</th><th>Ativado em</th><th>Vigente até</th><th>Unidade / cidade</th><th>Status</th></tr></thead>
     <tbody>${f.map(a => { const st = auxStatus(a); return `<tr style="cursor:pointer" onclick="abrirAuxilio('${a.id}')">
       <td><b>${escHtml(nomeDe(a.pessoa_id))}</b></td><td><i class="ti ${AUX_ICO[a.tipo]||'ti-coin'}"></i> ${escHtml(a.tipo)}</td>
       <td>${brl(a.valor)}${a.recorrencia==='Mensal'?' / mês':''}</td><td>${fmt(a.inicio)}</td><td>${a.fim?fmt(a.fim):'—'}</td>
-      <td>${escHtml(a.cidade||'—')}</td><td><span class="aux-st ${st.cls}">${st.txt}</span></td></tr>`; }).join('')}</tbody></table></div>`
+      <td>${escHtml(auxLocal(a)||'—')}</td><td><span class="aux-st ${st.cls}">${st.txt}</span></td></tr>`; }).join('')}</tbody></table></div>`
     : '<div class="empty">Nenhum auxílio nesse filtro.</div>';
 }
 
