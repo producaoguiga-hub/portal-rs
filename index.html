@@ -1203,14 +1203,14 @@
     <div class="form-grid">
       <div class="fg"><label>Candidato</label><select id="fcCand"></select></div>
       <div class="fg"><label>Turma</label><select id="fcTurma"></select></div>
-      <div class="fg"><label>ASO (R$)</label><input id="fcAso" type="number" step="0.01" value="0"></div>
-      <div class="fg"><label>Av. Psicológica (R$)</label><input id="fcPsi" type="number" step="0.01" value="150"></div>
-      <div class="fg"><label>Passagem aérea (R$)</label><input id="fcAereo" type="number" step="0.01" value="0"></div>
-      <div class="fg"><label>Transfer (R$)</label><input id="fcTrans" type="number" step="0.01" value="0"></div>
-      <div class="fg"><label>Hospedagem (R$)</label><input id="fcHosp" type="number" step="0.01" value="0"></div>
-      <div class="fg"><label>EPI (R$)</label><input id="fcEpi" type="number" step="0.01" value="0"></div>
-      <div class="fg"><label>Recrutamento/Terceiros (R$)</label><input id="fcRecr" type="number" step="0.01" value="0"></div>
-      <div class="fg"><label>Andre Silva (R$)</label><input id="fcAndre" type="number" step="0.01" value="570"></div>
+      <div class="fg"><label>ASO (R$)</label><input id="fcAso" class="money" type="text" inputmode="numeric" value="0,00"></div>
+      <div class="fg"><label>Av. Psicológica (R$)</label><input id="fcPsi" class="money" type="text" inputmode="numeric" value="150,00"></div>
+      <div class="fg"><label>Passagem aérea (R$)</label><input id="fcAereo" class="money" type="text" inputmode="numeric" value="0,00"></div>
+      <div class="fg"><label>Transfer (R$)</label><input id="fcTrans" class="money" type="text" inputmode="numeric" value="0,00"></div>
+      <div class="fg"><label>Hospedagem (R$)</label><input id="fcHosp" class="money" type="text" inputmode="numeric" value="0,00"></div>
+      <div class="fg"><label>EPI (R$)</label><input id="fcEpi" class="money" type="text" inputmode="numeric" value="0,00"></div>
+      <div class="fg"><label>Recrutamento/Terceiros (R$)</label><input id="fcRecr" class="money" type="text" inputmode="numeric" value="0,00"></div>
+      <div class="fg"><label>Andre Silva (R$)</label><input id="fcAndre" class="money" type="text" inputmode="numeric" value="570,00"></div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="fecharModal('mCusto')">Cancelar</button>
@@ -1971,6 +1971,17 @@ function toast(m, err=false) {
   t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000);
 }
 function r$(id) { return document.getElementById(id); }
+// Moeda no formato brasileiro: 1426.34 ⇄ "1.426,34"
+function moneyFmt(v) { return (Number(v)||0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function moneyParse(s) { const n = Number(String(s||'').replace(/\./g, '').replace(',', '.').replace(/[^\d.-]/g, '')); return isNaN(n) ? 0 : n; }
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (!el.classList || !el.classList.contains('money')) return;
+  const dig = el.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+  el.value = moneyFmt((parseInt(dig || '0', 10)) / 100);
+  el.setSelectionRange(el.value.length, el.value.length);
+});
+document.addEventListener('focusin', e => { if (e.target.classList && e.target.classList.contains('money')) setTimeout(() => e.target.select(), 0); });
 function escHtml(s) { return String(s ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch])); }
 
 function copiarLinkPublico(arquivo, btnEl) {
@@ -2392,14 +2403,14 @@ function renderCustos() {
   r$('tbCusto').innerHTML=f.map(c=>`<tr>
     <td style="font-weight:500">${c.candidato}</td>
     <td>${(c.turma_nome||'').replace('Turma ','')}</td>
-    <td>R$${parseFloat(c.aso||0).toFixed(0)}</td>
-    <td>R$${parseFloat(c.psi||0).toFixed(0)}</td>
-    <td>R$${parseFloat(c.aereo||0).toFixed(0)}</td>
-    <td>R$${parseFloat(c.trans||0).toFixed(0)}</td>
-    <td>R$${parseFloat(c.hosp||0).toFixed(0)}</td>
-    <td>R$${parseFloat(c.epi||0).toFixed(0)}</td>
-    <td>R$${parseFloat(c.recr||0).toFixed(0)}</td>
-    <td>R$${parseFloat(c.andre||0).toFixed(0)}</td>
+    <td>R$ ${moneyFmt(c.aso)}</td>
+    <td>R$ ${moneyFmt(c.psi)}</td>
+    <td>R$ ${moneyFmt(c.aereo)}</td>
+    <td>R$ ${moneyFmt(c.trans)}</td>
+    <td>R$ ${moneyFmt(c.hosp)}</td>
+    <td>R$ ${moneyFmt(c.epi)}</td>
+    <td>R$ ${moneyFmt(c.recr)}</td>
+    <td>R$ ${moneyFmt(c.andre)}</td>
     <td style="font-weight:500">R$${parseFloat(c.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
     <td style="white-space:nowrap">
       <button class="icon-btn" onclick="editarCusto('${c.id}')" title="Editar"><i class="ti ti-pencil"></i></button>
@@ -2416,18 +2427,18 @@ function editarCusto(id) {
   r$('mCusto').querySelector('.modal-title').textContent='Editar custo';
   r$('fcCand').value=candidatos.find(x=>x.nome===c.candidato)?.id||'';
   r$('fcTurma').value=c.turma_nome||'';
-  r$('fcAso').value=c.aso||0; r$('fcPsi').value=c.psi||0; r$('fcAereo').value=c.aereo||0;
-  r$('fcTrans').value=c.trans||0; r$('fcHosp').value=c.hosp||0; r$('fcEpi').value=c.epi||0;
-  r$('fcRecr').value=c.recr||0; r$('fcAndre').value=c.andre||0;
+  r$('fcAso').value=moneyFmt(c.aso); r$('fcPsi').value=moneyFmt(c.psi); r$('fcAereo').value=moneyFmt(c.aereo);
+  r$('fcTrans').value=moneyFmt(c.trans); r$('fcHosp').value=moneyFmt(c.hosp); r$('fcEpi').value=moneyFmt(c.epi);
+  r$('fcRecr').value=moneyFmt(c.recr); r$('fcAndre').value=moneyFmt(c.andre);
   r$('mCusto').classList.add('open');
 }
 
 async function salvarCusto() {
   const cid=r$('fcCand').value; const cand=candidatos.find(x=>x.id===cid); if(!cand){alert('Selecione um candidato');return;}
-  const aso=+r$('fcAso').value||0, psi=+r$('fcPsi').value||0, aereo=+r$('fcAereo').value||0;
-  const trans=+r$('fcTrans').value||0, hosp=+r$('fcHosp').value||0, epi=+r$('fcEpi').value||0;
-  const recr=+r$('fcRecr').value||0, andre=+r$('fcAndre').value||0;
-  const total=aso+psi+aereo+trans+hosp+epi+recr+andre;
+  const aso=moneyParse(r$('fcAso').value), psi=moneyParse(r$('fcPsi').value), aereo=moneyParse(r$('fcAereo').value);
+  const trans=moneyParse(r$('fcTrans').value), hosp=moneyParse(r$('fcHosp').value), epi=moneyParse(r$('fcEpi').value);
+  const recr=moneyParse(r$('fcRecr').value), andre=moneyParse(r$('fcAndre').value);
+  const total=Math.round((aso+psi+aereo+trans+hosp+epi+recr+andre)*100)/100;
   try {
     if(editCustoId){
       await dbUpdate('custos',editCustoId,{candidato:cand.nome,turma_nome:r$('fcTurma').value,aso,psi,aereo,trans,hosp,epi,recr,andre,total});
@@ -2505,8 +2516,8 @@ function abrirModal(tipo) {
   } else if(tipo==='custo') {
     editCustoId=null;
     r$('mCusto').querySelector('.modal-title').textContent='Registrar custo';
-    ['fcAso','fcPsi','fcAereo','fcTrans','fcHosp','fcEpi','fcRecr'].forEach(id=>r$(id).value=0);
-    r$('fcAndre').value=570;
+    ['fcAso','fcPsi','fcAereo','fcTrans','fcHosp','fcEpi','fcRecr'].forEach(id=>r$(id).value=moneyFmt(0));
+    r$('fcAndre').value=moneyFmt(570);
     populateSels(); r$('mCusto').classList.add('open');
   } else if(tipo==='turma') {
     r$('ftNome').value=''; r$('ftPer').value='';
