@@ -483,6 +483,34 @@
   .mc-pos .mc-list li::before { background: #6fb300; }
   .mc-dev .card-title i { color: var(--perbras-laranja); }
   .mc-dev .mc-list li::before { background: var(--perbras-laranja); }
+
+  /* Quadros do consolidado (visão do gestor) */
+  .mc-box-head { display: flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 700; color: var(--text); }
+  .mc-ico { width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+  .mc-count { margin-left: auto; font-size: 12px; font-weight: 700; min-width: 26px; height: 26px; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; }
+
+  .mc-resumo-card { position: relative; overflow: hidden; border-radius: var(--radius-lg); padding: 1.5rem 5rem 1.6rem 2.1rem; margin-bottom: 1rem;
+    background: var(--bg); border: 1px solid rgba(26,136,255,0.28); box-shadow: 0 8px 24px rgba(26,136,255,0.12); }
+  .mc-resumo-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--perbras-azul); }
+  .mc-resumo-card::after { content: '\201C'; position: absolute; right: 24px; top: -14px; font-size: 150px; font-weight: 700; line-height: 1; color: var(--perbras-azul); opacity: .22; font-family: Georgia, serif; }
+  .mc-resumo-card .mc-box-head { color: var(--perbras-azul); text-transform: uppercase; letter-spacing: .05em; font-size: 12.5px; }
+  .mc-resumo-card .mc-ico { background: var(--perbras-azul); color: #fff; }
+  .mc-resumo-card .mc-resumo { margin-top: 14px; font-size: 16.5px; line-height: 1.75; font-style: italic; font-weight: 500; color: var(--text); position: relative; z-index: 1; }
+
+  .mc-box { border-radius: var(--radius-lg); background: var(--bg); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
+  .mc-box .mc-box-head { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .mc-box .mc-list { padding: 6px 18px 12px; gap: 0; }
+  .mc-box .mc-list li { padding: 11px 0 11px 22px; border-bottom: 1px dashed var(--border); }
+  .mc-box .mc-list li:last-child { border-bottom: none; }
+  .mc-box .mc-list li::before { top: 16px; }
+  .mc-pos { border-top: 4px solid #6fb300; }
+  .mc-pos .mc-box-head { background: var(--green-bg); }
+  .mc-pos .mc-ico { background: #6fb300; color: #fff; }
+  .mc-pos .mc-count { background: #6fb300; color: #fff; }
+  .mc-dev { border-top: 4px solid var(--perbras-laranja); }
+  .mc-dev .mc-box-head { background: var(--amber-bg); }
+  .mc-dev .mc-ico { background: var(--perbras-laranja); color: #fff; }
+  .mc-dev .mc-count { background: var(--perbras-laranja); color: #fff; }
   .mc-status { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 3px 8px; border-radius: 4px; }
   .mc-status.publicado { background: var(--green-bg); color: var(--green-text); }
   .mc-status.rascunho { background: var(--amber-bg); color: var(--amber-text); }
@@ -530,6 +558,64 @@
   .mc-ind:last-child { border-bottom: none; }
   .mc-ind b { display: block; font-size: 13px; font-weight: 600; }
   .mc-ind span:not(.mon-nota) { font-size: 12px; color: var(--text2); }
+
+  /* Trilha de conhecimento */
+  .tr-hero { display: flex; align-items: center; gap: 24px; padding: 1.5rem 1.75rem; border-radius: var(--radius-lg); margin-bottom: 1rem; color: #fff;
+    background: var(--perbras-petroleo) var(--grafismo-petroleo) no-repeat right bottom / cover; }
+  .tr-hero-main { flex: 1; min-width: 0; }
+  .tr-kicker { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--perbras-oceano); }
+  .tr-nivel { font-size: 24px; font-weight: 700; margin: 4px 0 12px; }
+  .tr-bar { height: 10px; background: rgba(255,255,255,0.14); border-radius: 5px; overflow: hidden; max-width: 520px; }
+  .tr-bar span { display: block; height: 100%; background: var(--perbras-verde); border-radius: 5px; transition: width .8s ease; }
+  .tr-sub { font-size: 12.5px; color: rgba(255,255,255,0.75); margin-top: 8px; }
+  .tr-sub b { color: #fff; }
+  .tr-hero-pts { text-align: right; }
+  .tr-hero-pts .v { font-size: 40px; font-weight: 700; line-height: 1; color: var(--perbras-verde); }
+  .tr-hero-pts .l { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .tr-cat { border-bottom: 0.5px solid var(--border); }
+  .tr-cat:last-child { border-bottom: none; }
+  .tr-cat-head { display: flex; align-items: center; gap: 10px; padding: 12px 2px; cursor: pointer; user-select: none; }
+  .tr-cat-head > i { color: var(--text3); transition: transform .2s; }
+  .tr-cat-head.open > i { transform: rotate(90deg); }
+  .tr-cat-head b { font-size: 14px; min-width: 130px; }
+  .tr-cat-bar { flex: 1; max-width: 260px; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .tr-cat-bar span { display: block; height: 100%; background: var(--perbras-azul); border-radius: 3px; }
+  .tr-cat-cnt { font-size: 12px; font-weight: 600; color: var(--text2); margin-left: auto; }
+  .tr-cat-cnt.full { color: #4a8a00; }
+  .tr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; padding: 2px 0 16px; }
+  .tr-etapa { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg); transition: border-color .15s, transform .15s; }
+  .tr-etapa[onclick] { cursor: pointer; }
+  .tr-etapa[onclick]:hover { border-color: var(--perbras-azul); transform: translateY(-1px); }
+  .tr-etapa.feita { background: var(--green-bg); border-color: rgba(111,179,0,0.35); }
+  .tr-etapa.vencida { background: var(--amber-bg); border-color: rgba(255,143,31,0.4); }
+  .tr-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .tr-etapa.feita .tr-check { background: #6fb300; border-color: #6fb300; color: #fff; }
+  .tr-etapa-txt { flex: 1; min-width: 0; }
+  .tr-nome { font-size: 12.5px; font-weight: 600; line-height: 1.4; }
+  .tr-meta { font-size: 11px; color: var(--text2); margin-top: 3px; }
+  .tr-feito { font-size: 11px; color: var(--green-text); margin-top: 4px; font-weight: 500; }
+  .tr-val.vence, .tr-val.vencido { color: var(--amber-text); font-weight: 600; }
+  .tr-foto { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; cursor: zoom-in; }
+  .tr-pts { font-size: 11px; font-weight: 700; color: var(--perbras-azul); white-space: nowrap; }
+  .tr-etapa.feita .tr-pts { color: #4a8a00; }
+  .ta-sub { display: none; } .ta-sub.active { display: block; animation: pageIn .3s ease; }
+
+  /* Auxílios */
+  .aux-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .aux-card { display: flex; gap: 12px; padding: 14px; border-radius: var(--radius); border: 1px solid var(--border); border-left: 4px solid var(--perbras-azul); }
+  .aux-card.enc { opacity: .6; border-left-color: var(--border2); }
+  .aux-card.vence { border-left-color: var(--perbras-laranja); }
+  .aux-ico { width: 36px; height: 36px; border-radius: 6px; background: var(--blue-bg); color: var(--perbras-azul); display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+  .aux-tipo { font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .aux-valor { font-size: 19px; font-weight: 700; margin: 3px 0; }
+  .aux-valor small { font-size: 12px; font-weight: 400; color: var(--text2); }
+  .aux-vig { font-size: 11.5px; color: var(--text2); }
+  .aux-st { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+  .aux-st.ativo { background: var(--green-bg); color: var(--green-text); }
+  .aux-st.vence { background: var(--amber-bg); color: var(--amber-text); }
+  .aux-st.agend { background: var(--blue-bg); color: var(--blue-text); }
+  .aux-st.enc { background: var(--bg3); color: var(--text2); }
+  @media (max-width: 700px) { .tr-hero { flex-direction: column; align-items: flex-start; } .tr-hero-pts { text-align: left; } }
 
   /* Avaliar seu Monitor */
   .avm-cta { display: flex; align-items: center; gap: 18px; border-left: 4px solid var(--perbras-azul); }
@@ -626,6 +712,7 @@
   <button class="nav-item gestor-only" id="navItemMeuPdi" onclick="goPage('meupdi',this)"><i class="ti ti-target-arrow"></i><span>Meu PDI</span></button>
   <button class="nav-item gestor-only" onclick="goPage('minhamonitoria',this)"><i class="ti ti-clipboard-check"></i><span>Minha Monitoria</span></button>
   <button class="nav-item gestor-only" onclick="goPage('trajetoria',this)"><i class="ti ti-map-pin-heart"></i><span>Minha Trajetória</span></button>
+  <button class="nav-item admin-only" onclick="goPage('trilhaadm',this)"><i class="ti ti-route"></i><span>Trilha &amp; Auxílios</span></button>
   <button class="nav-item" id="navItemAv360" onclick="goPage('av360',this)"><i class="ti ti-users-group"></i><span>Avaliação 360º</span></button>
   <div class="sidebar-foot">
     <div class="sidebar-user" id="sidebarUser"></div>
@@ -946,11 +1033,40 @@
     <div id="trajAniversario" class="mp-spotlight celebrate mp-anim" style="display:none;margin-bottom:1rem"></div>
     <div id="trajHeader" class="card mp-anim" style="animation-delay:.02s"></div>
     <div id="trajSemVinculo" class="empty" style="display:none"><i class="ti ti-user-question" style="font-size:28px;display:block;margin-bottom:8px"></i>Seu cadastro ainda não foi vinculado ao registro de admissão — pede pro RH vincular, pra aparecer seu canal de entrada e tempo de casa aqui.</div>
+    <div id="trajTrilha" class="mp-anim" style="animation-delay:.06s"></div>
+    <div id="trajAuxilios" class="mp-anim" style="animation-delay:.08s"></div>
     <div class="traj-timeline-head">
       <div class="card-title" style="margin:0">Linha do tempo</div>
       <button class="btn btn-primary" onclick="abrirNovoMarco()"><i class="ti ti-plus"></i> Adicionar marco</button>
     </div>
     <div id="trajTimeline" class="mp-anim" style="animation-delay:.1s"></div>
+  </div>
+
+  <!-- TRILHA & AUXÍLIOS (admin) -->
+  <div class="page" id="page-trilhaadm">
+    <div class="page-title">Trilha &amp; Auxílios</div>
+    <div class="tl-tabs">
+      <button class="tl-tab active" onclick="switchTrilhaTab('progresso',this)"><i class="ti ti-route"></i> Trilha dos gestores</button>
+      <button class="tl-tab" onclick="switchTrilhaTab('auxilios',this)"><i class="ti ti-home-dollar"></i> Auxílios e incentivos</button>
+      <button class="tl-tab" onclick="switchTrilhaTab('matriz',this)"><i class="ti ti-list-check"></i> Matriz de treinamento</button>
+    </div>
+    <div class="ta-sub active" id="ta-progresso"><div id="taProgresso"></div></div>
+    <div class="ta-sub" id="ta-auxilios">
+      <div id="taAuxKpis"></div>
+      <div class="toolbar">
+        <input type="text" id="taAuxFiltro" placeholder="Buscar por nome ou tipo..." oninput="renderAuxiliosAdm()" style="min-width:240px">
+        <select id="taAuxStatus" onchange="renderAuxiliosAdm()"><option value="">Todos</option><option value="Ativo" selected>Ativos</option><option value="Vence em breve">Vencendo em 30 dias</option><option value="Encerrado">Encerrados</option></select>
+        <button class="btn btn-primary" onclick="abrirAuxilio()" style="margin-left:auto"><i class="ti ti-plus"></i> Novo auxílio / incentivo</button>
+      </div>
+      <div id="taAuxLista"></div>
+    </div>
+    <div class="ta-sub" id="ta-matriz">
+      <div class="toolbar">
+        <p style="font-size:12.5px;color:var(--text2);max-width:640px;line-height:1.6">Matriz de treinamento do gestor (rev. 13). Ajuste pontos, validade ou desative uma etapa — vale pra todos os gestores na hora.</p>
+        <button class="btn btn-primary" onclick="abrirEtapa()" style="margin-left:auto"><i class="ti ti-plus"></i> Nova etapa</button>
+      </div>
+      <div id="taMatriz"></div>
+    </div>
   </div>
 
   <!-- AVALIAÇÃO 360º (admin e gestor — o que cada um vê é decidido pelo banco) -->
@@ -1252,6 +1368,81 @@
     <div class="modal-footer">
       <button class="btn" onclick="fecharModal('mPDIImport')">Fechar</button>
       <button class="btn btn-primary" id="pdiImportBtn" onclick="importarPDICSV()"><i class="ti ti-file-upload"></i> Importar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONCLUIR ETAPA DA TRILHA (gestor) -->
+<div class="modal-overlay" id="mEtapaConcluir">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title" id="ecTitulo">Concluir etapa</div>
+    <div id="ecInfo" style="font-size:12.5px;color:var(--text2);line-height:1.6;margin:-0.5rem 0 1rem"></div>
+    <div class="form-grid" style="grid-template-columns:1fr">
+      <div class="fg"><label>Quando você concluiu?</label><input id="ecData" type="date"></div>
+      <div class="fg"><label>Foto <span style="font-weight:400;color:var(--text3)">(da atividade, do certificado… opcional)</span></label><input id="ecFoto" type="file" accept="image/*" onchange="ecPreview(this)"><img id="ecFotoPrev" style="display:none;max-height:180px;border-radius:6px;margin-top:8px"></div>
+      <div class="fg"><label>Comentário <span style="font-weight:400;color:var(--text3)">(o que você aprendeu — opcional)</span></label><textarea id="ecComent"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="ecBtnDesfazer" onclick="desfazerEtapa()" style="display:none"><i class="ti ti-arrow-back-up"></i> Desmarcar</button>
+      <button class="btn" onclick="fecharModal('mEtapaConcluir')">Cancelar</button>
+      <button class="btn btn-primary" id="ecBtnSalvar" onclick="salvarEtapaConcluida()"><i class="ti ti-check"></i> Concluir etapa</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRILHA DE UM GESTOR (admin) -->
+<div class="modal-overlay" id="mTrilhaGestor">
+  <div class="modal" style="max-width:820px">
+    <div id="tgConteudo"></div>
+    <div class="modal-footer"><button class="btn" onclick="fecharModal('mTrilhaGestor')">Fechar</button></div>
+  </div>
+</div>
+
+<!-- MODAL AUXÍLIO / INCENTIVO (admin) -->
+<div class="modal-overlay" id="mAuxilio">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title" id="auxTitulo">Novo auxílio / incentivo</div>
+    <div class="form-grid">
+      <div class="fg span2"><label>Pessoa</label><input id="auxPessoa" type="text" list="dlAuxPessoas" placeholder="Digite o nome"><datalist id="dlAuxPessoas"></datalist></div>
+      <div class="fg"><label>Tipo</label><select id="auxTipo" onchange="auxSugerirValor()"><option>Auxílio Moradia</option><option>Auxílio Mobilidade</option><option>Bônus</option><option>Incentivo</option><option>Outro</option></select></div>
+      <div class="fg"><label>Região</label><select id="auxRegiao" onchange="auxSugerirValor()"><option value="">—</option><option>Norte</option><option>Nordeste</option><option>Sul</option><option>Sudeste</option></select></div>
+      <div class="fg"><label>Porte da cidade</label><select id="auxPorte" onchange="auxSugerirValor()"><option value="">—</option><option>Capital</option><option>Médio porte</option><option>Pequeno porte</option></select></div>
+      <div class="fg"><label>Cidade</label><input id="auxCidade" type="text" placeholder="Ex: Catu/BA"></div>
+      <div class="fg"><label>Valor (R$)</label><input id="auxValor" type="number" step="0.01" min="0"></div>
+      <div class="fg"><label>Recorrência</label><select id="auxRecorrencia"><option>Mensal</option><option>Pagamento único</option></select></div>
+      <div class="fg"><label>Data de ativação</label><input id="auxInicio" type="date"></div>
+      <div class="fg"><label>Vigente até <span style="font-weight:400;color:var(--text3)">(opcional)</span></label><input id="auxFim" type="date"></div>
+      <div class="fg span2"><label>Observação</label><textarea id="auxObs" style="min-height:56px"></textarea></div>
+    </div>
+    <div id="auxDica" class="obs-box" style="display:none;margin-top:10px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="auxBtnEncerrar" onclick="encerrarAuxilio()" style="display:none"><i class="ti ti-player-stop"></i> Encerrar hoje</button>
+      <button class="btn btn-danger" id="auxBtnExcluir" onclick="excluirAuxilio()" style="display:none"><i class="ti ti-trash"></i></button>
+      <button class="btn" onclick="fecharModal('mAuxilio')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarAuxilio()"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ETAPA DA MATRIZ (admin) -->
+<div class="modal-overlay" id="mEtapa">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-title" id="etTitulo">Nova etapa</div>
+    <div class="form-grid">
+      <div class="fg span2"><label>Nome do curso / etapa</label><input id="etNome" type="text"></div>
+      <div class="fg"><label>Categoria</label><input id="etCategoria" type="text" list="dlEtCategorias"><datalist id="dlEtCategorias"></datalist></div>
+      <div class="fg"><label>Modalidade</label><input id="etModalidade" type="text" placeholder="Presencial, EAD..."></div>
+      <div class="fg"><label>Instituição</label><input id="etInstituicao" type="text" placeholder="Interno / Externo"></div>
+      <div class="fg"><label>Entidade / instrutor</label><input id="etInstrutor" type="text"></div>
+      <div class="fg"><label>Carga horária (h)</label><input id="etCarga" type="number" min="0" oninput="r$('etPontos').value=Math.max(10,(+this.value||0)*10)"></div>
+      <div class="fg"><label>Validade (anos)</label><input id="etValidade" type="number" min="0"></div>
+      <div class="fg"><label>Pontos</label><input id="etPontos" type="number" min="0"></div>
+      <div class="fg"><label>Ordem</label><input id="etOrdem" type="number"></div>
+      <div class="fg span2" style="flex-direction:row;align-items:center;gap:8px"><input id="etAtivo" type="checkbox" style="width:auto"><label for="etAtivo" style="margin:0">Etapa ativa (aparece na trilha dos gestores)</label></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mEtapa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEtapa()"><i class="ti ti-check"></i> Salvar</button>
     </div>
   </div>
 </div>
@@ -1612,6 +1803,11 @@ async function init() {
     console.warn('"pessoas" não encontrada ainda, ou sem permissão.', e.message);
   }
   if (profile && profile.role === 'gestor') await carregarTrajetoria();
+
+  // Trilha de conhecimento + auxílios (Minha Trajetória / Trilha & Auxílios)
+  await carregarTrilhaAuxilios();
+  if (profile && profile.role === 'gestor') renderTrilhaGestor();
+  else { renderTrilhaAdm(); renderAuxiliosAdm(); renderMatrizAdm(); }
 }
 
 // ============================================================
@@ -4179,10 +4375,19 @@ async function renderMinhaMonitoria() {
       <div class="card" style="margin:0"><div class="card-title">Seus pilares</div><div class="mc-radar"><canvas id="mmRadar"></canvas></div></div>
       <div class="card" style="margin:0"><div class="card-title">Nota por pilar</div>${mcPilaresHtml(pilares)}</div>
     </div>
-    <div class="card mp-anim" style="animation-delay:.1s"><div class="card-title"><i class="ti ti-file-description"></i> Resumo executivo</div><div class="mc-resumo">${escHtml(c.resumo||'')}</div></div>
+    <div class="mc-resumo-card mp-anim" style="animation-delay:.1s">
+      <div class="mc-box-head"><span class="mc-ico"><i class="ti ti-file-description"></i></span>Resumo executivo</div>
+      <div class="mc-resumo">${escHtml(c.resumo||'')}</div>
+    </div>
     <div class="mc-grid mp-anim" style="animation-delay:.15s">
-      <div class="card mc-pos" style="margin:0"><div class="card-title"><i class="ti ti-thumb-up"></i> Pontos positivos</div><ul class="mc-list">${li(c.pontos_positivos)}</ul></div>
-      <div class="card mc-dev" style="margin:0"><div class="card-title"><i class="ti ti-trending-up"></i> Pontos a desenvolver</div><ul class="mc-list">${li(c.pontos_desenvolver)}</ul></div>
+      <div class="mc-box mc-pos">
+        <div class="mc-box-head"><span class="mc-ico"><i class="ti ti-thumb-up"></i></span>Pontos positivos<span class="mc-count">${(c.pontos_positivos||[]).length}</span></div>
+        <ul class="mc-list">${li(c.pontos_positivos)}</ul>
+      </div>
+      <div class="mc-box mc-dev">
+        <div class="mc-box-head"><span class="mc-ico"><i class="ti ti-trending-up"></i></span>Pontos a desenvolver<span class="mc-count">${(c.pontos_desenvolver||[]).length}</span></div>
+        <ul class="mc-list">${li(c.pontos_desenvolver)}</ul>
+      </div>
     </div>`;
 
   if (charts.mmRadar) charts.mmRadar.destroy();
@@ -4692,6 +4897,380 @@ async function trocarSenha() {
     errEl.textContent = e.message; errEl.style.display = 'block';
   }
   btn.disabled = false;
+}
+
+// ============================================================
+// TRILHA DE CONHECIMENTO + AUXÍLIOS (trilha_auxilios_schema.sql)
+// Trilha: matriz de treinamento do gestor; ele marca a etapa (com foto) e
+// os pontos contam na hora. Auxílios: moradia / mobilidade / bônus por
+// pessoa, regras da política PI-023. Gestor vê só o dele; RH vê tudo.
+// ============================================================
+let trilhaEtapas = [], trilhaProg = [], auxilios = [];
+let trilhaOpenCats = new Set(), ecEtapaId = null, ecProgId = null, editAuxId = null, editEtapaId = null;
+
+const TRILHA_NIVEIS = [
+  { min: 0,   nome: 'Iniciante' },
+  { min: 25,  nome: 'Em formação' },
+  { min: 50,  nome: 'Em desenvolvimento' },
+  { min: 75,  nome: 'Quase lá' },
+  { min: 100, nome: 'Gestor formado' },
+];
+const brl = v => v==null ? '—' : Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const hojeISO = () => new Date().toISOString().slice(0,10);
+
+async function carregarTrilhaAuxilios() {
+  const get = async (url) => { const r = await authFetch(url); if (!r.ok) throw new Error(await r.text()); return r.json(); };
+  try { trilhaEtapas = await get(`${SUPA_URL}/trilha_etapas?select=*&order=ordem.asc`); } catch(e) { trilhaEtapas = []; console.warn('trilha_etapas — rode trilha_auxilios_schema.sql', e.message); }
+  try { trilhaProg = await get(`${SUPA_URL}/trilha_progresso?select=*`); } catch(e) { trilhaProg = []; }
+  try { auxilios = await get(`${SUPA_URL}/auxilios?select=*&order=inicio.desc`); } catch(e) { auxilios = []; }
+}
+
+// Resumo da trilha de uma pessoa: pontos, nível, próximo nível, etapas vencidas.
+function trilhaResumo(pessoaId) {
+  const ativas = trilhaEtapas.filter(e => e.ativo);
+  const feitas = trilhaProg.filter(p => p.pessoa_id === pessoaId && ativas.some(e => e.id === p.etapa_id));
+  const total = ativas.reduce((s,e) => s + e.pontos, 0) || 1;
+  const pontos = feitas.reduce((s,p) => s + (ativas.find(e => e.id === p.etapa_id)?.pontos || 0), 0);
+  const pct = Math.round(pontos / total * 100);
+  const nivel = [...TRILHA_NIVEIS].reverse().find(n => pct >= n.min);
+  const prox = TRILHA_NIVEIS.find(n => n.min > pct);
+  const vencidas = feitas.filter(p => trilhaValidade(p).cls === 'vencido').length;
+  const ultima = feitas.map(p => p.concluido_em).sort().pop() || null;
+  return { ativas, feitas, total, pontos, pct, nivel, prox, pontosProx: prox ? Math.ceil(prox.min/100*total) - pontos : 0, vencidas, ultima };
+}
+
+// Validade do curso a partir da data de conclusão (reciclagem).
+function trilhaValidade(prog) {
+  const et = trilhaEtapas.find(e => e.id === prog.etapa_id);
+  if (!et || !et.validade_anos || !prog.concluido_em) return { cls: '', txt: '' };
+  const venc = new Date(prog.concluido_em + 'T00:00'); venc.setFullYear(venc.getFullYear() + et.validade_anos);
+  const dias = Math.round((venc - new Date()) / 864e5);
+  if (dias < 0) return { cls: 'vencido', txt: `Vencido em ${venc.toLocaleDateString('pt-BR')} — refazer` };
+  if (dias <= 60) return { cls: 'vence', txt: `Vence em ${dias}d — programe a reciclagem` };
+  return { cls: 'ok', txt: `Válido até ${venc.toLocaleDateString('pt-BR')}` };
+}
+
+function trilhaCategoriasHtml(pessoaId, editavel) {
+  const cats = [...new Set(trilhaEtapas.filter(e=>e.ativo).map(e => e.categoria))];
+  return cats.map(cat => {
+    const etapas = trilhaEtapas.filter(e => e.ativo && e.categoria === cat);
+    const feitas = etapas.filter(e => trilhaProg.some(p => p.pessoa_id === pessoaId && p.etapa_id === e.id)).length;
+    const open = trilhaOpenCats.has(cat);
+    const catEsc = cat.replace(/'/g, "\\'");
+    return `<div class="tr-cat">
+      <div class="tr-cat-head${open?' open':''}" onclick="trilhaToggleCat('${catEsc}', '${pessoaId}', ${editavel})">
+        <i class="ti ti-chevron-right"></i><b>${escHtml(cat)}</b>
+        <div class="tr-cat-bar"><span style="width:${feitas/etapas.length*100}%"></span></div>
+        <span class="tr-cat-cnt${feitas===etapas.length?' full':''}">${feitas}/${etapas.length}</span>
+      </div>
+      ${open ? `<div class="tr-grid">${etapas.map(e => {
+        const p = trilhaProg.find(x => x.pessoa_id === pessoaId && x.etapa_id === e.id);
+        const v = p ? trilhaValidade(p) : null;
+        return `<div class="tr-etapa${p?' feita':''}${v&&v.cls==='vencido'?' vencida':''}" ${editavel?`onclick="abrirConcluirEtapa('${e.id}')"`:''}>
+          <span class="tr-check">${p?'<i class="ti ti-check"></i>':''}</span>
+          <div class="tr-etapa-txt">
+            <div class="tr-nome">${escHtml(e.nome)}</div>
+            <div class="tr-meta">${[e.carga_horaria?e.carga_horaria+'h':null, e.modalidade, e.instrutor].filter(Boolean).map(escHtml).join(' · ')}</div>
+            ${p?`<div class="tr-feito">Concluída em ${fmt(p.concluido_em)}${v&&v.txt?` · <span class="tr-val ${v.cls}">${v.txt}</span>`:''}</div>`:''}
+          </div>
+          ${p&&p.foto_url?`<img class="tr-foto" src="${p.foto_url}" loading="lazy" onclick="event.stopPropagation();window.open('${p.foto_url}','_blank')">`:''}
+          <span class="tr-pts">+${e.pontos}</span>
+        </div>`;
+      }).join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function trilhaToggleCat(cat, pessoaId, editavel) {
+  if (trilhaOpenCats.has(cat)) trilhaOpenCats.delete(cat); else trilhaOpenCats.add(cat);
+  if (editavel) renderTrilhaGestor(); else abrirTrilhaGestor(pessoaId);
+}
+
+function trilhaHeroHtml(res, titulo) {
+  return `<div class="tr-hero">
+    <div class="tr-hero-main">
+      <div class="tr-kicker">${titulo}</div>
+      <div class="tr-nivel">${res.nivel.nome}</div>
+      <div class="tr-bar"><span style="width:${res.pct}%"></span></div>
+      <div class="tr-sub">${res.prox ? `Faltam <b>${res.pontosProx} pontos</b> para <b>${res.prox.nome}</b>` : 'Trilha completa — parabéns! 🎉'} · ${res.feitas.length} de ${res.ativas.length} etapas</div>
+    </div>
+    <div class="tr-hero-pts"><div class="v">${res.pontos}</div><div class="l">de ${res.total} pontos</div></div>
+  </div>`;
+}
+
+// Gestor: seção na Minha Trajetória
+async function renderTrilhaGestor() {
+  const el = r$('trajTrilha'); if (!el) return;
+  const pid = profile && profile.pessoa_id;
+  if (!pid || !trilhaEtapas.length) { el.innerHTML = ''; return; }
+  const res = trilhaResumo(pid);
+  if (!trilhaOpenCats.size) {
+    const primeira = trilhaEtapas.find(e => e.ativo && !trilhaProg.some(p => p.pessoa_id === pid && p.etapa_id === e.id));
+    if (primeira) trilhaOpenCats.add(primeira.categoria);
+  }
+  el.innerHTML = `${trilhaHeroHtml(res, 'Minha trilha de conhecimento')}
+    ${res.vencidas ? `<div class="mp-alert"><i class="ti ti-alert-triangle"></i> ${res.vencidas} curso${res.vencidas>1?'s':''} com validade vencida — fale com o RH sobre a reciclagem.</div>` : ''}
+    <div class="card tr-card"><div class="card-title">Etapas <span style="font-weight:400;color:var(--text2);font-size:12px">— clique numa etapa pra marcar como concluída (com foto, se quiser)</span></div>${trilhaCategoriasHtml(pid, true)}</div>`;
+  renderAuxiliosGestor();
+}
+
+function abrirConcluirEtapa(etapaId) {
+  const e = trilhaEtapas.find(x => x.id === etapaId); if (!e) return;
+  const p = trilhaProg.find(x => x.pessoa_id === profile.pessoa_id && x.etapa_id === etapaId);
+  ecEtapaId = etapaId; ecProgId = p ? p.id : null;
+  r$('ecTitulo').textContent = e.nome;
+  r$('ecInfo').innerHTML = [e.categoria, e.carga_horaria?e.carga_horaria+'h':null, e.modalidade, e.instrutor, `vale <b>${e.pontos} pontos</b>`].filter(Boolean).join(' · ');
+  r$('ecData').value = p ? p.concluido_em : hojeISO();
+  r$('ecComent').value = p ? (p.comentario||'') : '';
+  r$('ecFoto').value = '';
+  const prev = r$('ecFotoPrev');
+  if (p && p.foto_url) { prev.src = p.foto_url; prev.style.display = ''; } else { prev.style.display = 'none'; prev.src = ''; }
+  r$('ecBtnDesfazer').style.display = p ? '' : 'none';
+  r$('ecBtnSalvar').innerHTML = p ? '<i class="ti ti-check"></i> Salvar' : '<i class="ti ti-check"></i> Concluir etapa';
+  r$('mEtapaConcluir').classList.add('open');
+}
+function ecPreview(input) {
+  const f = input.files[0], prev = r$('ecFotoPrev');
+  if (!f) return;
+  prev.src = URL.createObjectURL(f); prev.style.display = '';
+}
+
+async function salvarEtapaConcluida() {
+  const btn = r$('ecBtnSalvar'); btn.disabled = true;
+  try {
+    const file = r$('ecFoto').files[0];
+    const dados = { pessoa_id: profile.pessoa_id, etapa_id: ecEtapaId, concluido_em: r$('ecData').value || hojeISO(), comentario: r$('ecComent').value.trim() || null };
+    if (file) dados.foto_url = await uploadFotoMarco(file);
+    const nivelAntes = trilhaResumo(profile.pessoa_id).nivel.nome;
+    if (ecProgId) await dbUpdate('trilha_progresso', ecProgId, dados);
+    else await dbInsert('trilha_progresso', dados);
+    trilhaProg = await (await authFetch(`${SUPA_URL}/trilha_progresso?select=*`)).json();
+    fecharModal('mEtapaConcluir');
+    const res = trilhaResumo(profile.pessoa_id);
+    toast(res.nivel.nome !== nivelAntes ? `Subiu de nível: ${res.nivel.nome}! 🎉` : (ecProgId ? 'Etapa atualizada.' : `Etapa concluída! +${trilhaEtapas.find(e=>e.id===ecEtapaId).pontos} pontos`));
+    renderTrilhaGestor();
+  } catch(e) { toast('Erro: ' + e.message, true); }
+  btn.disabled = false;
+}
+
+async function desfazerEtapa() {
+  if (!ecProgId || !confirm('Desmarcar esta etapa? Os pontos dela saem da sua trilha.')) return;
+  try {
+    await dbDelete('trilha_progresso', ecProgId);
+    trilhaProg = trilhaProg.filter(p => p.id !== ecProgId);
+    fecharModal('mEtapaConcluir');
+    renderTrilhaGestor();
+  } catch(e) { toast('Erro: ' + e.message, true); }
+}
+
+// Status de um auxílio
+function auxStatus(a) {
+  const hoje = hojeISO();
+  if (a.encerrado_em || (a.fim && a.fim < hoje)) return { cls: 'enc', txt: 'Encerrado' };
+  if (a.inicio > hoje) return { cls: 'agend', txt: 'Agendado' };
+  if (a.fim) {
+    const dias = Math.round((new Date(a.fim+'T00:00') - new Date(hoje+'T00:00')) / 864e5);
+    if (dias <= 30) return { cls: 'vence', txt: `Vence em ${dias}d` };
+  }
+  return { cls: 'ativo', txt: 'Ativo' };
+}
+const AUX_ICO = { 'Auxílio Moradia': 'ti-home', 'Auxílio Mobilidade': 'ti-truck', 'Bônus': 'ti-gift', 'Incentivo': 'ti-award', 'Outro': 'ti-coin' };
+
+function renderAuxiliosGestor() {
+  const el = r$('trajAuxilios'); if (!el) return;
+  const pid = profile && profile.pessoa_id;
+  const meus = auxilios.filter(a => a.pessoa_id === pid).sort((a,b) => (auxStatus(a).cls==='enc') - (auxStatus(b).cls==='enc') || b.inicio.localeCompare(a.inicio));
+  if (!meus.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="card"><div class="card-title"><i class="ti ti-home-dollar"></i> Meus auxílios e incentivos</div>
+    <div class="aux-grid">${meus.map(a => { const st = auxStatus(a); return `<div class="aux-card ${st.cls}">
+      <span class="aux-ico"><i class="ti ${AUX_ICO[a.tipo]||'ti-coin'}"></i></span>
+      <div style="flex:1;min-width:0">
+        <div class="aux-tipo">${escHtml(a.tipo)} <span class="aux-st ${st.cls}">${st.txt}</span></div>
+        <div class="aux-valor">${brl(a.valor)}${a.recorrencia==='Mensal'?'<small> / mês</small>':''}</div>
+        <div class="aux-vig">Ativado em ${fmt(a.inicio)} · ${a.fim ? 'vigente até '+fmt(a.fim) : 'sem data de término'}${a.cidade?' · '+escHtml(a.cidade):''}</div>
+      </div>
+    </div>`; }).join('')}</div></div>`;
+}
+
+// ---------- Admin ----------
+function switchTrilhaTab(tab, btn) {
+  document.querySelectorAll('#page-trilhaadm > .tl-tabs > .tl-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#page-trilhaadm .ta-sub').forEach(p => p.classList.remove('active'));
+  r$('ta-'+tab).classList.add('active');
+}
+
+function trilhaGestoresAdm() {
+  return Object.values(gestorProfiles).filter(p => p.role === 'gestor' && p.pessoa_id)
+    .map(p => ({ nome: p.gestor_nome, pessoa_id: p.pessoa_id })).sort((a,b) => a.nome.localeCompare(b.nome));
+}
+
+function renderTrilhaAdm() {
+  const el = r$('taProgresso'); if (!el) return;
+  if (!trilhaEtapas.length) { el.innerHTML = '<div class="empty">Rode o <b>trilha_auxilios_schema.sql</b> no Supabase pra carregar a matriz.</div>'; return; }
+  const linhas = trilhaGestoresAdm().map(g => ({ g, r: trilhaResumo(g.pessoa_id) })).sort((a,b) => b.r.pct - a.r.pct);
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Gestor</th><th>Nível</th><th style="min-width:180px">Progresso</th><th>Etapas</th><th>Pontos</th><th>Última conclusão</th><th></th></tr></thead>
+    <tbody>${linhas.map(({g,r}) => `<tr style="cursor:pointer" onclick="abrirTrilhaGestor('${g.pessoa_id}')">
+      <td><b>${escHtml(g.nome)}</b></td><td>${r.nivel.nome}</td>
+      <td><div class="tr-cat-bar" style="width:100%"><span style="width:${r.pct}%"></span></div><div style="font-size:11px;color:var(--text2);margin-top:3px">${r.pct}%</div></td>
+      <td>${r.feitas.length} / ${r.ativas.length}</td><td>${r.pontos}</td>
+      <td>${r.ultima ? fmt(r.ultima) : '—'}</td>
+      <td>${r.vencidas ? `<span class="aux-st vence">${r.vencidas} vencido${r.vencidas>1?'s':''}</span>` : ''}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+function abrirTrilhaGestor(pessoaId) {
+  const g = trilhaGestoresAdm().find(x => x.pessoa_id === pessoaId); if (!g) return;
+  const res = trilhaResumo(pessoaId);
+  r$('tgConteudo').innerHTML = `${trilhaHeroHtml(res, g.nome)}<div class="tr-card">${trilhaCategoriasHtml(pessoaId, false)}</div>`;
+  r$('mTrilhaGestor').classList.add('open');
+}
+
+function renderAuxiliosAdm() {
+  const lista = r$('taAuxLista'); if (!lista) return;
+  const nomeDe = pid => (pessoas.find(p => p.id === pid) || {}).nome || '—';
+  const ativos = auxilios.filter(a => ['ativo','vence'].includes(auxStatus(a).cls));
+  const custo = ativos.filter(a => a.recorrencia === 'Mensal').reduce((s,a) => s + Number(a.valor||0), 0);
+  const vencendo = auxilios.filter(a => auxStatus(a).cls === 'vence').length;
+  const porPessoa = {};
+  ativos.filter(a => ['Auxílio Moradia','Auxílio Mobilidade'].includes(a.tipo)).forEach(a => { (porPessoa[a.pessoa_id] = porPessoa[a.pessoa_id] || new Set()).add(a.tipo); });
+  const acumulados = Object.entries(porPessoa).filter(([,s]) => s.size > 1).map(([pid]) => nomeDe(pid));
+  r$('taAuxKpis').innerHTML = `<div class="metric-grid">
+      <div class="metric m-b"><div class="lbl">Auxílios ativos</div><div class="val">${ativos.length}</div></div>
+      <div class="metric"><div class="lbl">Custo mensal (ativos)</div><div class="val" style="font-size:20px">${brl(custo)}</div></div>
+      <div class="metric m-r"><div class="lbl">Vencendo em 30 dias</div><div class="val">${vencendo}</div></div>
+      <div class="metric"><div class="lbl">Pessoas com auxílio</div><div class="val">${new Set(ativos.map(a=>a.pessoa_id)).size}</div></div>
+    </div>
+    ${acumulados.length ? `<div class="mp-alert"><i class="ti ti-alert-triangle"></i> Moradia e Mobilidade ativos ao mesmo tempo (não são cumulativos — PI-023): <b>${acumulados.map(escHtml).join(', ')}</b></div>` : ''}`;
+  const termo = (r$('taAuxFiltro').value||'').toLowerCase().trim();
+  const filtroSt = r$('taAuxStatus').value;
+  const f = auxilios.filter(a => {
+    const st = auxStatus(a);
+    if (filtroSt === 'Ativo' && !['ativo','vence','agend'].includes(st.cls)) return false;
+    if (filtroSt === 'Vence em breve' && st.cls !== 'vence') return false;
+    if (filtroSt === 'Encerrado' && st.cls !== 'enc') return false;
+    return !termo || nomeDe(a.pessoa_id).toLowerCase().includes(termo) || a.tipo.toLowerCase().includes(termo);
+  });
+  lista.innerHTML = f.length ? `<div class="table-wrap"><table>
+    <thead><tr><th>Pessoa</th><th>Tipo</th><th>Valor</th><th>Ativado em</th><th>Vigente até</th><th>Cidade</th><th>Status</th></tr></thead>
+    <tbody>${f.map(a => { const st = auxStatus(a); return `<tr style="cursor:pointer" onclick="abrirAuxilio('${a.id}')">
+      <td><b>${escHtml(nomeDe(a.pessoa_id))}</b></td><td><i class="ti ${AUX_ICO[a.tipo]||'ti-coin'}"></i> ${escHtml(a.tipo)}</td>
+      <td>${brl(a.valor)}${a.recorrencia==='Mensal'?' / mês':''}</td><td>${fmt(a.inicio)}</td><td>${a.fim?fmt(a.fim):'—'}</td>
+      <td>${escHtml(a.cidade||'—')}</td><td><span class="aux-st ${st.cls}">${st.txt}</span></td></tr>`; }).join('')}</tbody></table></div>`
+    : '<div class="empty">Nenhum auxílio nesse filtro.</div>';
+}
+
+// Política PI-023 (Auxílio Moradia, valores mensais por região e porte).
+const PI023 = { Capital: { Norte: 2000, Nordeste: 2000, Sudeste: 2000 }, 'Médio porte': { Nordeste: 1800, Sul: 2000, Sudeste: 1800 }, 'Pequeno porte': { Nordeste: 1400 } };
+function auxSugerirValor() {
+  const dica = r$('auxDica');
+  if (r$('auxTipo').value !== 'Auxílio Moradia') { dica.style.display = 'none'; return; }
+  const v = (PI023[r$('auxPorte').value] || {})[r$('auxRegiao').value];
+  if (v) {
+    if (!editAuxId || !r$('auxValor').value) r$('auxValor').value = v;
+    dica.innerHTML = `<i class="ti ti-info-circle"></i> Valor da política PI-023 para ${r$('auxRegiao').value} · ${r$('auxPorte').value}: <b>${brl(v)}</b> / mês. Pago em folha (rubrica AUX MORADIA); não cumulativo com Auxílio Mobilidade.`;
+    dica.style.display = '';
+  } else if (r$('auxRegiao').value && r$('auxPorte').value) {
+    dica.innerHTML = '<i class="ti ti-info-circle"></i> A PI-023 não prevê valor pra essa combinação de região e porte — informe o valor manualmente.';
+    dica.style.display = '';
+  } else dica.style.display = 'none';
+}
+
+function abrirAuxilio(id) {
+  editAuxId = id || null;
+  const a = id ? auxilios.find(x => x.id === id) : null;
+  mkDatalist('dlAuxPessoas', [...new Set(pessoas.map(p => p.nome))].sort((x,y)=>x.localeCompare(y)));
+  r$('auxTitulo').textContent = a ? 'Editar auxílio / incentivo' : 'Novo auxílio / incentivo';
+  r$('auxPessoa').value = a ? ((pessoas.find(p => p.id === a.pessoa_id)||{}).nome || '') : '';
+  r$('auxTipo').value = a ? a.tipo : 'Auxílio Moradia';
+  r$('auxRegiao').value = a ? (a.regiao||'') : '';
+  r$('auxPorte').value = a ? (a.porte||'') : '';
+  r$('auxCidade').value = a ? (a.cidade||'') : '';
+  r$('auxValor').value = a ? (a.valor ?? '') : '';
+  r$('auxRecorrencia').value = a ? a.recorrencia : 'Mensal';
+  r$('auxInicio').value = a ? a.inicio : hojeISO();
+  r$('auxFim').value = a ? (a.fim||'') : '';
+  r$('auxObs').value = a ? (a.observacao||'') : '';
+  r$('auxBtnEncerrar').style.display = a && auxStatus(a).cls !== 'enc' ? '' : 'none';
+  r$('auxBtnExcluir').style.display = a ? '' : 'none';
+  auxSugerirValor();
+  r$('mAuxilio').classList.add('open');
+}
+
+async function salvarAuxilio() {
+  const pessoa = pessoas.find(p => p.nome === r$('auxPessoa').value.trim());
+  if (!pessoa) { toast('Escolha a pessoa da lista (precisa estar cadastrada no portal).', true); return; }
+  if (!r$('auxInicio').value) { toast('Informe a data de ativação.', true); return; }
+  const dados = {
+    pessoa_id: pessoa.id, tipo: r$('auxTipo').value,
+    valor: r$('auxValor').value === '' ? null : Number(r$('auxValor').value),
+    recorrencia: r$('auxRecorrencia').value, inicio: r$('auxInicio').value, fim: r$('auxFim').value || null,
+    regiao: r$('auxRegiao').value || null, porte: r$('auxPorte').value || null, cidade: r$('auxCidade').value.trim() || null,
+    observacao: r$('auxObs').value.trim() || null,
+  };
+  if (['Auxílio Moradia','Auxílio Mobilidade'].includes(dados.tipo)) {
+    const outro = dados.tipo === 'Auxílio Moradia' ? 'Auxílio Mobilidade' : 'Auxílio Moradia';
+    const conflito = auxilios.find(a => a.id !== editAuxId && a.pessoa_id === pessoa.id && a.tipo === outro && auxStatus(a).cls !== 'enc');
+    if (conflito && !confirm(`${pessoa.nome} já tem ${outro} ativo. Pela PI-023 os dois não são cumulativos. Salvar mesmo assim?`)) return;
+  }
+  try {
+    if (editAuxId) await dbUpdate('auxilios', editAuxId, dados); else await dbInsert('auxilios', dados);
+    await carregarTrilhaAuxilios();
+    fecharModal('mAuxilio'); renderAuxiliosAdm(); toast('Salvo.');
+  } catch(e) { toast('Erro: ' + e.message, true); }
+}
+
+async function encerrarAuxilio() {
+  if (!editAuxId || !confirm('Encerrar este auxílio com data de hoje?')) return;
+  try { await dbUpdate('auxilios', editAuxId, { encerrado_em: hojeISO(), fim: hojeISO() }); await carregarTrilhaAuxilios(); fecharModal('mAuxilio'); renderAuxiliosAdm(); toast('Auxílio encerrado.'); }
+  catch(e) { toast('Erro: ' + e.message, true); }
+}
+async function excluirAuxilio() {
+  if (!editAuxId || !confirm('Excluir este registro? Pra manter o histórico, prefira "Encerrar hoje".')) return;
+  try { await dbDelete('auxilios', editAuxId); auxilios = auxilios.filter(a => a.id !== editAuxId); fecharModal('mAuxilio'); renderAuxiliosAdm(); toast('Excluído.'); }
+  catch(e) { toast('Erro: ' + e.message, true); }
+}
+
+function renderMatrizAdm() {
+  const el = r$('taMatriz'); if (!el) return;
+  el.innerHTML = trilhaEtapas.length ? `<div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Categoria</th><th>Curso / etapa</th><th>Modalidade</th><th>Carga</th><th>Validade</th><th>Pontos</th><th></th></tr></thead>
+    <tbody>${trilhaEtapas.map(e => `<tr style="cursor:pointer;${e.ativo?'':'opacity:.5'}" onclick="abrirEtapa('${e.id}')">
+      <td>${e.ordem}</td><td>${escHtml(e.categoria)}</td><td><b>${escHtml(e.nome)}</b></td><td>${escHtml(e.modalidade||'—')}</td>
+      <td>${e.carga_horaria!=null?e.carga_horaria+'h':'—'}</td><td>${e.validade_anos?e.validade_anos+' ano'+(e.validade_anos>1?'s':''):'—'}</td>
+      <td>${e.pontos}</td><td>${e.ativo?'':'<span class="aux-st enc">Inativa</span>'}</td></tr>`).join('')}</tbody></table></div>` : '';
+}
+
+function abrirEtapa(id) {
+  editEtapaId = id || null;
+  const e = id ? trilhaEtapas.find(x => x.id === id) : null;
+  mkDatalist('dlEtCategorias', [...new Set(trilhaEtapas.map(x => x.categoria))]);
+  r$('etTitulo').textContent = e ? 'Editar etapa' : 'Nova etapa';
+  r$('etNome').value = e ? e.nome : '';
+  r$('etCategoria').value = e ? e.categoria : '';
+  r$('etModalidade').value = e ? (e.modalidade||'') : '';
+  r$('etInstituicao').value = e ? (e.instituicao||'') : '';
+  r$('etInstrutor').value = e ? (e.instrutor||'') : '';
+  r$('etCarga').value = e ? (e.carga_horaria ?? '') : '';
+  r$('etValidade').value = e ? (e.validade_anos ?? '') : '';
+  r$('etPontos').value = e ? e.pontos : 10;
+  r$('etOrdem').value = e ? e.ordem : (Math.max(0, ...trilhaEtapas.map(x => x.ordem)) + 1);
+  r$('etAtivo').checked = e ? e.ativo : true;
+  r$('mEtapa').classList.add('open');
+}
+
+async function salvarEtapa() {
+  const num = id => r$(id).value === '' ? null : Number(r$(id).value);
+  const dados = { nome: r$('etNome').value.trim(), categoria: r$('etCategoria').value.trim(), modalidade: r$('etModalidade').value.trim() || null,
+    instituicao: r$('etInstituicao').value.trim() || null, instrutor: r$('etInstrutor').value.trim() || null,
+    carga_horaria: num('etCarga'), validade_anos: num('etValidade'), pontos: num('etPontos') ?? 10, ordem: num('etOrdem') ?? 0, ativo: r$('etAtivo').checked };
+  if (!dados.nome || !dados.categoria) { toast('Informe nome e categoria.', true); return; }
+  try {
+    if (editEtapaId) await dbUpdate('trilha_etapas', editEtapaId, dados); else await dbInsert('trilha_etapas', dados);
+    await carregarTrilhaAuxilios();
+    fecharModal('mEtapa'); renderMatrizAdm(); renderTrilhaAdm(); toast('Etapa salva.');
+  } catch(e) { toast('Erro: ' + e.message, true); }
 }
 
 tratarLinkDeEmail().then(pedeSenha => { if (!pedeSenha) bootstrap(); });
