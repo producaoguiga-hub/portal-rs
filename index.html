@@ -545,12 +545,17 @@
 
   /* "Próxima ação": borda na cor da marca + brilho pulsando devagar pra chamar
      atenção sem incomodar (o atrasado mantém o pulso vermelho que já tinha). */
-  .mp-next:not(.urgent) { border: 1.5px solid var(--perbras-azul); animation: mpNextGlow 2.4s ease-in-out infinite; }
-  .mp-next:not(.urgent) .mp-next-ico { color: var(--perbras-azul); }
+  /* Laranja Proximidade (#FF8F1F) chapado; texto em Azul Petróleo pra ter contraste. */
+  .mp-next:not(.urgent) { background: var(--perbras-laranja); border: 1.5px solid var(--perbras-laranja); animation: mpNextGlow 2.4s ease-in-out infinite; }
+  .mp-next:not(.urgent) .mp-next-ico,
+  .mp-next:not(.urgent) .mp-next-lbl,
+  .mp-next:not(.urgent) .mp-next-title,
+  .mp-next:not(.urgent) .mp-next-days { color: var(--perbras-petroleo); }
+  .mp-next:not(.urgent) .mp-next-days { background: rgba(255,255,255,0.35); padding: 5px 10px; border-radius: 4px; }
   .mp-next.urgent { border: 1.5px solid var(--red-text); }
   @keyframes mpNextGlow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(26,136,255,0); border-color: rgba(26,136,255,0.55); }
-    50%      { box-shadow: 0 0 0 5px rgba(26,136,255,0.16); border-color: rgba(26,136,255,1); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,143,31,0); }
+    50%      { box-shadow: 0 0 0 6px rgba(255,143,31,0.25); }
   }
   @media (prefers-reduced-motion: reduce) { .mp-next, .mp-next.urgent { animation: none; } }
 
