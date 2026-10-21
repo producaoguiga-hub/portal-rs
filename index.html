@@ -600,6 +600,13 @@
   .pd-at-prazo { font-size: 11.5px; font-weight: 600; white-space: nowrap; padding: 3px 8px; border-radius: 4px; background: var(--amber-bg); color: var(--amber-text); }
   .pd-at.vence .pd-at-prazo { background: var(--blue-bg); color: var(--blue-text); }
   .pd-mais { font-size: 12px; color: var(--text2); padding: 10px 6px 0; }
+  .pd-at.concl .pd-at-dot { background: var(--st-concl); }
+  .pd-at.concl .pd-at-prazo { background: var(--green-bg); color: var(--green-text); }
+  .pd-at.desc .pd-at-dot { background: var(--st-desc); }
+  .pd-at-com { font-size: 11.5px; color: var(--text2); margin-top: 3px; white-space: normal; line-height: 1.45; }
+  .pd-at-tag { font-style: normal; font-size: 10.5px; font-weight: 600; color: var(--amber-text); margin-top: 3px; }
+  .pd-kpi.alerta-leve { border-left: 4px solid var(--st-atr); }
+  .pd-kpi .s { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pd-ok { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--green-text); background: var(--green-bg); border-radius: var(--radius); padding: 14px; }
   .pd-leg { margin-bottom: 10px; gap: 6px; }
   .pd-leg .psp-chip { padding: 4px 10px; font-size: 11.5px; }
@@ -1026,26 +1033,26 @@
       <!-- 1. Indicadores -->
       <div class="pd-kpis" id="pdKpis"></div>
       <!-- 2. Status de todas as ações (uma barra, sem repetir em rosca) -->
-      <div class="card psp">
+      <div class="card psp" id="pdStatusCard">
         <div class="card-title" style="margin-bottom:12px">Status das ações</div>
         <div class="psp-bar" id="pspBar"></div>
         <div class="psp-chips" id="pspChips"></div>
       </div>
       <!-- 3. O que precisa de ação + progresso de cada gestor -->
       <div class="pd-row">
-        <div class="card pd-atencao" id="pdAtencaoCard"><div class="pd-card-head"><div class="card-title" style="margin:0"><i class="ti ti-alert-triangle"></i> Precisa de atenção</div><span class="pd-sub" id="pdAtencaoSub"></span></div><div id="pdAtencao"></div></div>
-        <div class="card"><div class="pd-card-head"><div class="card-title" style="margin:0">Progresso por gestor</div><span class="pd-sub" id="pdGestSub">ordenado por pendências</span></div>
+        <div class="card pd-atencao" id="pdAtencaoCard"><div class="pd-card-head"><div class="card-title" style="margin:0" id="pdAtencaoTitulo"><i class="ti ti-alert-triangle"></i> Precisa de atenção</div><span class="pd-sub" id="pdAtencaoSub"></span></div><div id="pdAtencao"></div></div>
+        <div class="card"><div class="pd-card-head"><div class="card-title" style="margin:0" id="pdGestTitulo">Progresso por gestor</div><span class="pd-sub" id="pdGestSub">ordenado por pendências</span></div>
           <div class="psp-chips pd-leg" id="pdGestLeg"></div>
           <div id="pdGestores"></div>
         </div>
       </div>
       <!-- 4. Análise: origem e conteúdo das ações -->
       <div class="pd-row">
-        <div class="card"><div class="card-title">De onde vêm as ações</div>
+        <div class="card"><div class="card-title" id="pdOrigemTitulo">De onde vêm as ações</div>
           <div class="pd-sec-t">Canal de mapeamento</div><div id="pdCanal"></div>
           <div class="pd-sec-t">Origem da ação</div><div id="pdOrigem"></div>
         </div>
-        <div class="card"><div class="card-title">O que está sendo desenvolvido</div>
+        <div class="card"><div class="card-title" id="pdConteudoTitulo">O que está sendo desenvolvido</div>
           <div class="pd-sec-t">Tipo de necessidade</div><div id="pdNecessidade"></div>
           <div class="pd-sec-t">Tipo de ação</div><div id="pdAcao"></div>
         </div>
@@ -2922,8 +2929,12 @@ function renderPDI() {
 // progresso por gestor → origem e conteúdo das ações. Tudo em HTML (nomes
 // inteiros, sem rótulo cortado); cores de status validadas pra daltonismo
 // na ordem abaixo (verde e laranja nunca lado a lado).
+// Com um status escolhido no filtro, o painel troca de pergunta: cada status
+// mostra só os indicadores e listas que fazem sentido pra ele.
 const PD_STATUS_ORDEM = ['Concluído','Em andamento','Atrasado','Descontinuado','Não iniciado'];
 const PD_STATUS_VAR = { 'Concluído':'--st-concl', 'Em andamento':'--st-and', 'Atrasado':'--st-atr', 'Descontinuado':'--st-desc', 'Não iniciado':'--st-nao' };
+const PD_ST_TXT = { 'Concluído': ['concluída','concluídas'], 'Em andamento': ['em andamento','em andamento'], 'Atrasado': ['atrasada','atrasadas'], 'Descontinuado': ['descontinuada','descontinuadas'], 'Não iniciado': ['não iniciada','não iniciadas'] };
+const pdPlural = (n, s) => `${n} ${(PD_ST_TXT[s] || [s, s])[n === 1 ? 0 : 1]}`;
 let pdGestoresTodos = false;
 let pdGestStatus = null;   // status escolhido na legenda do "Progresso por gestor"
 function pdFiltrarStatus(s) {
@@ -2944,9 +2955,34 @@ function pdBarList(cnt, total, max=6) {
   </div>`).join('');
 }
 
+// Status único escolhido no filtro (botões rápidos ou select), ou null = todos.
+function pdModo() {
+  const sf = (r$('pfStatus')||{}).value || '';
+  const qf = { atrasados: 'Atrasado', andamento: 'Em andamento', concluidos: 'Concluído', descontinuados: 'Descontinuado' }[pdiQF];
+  return qf || sf || null;
+}
+// Mesmos filtros do topo, mas sem o de status (base para "% do total").
+function pdBase() {
+  const af=(r$('pfAno')||{}).value||'', gf=(r$('pfGestor')||{}).value||'', uf=(r$('pfUnidade')||{}).value||'';
+  return pdis.filter(p => (!af||String(p.ano)===af) && (!gf||p.gestor_nome===gf) && (!uf||p.unidade===uf));
+}
+const pdKpi = (l, v, s, extra='') => `<div class="pd-kpi${extra}"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+const pdHero = (l, v, s) => `<div class="pd-kpi hero"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+const pdDias = (a, b) => Math.round((new Date(b+'T00:00') - new Date(a+'T00:00')) / 864e5);
+const pdMedia = arr => arr.length ? arr.reduce((s,v) => s+v, 0) / arr.length : null;
+
+function pdLinhaAcao(p, idsJs, prazoTxt, prazoCls, extra='') {
+  return `<div class="pd-at ${prazoCls}" onclick="verPDI('${p.id}', ${idsJs})">
+    <span class="pd-at-dot"></span>
+    <div class="pd-at-txt"><b>${escHtml(p.gestor_nome||'—')}</b><span>${escHtml(p.detalhe_desenvolvimento || p.acao || 'Ação de PDI')}</span>${extra}</div>
+    ${prazoTxt ? `<span class="pd-at-prazo">${prazoTxt}</span>` : ''}
+  </div>`;
+}
+
 function renderPDIDash() {
   const f = pdiFiltered();
   const total = f.length;
+  const modo = pdModo();
   const hoje = new Date().toISOString().slice(0,10);
   const em30 = new Date(Date.now() + 30*864e5).toISOString().slice(0,10);
   const stCnt = {}; f.forEach(p => { const s = pdiEffectiveStatus(p); stCnt[s] = (stCnt[s]||0) + 1; });
@@ -2955,63 +2991,148 @@ function renderPDIDash() {
   const vencendo = f.filter(p => abertas(p) && p.data_termino_programada && p.data_termino_programada >= hoje && p.data_termino_programada <= em30);
   const atrasadas = f.filter(p => pdiEffectiveStatus(p) === 'Atrasado');
   const gestores = [...new Set(f.map(p => p.gestor_nome).filter(Boolean))];
+  const base = pdBase().length;
+  const pctBase = n => base ? Math.round(n/base*100) : 0;
+  const plGest = n => `${n} gestor${n !== 1 ? 'es' : ''}`;
 
-  // 1. Indicadores (o destaque é a taxa de conclusão)
-  r$('pdKpis').innerHTML = `
-    <div class="pd-kpi hero"><div class="l">Taxa de conclusão</div><div class="v">${pct(stCnt['Concluído']||0)}%</div><div class="s">${stCnt['Concluído']||0} de ${total} ações concluídas</div></div>
-    <div class="pd-kpi"><div class="l">Ações de PDI</div><div class="v">${total}</div><div class="s">${gestores.length} gestores com PDI</div></div>
-    <div class="pd-kpi alerta${atrasadas.length?'':' zero'}" onclick="r$('pdAtencaoCard').scrollIntoView({behavior:'smooth',block:'center'})" title="Ver a lista">
-      <div class="l"><i class="ti ti-alert-triangle"></i> Atrasadas</div><div class="v">${atrasadas.length}</div><div class="s">${atrasadas.length ? 'ver quais são ↓' : 'nenhuma no momento'}</div></div>
-    <div class="pd-kpi"><div class="l"><i class="ti ti-clock"></i> Vencem em 30 dias</div><div class="v">${vencendo.length}</div><div class="s">ainda em aberto</div></div>`;
+  // Barra de status e legenda do gestor só fazem sentido com mais de um status.
+  r$('pdStatusCard').style.display = modo ? 'none' : '';
+  r$('pdGestLeg').style.display = modo ? 'none' : '';
+  if (modo) pdGestStatus = null;
 
-  // 2. Status
+  // ---------- 1. Indicadores ----------
+  let kpis;
+  if (modo === 'Concluído') {
+    const comData = f.filter(p => p.concluido_em);
+    const noPrazo = comData.filter(p => !p.data_termino_programada || p.concluido_em.slice(0,10) <= p.data_termino_programada);
+    const tempos = comData.filter(p => p.data_inicio).map(p => pdDias(p.data_inicio, p.concluido_em.slice(0,10))).filter(d => d >= 0);
+    const notas = f.map(p => p.conclusao_nps).filter(n => n != null);
+    const tm = pdMedia(tempos), nm = pdMedia(notas);
+    kpis = pdHero('Concluídas', total, `${pctBase(total)}% de todas as ações · ${plGest(gestores.length)}`)
+      + pdKpi('<i class="ti ti-calendar-check"></i> No prazo', comData.length ? `${Math.round(noPrazo.length/comData.length*100)}%` : '—', comData.length ? `${noPrazo.length} de ${comData.length} com data de conclusão` : 'sem data de conclusão registrada')
+      + pdKpi('<i class="ti ti-hourglass"></i> Tempo médio', tm != null ? `${Math.round(tm)}d` : '—', tm != null ? 'do início até concluir' : 'sem datas suficientes')
+      + pdKpi('<i class="ti ti-star"></i> Avaliação da ação', nm != null ? nm.toFixed(1).replace('.', ',') : '—', nm != null ? `média de ${notas.length} nota${notas.length!==1?'s':''} (0 a 10)` : 'nenhuma nota registrada');
+  } else if (modo === 'Em andamento') {
+    const semAcomp = f.filter(p => !p.acompanhamento_resumo_em || pdDias(p.acompanhamento_resumo_em.slice(0,10), hoje) > 30);
+    const restante = pdMedia(f.filter(p => p.data_termino_programada).map(p => pdDias(hoje, p.data_termino_programada)));
+    kpis = pdHero('Em andamento', total, `${pctBase(total)}% de todas as ações · ${plGest(gestores.length)}`)
+      + pdKpi('<i class="ti ti-clock"></i> Vencem em 30 dias', vencendo.length, 'programe o acompanhamento')
+      + pdKpi('<i class="ti ti-message-off"></i> Sem atualização', semAcomp.length, 'há mais de 30 dias (ou nunca)', semAcomp.length ? ' alerta-leve' : '')
+      + pdKpi('<i class="ti ti-calendar"></i> Prazo médio restante', restante != null ? `${Math.round(restante)}d` : '—', 'até o término programado');
+  } else if (modo === 'Atrasado') {
+    const atrasos = f.filter(p => p.data_termino_programada).map(p => ({ p, d: pdDias(p.data_termino_programada, hoje) }));
+    const mais = atrasos.sort((a,b) => b.d - a.d)[0];
+    kpis = pdHero('Atrasadas', total, `${pctBase(total)}% de todas as ações`)
+      + pdKpi('<i class="ti ti-hourglass-high"></i> Atraso médio', atrasos.length ? `${Math.round(pdMedia(atrasos.map(a => a.d)))}d` : '—', 'além do prazo programado')
+      + pdKpi('<i class="ti ti-alert-triangle"></i> Mais antiga', mais ? `${mais.d}d` : '—', mais ? escHtml(mais.p.gestor_nome||'—') : '', ' alerta')
+      + pdKpi('<i class="ti ti-users"></i> Gestores com atraso', gestores.length, `de ${new Set(pdBase().map(p => p.gestor_nome).filter(Boolean)).size} com PDI`);
+  } else if (modo) {
+    kpis = pdHero(modo === 'Descontinuado' ? 'Descontinuadas' : modo, total, `${pctBase(total)}% de todas as ações`)
+      + pdKpi('<i class="ti ti-users"></i> Gestores', gestores.length, 'com ação nesse status')
+      + pdKpi('<i class="ti ti-message"></i> Com motivo registrado', f.filter(p => (p.feedback_dre||'').trim()).length, 'feedback da DRE preenchido');
+  } else {
+    kpis = pdHero('Taxa de conclusão', `${pct(stCnt['Concluído']||0)}%`, `${stCnt['Concluído']||0} de ${total} ações concluídas`)
+      + pdKpi('Ações de PDI', total, `${plGest(gestores.length)} com PDI`)
+      + `<div class="pd-kpi alerta${atrasadas.length?'':' zero'}" onclick="r$('pdAtencaoCard').scrollIntoView({behavior:'smooth',block:'center'})" title="Ver a lista">
+          <div class="l"><i class="ti ti-alert-triangle"></i> Atrasadas</div><div class="v">${atrasadas.length}</div><div class="s">${atrasadas.length ? 'ver quais são ↓' : 'nenhuma no momento'}</div></div>`
+      + pdKpi('<i class="ti ti-clock"></i> Vencem em 30 dias', vencendo.length, 'ainda em aberto');
+  }
+  r$('pdKpis').innerHTML = kpis;
+  r$('pdKpis').style.gridTemplateColumns = modo && !['Concluído','Em andamento','Atrasado'].includes(modo) ? '1.3fr 1fr 1fr' : '';
+
+  // ---------- 2. Status (só na visão geral) ----------
   const ordem = PD_STATUS_ORDEM.filter(s => stCnt[s]);
-  r$('pspBar').innerHTML = ordem.map(s => `<span style="width:${pct(stCnt[s])}%;background:var(${PD_STATUS_VAR[s]})" title="${s}: ${stCnt[s]} (${pct(stCnt[s])}%)"></span>`).join('');
-  r$('pspChips').innerHTML = ordem.map(s =>
-    `<span class="psp-chip"><span class="dot" style="background:var(${PD_STATUS_VAR[s]})"></span>${s}: <b>${stCnt[s]}</b><span class="pct">${pct(stCnt[s])}%</span></span>`
-  ).join('') || '<span style="color:var(--text3);font-size:12.5px">Nenhuma ação no filtro atual.</span>';
+  if (!modo) {
+    r$('pspBar').innerHTML = ordem.map(s => `<span style="width:${pct(stCnt[s])}%;background:var(${PD_STATUS_VAR[s]})" title="${s}: ${stCnt[s]} (${pct(stCnt[s])}%)"></span>`).join('');
+    r$('pspChips').innerHTML = ordem.map(s =>
+      `<span class="psp-chip"><span class="dot" style="background:var(${PD_STATUS_VAR[s]})"></span>${s}: <b>${stCnt[s]}</b><span class="pct">${pct(stCnt[s])}%</span></span>`
+    ).join('') || '<span style="color:var(--text3);font-size:12.5px">Nenhuma ação no filtro atual.</span>';
+  }
 
-  // 3a. Precisa de atenção: atrasadas (mais antigas primeiro) e depois as que vencem logo
-  const dias = d => Math.round((new Date(d+'T00:00') - new Date(hoje+'T00:00')) / 864e5);
-  const lista = [
-    ...atrasadas.sort((a,b) => (a.data_termino_programada||'').localeCompare(b.data_termino_programada||'')).map(p => ({ p, tipo: 'atr', txt: p.data_termino_programada ? `${-dias(p.data_termino_programada)}d de atraso` : 'atrasada' })),
-    ...vencendo.filter(p => !atrasadas.includes(p)).sort((a,b) => a.data_termino_programada.localeCompare(b.data_termino_programada)).map(p => ({ p, tipo: 'vence', txt: `vence em ${dias(p.data_termino_programada)}d` })),
-  ];
-  const idsJs = JSON.stringify(lista.map(x => x.p.id)).replace(/"/g, "'");
-  r$('pdAtencaoSub').textContent = lista.length ? `${atrasadas.length} atrasada${atrasadas.length!==1?'s':''} · ${vencendo.length} vencendo` : '';
-  r$('pdAtencao').innerHTML = lista.length ? lista.slice(0, 8).map(({p, tipo, txt}) => `
-    <div class="pd-at ${tipo}" onclick="verPDI('${p.id}', ${idsJs})">
-      <span class="pd-at-dot"></span>
-      <div class="pd-at-txt"><b>${escHtml(p.gestor_nome||'—')}</b><span>${escHtml(p.detalhe_desenvolvimento || p.acao || 'Ação de PDI')}</span></div>
-      <span class="pd-at-prazo">${txt}</span>
-    </div>`).join('') + (lista.length > 8 ? `<div class="pd-mais">+ ${lista.length-8} — veja em "Todas as ações"</div>` : '')
-    : '<div class="pd-ok"><i class="ti ti-circle-check"></i> Nada atrasado nem vencendo nos próximos 30 dias.</div>';
+  // ---------- 3a. Lista principal (muda com o filtro) ----------
+  const dias = d => pdDias(hoje, d);
+  let titulo, sub, linhasHtml, vazio;
+  if (modo === 'Concluído') {
+    const ord = f.slice().sort((a,b) => (b.concluido_em||b.data_termino_programada||'').localeCompare(a.concluido_em||a.data_termino_programada||''));
+    const idsJs = JSON.stringify(ord.map(p => p.id)).replace(/"/g, "'");
+    titulo = '<i class="ti ti-circle-check" style="color:var(--st-concl)"></i> Concluídas recentemente'; sub = `${total} no total`;
+    linhasHtml = ord.slice(0, 8).map(p => pdLinhaAcao(p, idsJs,
+      p.conclusao_nps != null ? `nota ${p.conclusao_nps}` : (p.concluido_em ? fmt(p.concluido_em.slice(0,10)) : ''), 'concl',
+      p.conclusao_comentario ? `<i class="pd-at-com">“${escHtml(p.conclusao_comentario)}”</i>` : '')).join('')
+      + (ord.length > 8 ? `<div class="pd-mais">+ ${ord.length-8} — veja em "Todas as ações"</div>` : '');
+    vazio = 'Nenhuma ação concluída no filtro atual.';
+  } else if (modo === 'Em andamento') {
+    const ord = f.slice().sort((a,b) => (a.data_termino_programada||'9').localeCompare(b.data_termino_programada||'9'));
+    const idsJs = JSON.stringify(ord.map(p => p.id)).replace(/"/g, "'");
+    titulo = '<i class="ti ti-clock" style="color:var(--st-and)"></i> Próximas a vencer'; sub = `${vencendo.length} nos próximos 30 dias`;
+    linhasHtml = ord.slice(0, 10).map(p => {
+      const sem = !p.acompanhamento_resumo_em || pdDias(p.acompanhamento_resumo_em.slice(0,10), hoje) > 30;
+      return pdLinhaAcao(p, idsJs, p.data_termino_programada ? `vence em ${dias(p.data_termino_programada)}d` : 'sem prazo', 'vence',
+        sem ? '<em class="pd-at-tag">sem atualização há 30+ dias</em>' : '');
+    }).join('') + (ord.length > 10 ? `<div class="pd-mais">+ ${ord.length-10} — veja em "Todas as ações"</div>` : '');
+    vazio = 'Nenhuma ação em andamento no filtro atual.';
+  } else if (modo === 'Atrasado') {
+    const ord = f.slice().sort((a,b) => (a.data_termino_programada||'').localeCompare(b.data_termino_programada||''));
+    const idsJs = JSON.stringify(ord.map(p => p.id)).replace(/"/g, "'");
+    titulo = '<i class="ti ti-alert-triangle"></i> Todas as atrasadas'; sub = 'mais antigas primeiro';
+    linhasHtml = ord.map(p => pdLinhaAcao(p, idsJs, p.data_termino_programada ? `${-dias(p.data_termino_programada)}d de atraso` : 'atrasada', 'atr')).join('');
+    vazio = 'Nenhuma ação atrasada. 🎉';
+  } else if (modo) {
+    const ord = f.slice().sort((a,b) => (b.created_at||'').localeCompare(a.created_at||''));
+    const idsJs = JSON.stringify(ord.map(p => p.id)).replace(/"/g, "'");
+    titulo = `<i class="ti ti-list" style="color:var(--st-desc)"></i> Ações ${modo === 'Descontinuado' ? 'descontinuadas' : modo.toLowerCase()}`; sub = 'com o motivo, quando registrado';
+    linhasHtml = ord.slice(0, 10).map(p => pdLinhaAcao(p, idsJs, '', 'desc',
+      (p.feedback_dre||'').trim() ? `<i class="pd-at-com">Motivo: ${escHtml(p.feedback_dre)}</i>` : '<em class="pd-at-tag">sem motivo registrado</em>')).join('')
+      + (ord.length > 10 ? `<div class="pd-mais">+ ${ord.length-10} — veja em "Todas as ações"</div>` : '');
+    vazio = 'Nenhuma ação nesse status no filtro atual.';
+  } else {
+    const lista = [
+      ...atrasadas.sort((a,b) => (a.data_termino_programada||'').localeCompare(b.data_termino_programada||'')).map(p => ({ p, tipo: 'atr', txt: p.data_termino_programada ? `${-dias(p.data_termino_programada)}d de atraso` : 'atrasada' })),
+      ...vencendo.filter(p => !atrasadas.includes(p)).sort((a,b) => a.data_termino_programada.localeCompare(b.data_termino_programada)).map(p => ({ p, tipo: 'vence', txt: `vence em ${dias(p.data_termino_programada)}d` })),
+    ];
+    const idsJs = JSON.stringify(lista.map(x => x.p.id)).replace(/"/g, "'");
+    titulo = '<i class="ti ti-alert-triangle"></i> Precisa de atenção';
+    sub = lista.length ? `${atrasadas.length} atrasada${atrasadas.length!==1?'s':''} · ${vencendo.length} vencendo` : '';
+    linhasHtml = lista.slice(0, 8).map(({p, tipo, txt}) => pdLinhaAcao(p, idsJs, txt, tipo)).join('')
+      + (lista.length > 8 ? `<div class="pd-mais">+ ${lista.length-8} — veja em "Todas as ações"</div>` : '');
+    vazio = null;
+  }
+  r$('pdAtencaoTitulo').innerHTML = titulo;
+  r$('pdAtencaoSub').textContent = sub;
+  r$('pdAtencao').innerHTML = linhasHtml || (vazio ? `<div class="pd-vazio" style="padding:10px 0">${vazio}</div>` : '<div class="pd-ok"><i class="ti ti-circle-check"></i> Nada atrasado nem vencendo nos próximos 30 dias.</div>');
 
-  // 3b. Progresso por gestor (barra empilhada por status, mais pendência no topo).
-  // A legenda filtra: clicar num status mostra só quem tem ação nele.
-  if (pdGestStatus && !stCnt[pdGestStatus]) pdGestStatus = null;
-  r$('pdGestSub').textContent = pdGestStatus ? `só quem tem ação "${pdGestStatus.toLowerCase()}" — clique de novo pra ver todos` : 'ordenado por pendências';
-  r$('pdGestLeg').innerHTML = `<button class="psp-chip pd-leg-btn${pdGestStatus ? '' : ' on'}" onclick="pdFiltrarStatus(null)">Todos</button>` +
-    ordem.map(s => `<button class="psp-chip pd-leg-btn${pdGestStatus === s ? ' on' : (pdGestStatus ? ' off' : '')}" onclick="pdFiltrarStatus('${s}')"><span class="dot" style="background:var(${PD_STATUS_VAR[s]})"></span>${s} <small>${stCnt[s]}</small></button>`).join('');
+  // ---------- 3b. Por gestor ----------
+  const st = modo || pdGestStatus;   // status em foco (do filtro do topo ou da legenda)
+  r$('pdGestTitulo').textContent = !modo ? 'Progresso por gestor'
+    : modo === 'Concluído' ? 'Conclusões por gestor'
+    : modo === 'Atrasado' ? 'Atrasos por gestor'
+    : `${modo === 'Descontinuado' ? 'Descontinuadas' : modo} por gestor`;
+  r$('pdGestSub').textContent = modo ? 'quem tem mais primeiro'
+    : pdGestStatus ? `só quem tem ação "${pdGestStatus.toLowerCase()}" — clique de novo pra ver todos` : 'ordenado por pendências';
+  if (!modo) {
+    if (pdGestStatus && !stCnt[pdGestStatus]) pdGestStatus = null;
+    r$('pdGestLeg').innerHTML = `<button class="psp-chip pd-leg-btn${pdGestStatus ? '' : ' on'}" onclick="pdFiltrarStatus(null)">Todos</button>` +
+      ordem.map(s => `<button class="psp-chip pd-leg-btn${pdGestStatus === s ? ' on' : (pdGestStatus ? ' off' : '')}" onclick="pdFiltrarStatus('${s}')"><span class="dot" style="background:var(${PD_STATUS_VAR[s]})"></span>${s} <small>${stCnt[s]}</small></button>`).join('');
+  }
+  // Com status do topo, "de N" compara com todas as ações da pessoa (sem o filtro de status).
+  const baseArr = pdBase();
   const linhas = gestores.map(g => {
     const its = f.filter(p => p.gestor_nome === g), c = {};
     its.forEach(p => { const s = pdiEffectiveStatus(p); c[s] = (c[s]||0) + 1; });
-    return { g, n: its.length, c };
-  }).filter(l => !pdGestStatus || l.c[pdGestStatus])
-    .sort(pdGestStatus
-      ? (a,b) => b.c[pdGestStatus] - a.c[pdGestStatus] || a.g.localeCompare(b.g)
+    return { g, n: its.length, c, nTotal: modo ? baseArr.filter(p => p.gestor_nome === g).length : its.length };
+  }).filter(l => !st || l.c[st])
+    .sort(st
+      ? (a,b) => b.c[st] - a.c[st] || a.g.localeCompare(b.g)
       : (a,b) => (b.c['Atrasado']||0) - (a.c['Atrasado']||0) || (b.n-(b.c['Concluído']||0)) - (a.n-(a.c['Concluído']||0)) || a.g.localeCompare(b.g));
-  const larg = l => pdGestStatus ? l.c[pdGestStatus] : l.n;
+  const larg = l => st ? l.c[st] : l.n;
   const maxN = Math.max(1, ...linhas.map(larg));
-  const PD_ST_TXT = { 'Concluído': ['concluída','concluídas'], 'Em andamento': ['em andamento','em andamento'], 'Atrasado': ['atrasada','atrasadas'], 'Descontinuado': ['descontinuada','descontinuadas'], 'Não iniciado': ['não iniciada','não iniciadas'] };
-  const plural = (n, s) => `${n} ${(PD_ST_TXT[s] || [s, s])[n > 1 ? 1 : 0]}`;
   const mostrar = pdGestoresTodos ? linhas : linhas.slice(0, 10);
   r$('pdGestores').innerHTML = (mostrar.length ? mostrar.map(l => {
-    const {g, n, c} = l, gp = gestorProfiles[g];
-    const resumo = pdGestStatus
-      ? `${plural(c[pdGestStatus], pdGestStatus)} de ${n}`
+    const {g, n, c, nTotal} = l, gp = gestorProfiles[g];
+    const resumo = st
+      ? `${pdPlural(c[st], st)} de ${nTotal}`
       : `${c['Concluído']||0}/${n} concluídas${c['Atrasado'] ? ` · <em>${c['Atrasado']} atrasada${c['Atrasado']>1?'s':''}</em>` : ''}`;
-    const segs = pdGestStatus ? [pdGestStatus] : PD_STATUS_ORDEM.filter(s => c[s]);
+    const segs = st ? [st] : PD_STATUS_ORDEM.filter(s => c[s]);
     return `<div class="pd-g">
       <div class="avatar">${gp && gp.foto_url ? `<img src="${gp.foto_url}" loading="lazy">` : initials(g)}</div>
       <div class="pd-g-main">
@@ -3022,7 +3143,9 @@ function renderPDIDash() {
   }).join('') : '<div class="pd-vazio">Nenhum gestor com ação nesse status.</div>')
     + (linhas.length > 10 ? `<button class="btn pd-toggle" onclick="pdGestoresTodos=!pdGestoresTodos;renderPDIDash()">${pdGestoresTodos ? 'Mostrar só os 10 primeiros' : `Mostrar todos os ${linhas.length} gestores`}</button>` : '');
 
-  // 4. Origem e conteúdo
+  // ---------- 4. Origem e conteúdo (onde aquele status se concentra) ----------
+  r$('pdOrigemTitulo').textContent = !modo ? 'De onde vêm as ações' : `De onde vêm as ${PD_ST_TXT[modo] ? PD_ST_TXT[modo][1] : 'ações'}`;
+  r$('pdConteudoTitulo').textContent = modo === 'Concluído' ? 'O que foi desenvolvido' : !modo ? 'O que está sendo desenvolvido' : `Onde se concentram as ${PD_ST_TXT[modo] ? PD_ST_TXT[modo][1] : 'ações'}`;
   const cnCnt = {}; f.forEach(p => pdiSplit(p.canal_mapeamento).forEach(c => { cnCnt[c] = (cnCnt[c]||0) + 1; }));
   r$('pdCanal').innerHTML = pdBarList(cnCnt, total);
   r$('pdOrigem').innerHTML = pdBarList(cnt(f.filter(p => p.origem_acao), 'origem_acao'), total);
