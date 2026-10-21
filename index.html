@@ -525,6 +525,54 @@
     50%      { box-shadow: 0 0 0 5px rgba(26,136,255,0.16); border-color: rgba(26,136,255,1); }
   }
   @media (prefers-reduced-motion: reduce) { .mp-next, .mp-next.urgent { animation: none; } }
+
+  .mc-ind { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .mc-ind:last-child { border-bottom: none; }
+  .mc-ind b { display: block; font-size: 13px; font-weight: 600; }
+  .mc-ind span:not(.mon-nota) { font-size: 12px; color: var(--text2); }
+
+  /* Avaliar seu Monitor */
+  .avm-cta { display: flex; align-items: center; gap: 18px; border-left: 4px solid var(--perbras-azul); }
+  .avm-cta-txt { flex: 1; }
+  .avm-cta p { font-size: 13px; color: var(--text2); line-height: 1.55; }
+  .avm-feitas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .avm-feitas span { font-size: 11.5px; background: var(--green-bg); color: var(--green-text); border-radius: 4px; padding: 3px 8px; }
+  .avm-q { padding: 14px 0; border-bottom: 0.5px solid var(--border); }
+  .avm-q-t { font-size: 13.5px; font-weight: 600; }
+  .avm-q-p { font-size: 12.5px; color: var(--text2); line-height: 1.5; margin-top: 2px; }
+  .avm-q textarea { display: block; width: 100%; margin-top: 8px; min-height: 56px; resize: vertical; font-size: 13px; padding: 8px 10px;
+    border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); }
+  .avm-q textarea:focus { outline: none; border-color: var(--blue); }
+  @media (max-width: 600px) { .avm-cta { flex-direction: column; align-items: stretch; } }
+
+  /* Meu PDI: ações em cards (em vez de tabela) */
+  .mpa-year { margin-bottom: 1.25rem; }
+  .mpa-year-head { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 4px 0 12px; user-select: none; }
+  .mpa-year-head i { font-size: 16px; color: var(--text3); transition: transform .2s; }
+  .mpa-year-head.open i { transform: rotate(90deg); }
+  .mpa-year-head .ano { font-size: 18px; font-weight: 700; color: var(--text); }
+  .mpa-year-head .cnt { font-size: 12px; color: var(--text2); background: var(--bg); border-radius: 4px; padding: 2px 8px; }
+  .mpa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  .mpa-card { --st: var(--perbras-azul); --st-bg: var(--blue-bg); --st-tx: var(--blue-text);
+    position: relative; background: var(--bg); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem 1.1rem 1.5rem; box-shadow: var(--shadow);
+    cursor: pointer; overflow: hidden; display: flex; flex-direction: column; gap: 12px; transition: transform .2s, box-shadow .2s; }
+  .mpa-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--st); }
+  .mpa-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(9,28,40,0.12); }
+  .mpa-card.concl  { --st: #6fb300; --st-bg: var(--green-bg); --st-tx: var(--green-text); }
+  .mpa-card.atras  { --st: var(--perbras-laranja); --st-bg: var(--amber-bg); --st-tx: var(--amber-text); }
+  .mpa-card.naoini { --st: #8a9fad; --st-bg: var(--bg3); --st-tx: var(--text2); }
+  .mpa-card.desc   { --st: #7F77DD; --st-bg: var(--purple-bg); --st-tx: var(--purple-text); }
+  .mpa-top { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .mpa-acao { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--st-tx); }
+  .mpa-canal { font-size: 11px; color: var(--text2); background: var(--bg2); border-radius: 4px; padding: 2px 7px; }
+  .mpa-status { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--st-tx); background: var(--st-bg); border-radius: 4px; padding: 3px 9px; }
+  .mpa-title { font-size: 15px; font-weight: 600; line-height: 1.45; color: var(--text); }
+  .mpa-prazo { margin-top: auto; }
+  .mpa-datas { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .mpa-datas i { font-size: 13px; vertical-align: -2px; color: var(--text3); }
+  .mpa-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .mpa-bar span { display: block; height: 100%; background: var(--st); border-radius: 3px; }
+  .mpa-falta { font-size: 11.5px; font-weight: 600; color: var(--st-tx); margin-top: 6px; text-align: right; }
   @media (max-width: 900px) { .mc-grid { grid-template-columns: 1fr; } }
 
   @media (max-width: 900px) {
@@ -875,12 +923,19 @@
     </div>
     <div id="monGroups"></div>
     <div id="monEmpty" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma monitoria registrada ainda</div>
+
+    <div class="section-head" style="margin-top:2rem">
+      <div class="card-title" style="font-size:15px;margin:0"><i class="ti ti-message-star"></i> Avaliações dos monitores <span style="font-weight:400;color:var(--text2);font-size:12.5px">— feitas pelos gestores monitorados ("Avaliar seu Monitor")</span></div>
+    </div>
+    <div id="avmLista" style="margin-top:12px"></div>
+    <div id="avmVazio" class="empty" style="display:none"><i class="ti ti-message-off" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum gestor avaliou o monitor ainda</div>
   </div>
 
   <!-- MINHA MONITORIA (gestor) -->
   <div class="page" id="page-minhamonitoria">
     <div class="page-title">Minha Monitoria</div>
     <!-- Só o consolidado publicado pelo RH: nada de respostas/monitores individuais -->
+    <div id="mmAvm"></div>
     <div id="mmConteudo"></div>
     <div id="mmEmpty" class="empty" style="display:none"><i class="ti ti-hourglass" style="font-size:28px;display:block;margin-bottom:8px"></i>O consolidado da sua monitoria ainda não foi publicado pelo RH.<br>Assim que estiver pronto, ele aparece aqui.</div>
   </div>
@@ -1201,6 +1256,32 @@
   </div>
 </div>
 
+<!-- MODAL AVALIAR SEU MONITOR (gestor avalia o monitor) -->
+<div class="modal-overlay" id="mAvaliarMonitor">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-title">Avaliar seu monitor</div>
+    <p style="font-size:12.5px;color:var(--text2);line-height:1.6;margin:-0.5rem 0 1rem">Marque de 1 a 5 e detalhe a sua nota. Suas respostas vão só para o RH.</p>
+    <div class="form-grid">
+      <div class="fg span2"><label>Nome do seu monitor</label><input id="avmMonitor" type="text" list="dlAvmMonitores" onchange="avmMonitorEscolhido()"><datalist id="dlAvmMonitores"></datalist></div>
+      <div class="fg"><label>Unidade da monitoria</label><input id="avmUnidade" type="text"></div>
+      <div class="fg span2"><label>Período (início x término, ou "Em andamento")</label><input id="avmPeriodo" type="text" placeholder="Ex: 12/02/2026 x 18/05/2026"></div>
+    </div>
+    <div id="avmPerguntas"></div>
+    <div class="avm-q">
+      <div class="avm-q-t">O quanto você recomendaria este monitor para acompanhar outros gestores?</div>
+      <div class="nps-pick" id="avmNpsPick"></div>
+      <div class="nps-pick-lbls"><span>0 · nada provável</span><span>10 · muito provável</span></div>
+    </div>
+    <div class="fg" style="margin-top:12px"><label>O que poderia ser melhorado no processo da monitoria e na atuação do monitor?</label><textarea id="avmMelhoria"></textarea></div>
+    <div class="fg" style="margin-top:10px"><label>Espaço livre para comentários</label><textarea id="avmComentarios"></textarea></div>
+    <div class="login-err" id="avmErr"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mAvaliarMonitor')">Cancelar</button>
+      <button class="btn btn-primary" id="avmBtnEnviar" onclick="enviarAvaliacaoMonitor()"><i class="ti ti-send"></i> Enviar avaliação</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONSOLIDADO DA MONITORIA (RH: gera com IA, revisa e publica) -->
 <div class="modal-overlay" id="mConsolidado">
   <div class="modal" style="max-width:820px">
@@ -1214,6 +1295,10 @@
         <button class="btn" id="mcBtnIA" onclick="gerarConsolidadoIA()" style="margin-top:10px"><i class="ti ti-sparkles"></i> Gerar rascunho com IA</button>
         <button class="btn" onclick="abrirMonitoriasIndividuais()" style="margin-top:10px"><i class="ti ti-list-details"></i> Ver avaliações individuais</button>
       </div>
+    </div>
+    <div class="card" style="margin:0 0 1rem">
+      <div class="card-title"><i class="ti ti-file-type-pdf"></i> Avaliações dos monitores — exportar PDF</div>
+      <div id="mcIndividuais"></div>
     </div>
     <div class="form-grid mc-edit" style="grid-template-columns:1fr">
       <div class="fg"><label>Resumo executivo</label><textarea id="mcResumo"></textarea></div>
@@ -1249,6 +1334,7 @@
     <div class="obs-box" id="monFichaNps"></div>
     <div class="modal-footer">
       <button class="btn" onclick="fecharModal('mMonitoria')">Fechar</button>
+      <button class="btn admin-only" onclick="exportarMonitoriaPDF(viewMonitoriaId)"><i class="ti ti-file-type-pdf"></i> Exportar PDF</button>
       <button class="btn btn-danger admin-only" id="monFichaExcluir" onclick="excluirMonitoriaFicha()"><i class="ti ti-trash"></i> Excluir</button>
       <button class="btn btn-primary admin-only" onclick="editarMonitoriaFicha()"><i class="ti ti-edit"></i> Editar</button>
     </div>
@@ -1447,6 +1533,23 @@ const MON_PERGUNTAS = [
   { campo: 'humildade', titulo: 'Escuta críticas com humildade e se esforça para melhorar?' },
   { campo: 'perfil_valores', titulo: 'Perfil compatível com os valores da Perbras?' },
 ];
+// "Avaliar seu Monitor" (o gestor avalia o monitor) — mesmas perguntas do
+// Forms "Sobre a Monitoria".
+const AVM_PERGUNTAS = [
+  { campo: 'acolhimento',     titulo: 'Acolhimento',               pergunta: 'Como você avalia a forma como o monitor te recebeu no início (apresentação à equipe, à unidade e ao contexto da operação)?' },
+  { campo: 'organizacao',     titulo: 'Organização do aprendizado', pergunta: 'O monitor planejou e dividiu os conteúdos de forma lógica e progressiva, com etapas e prioridades claras?' },
+  { campo: 'didatica',        titulo: 'Didática',                  pergunta: 'As explicações do monitor eram claras e fáceis de entender?' },
+  { campo: 'disponibilidade', titulo: 'Disponibilidade',           pergunta: 'O monitor esteve disponível para tirar dúvidas e dedicou tempo de qualidade ao seu desenvolvimento?' },
+  { campo: 'respeito',        titulo: 'Respeito e paciência',      pergunta: 'O monitor te tratou com respeito e paciência, inclusive diante de dúvidas e erros?' },
+  { campo: 'comunicacao',     titulo: 'Comunicação',               pergunta: 'Como você avalia a comunicação do monitor (transparência, clareza e alinhamento do que era esperado de você)?' },
+  { campo: 'feedback',        titulo: 'Feedback',                  pergunta: 'O monitor deu feedbacks frequentes, claros, diretos e construtivos ao longo do processo?' },
+  { campo: 'autonomia',       titulo: 'Autonomia',                 pergunta: 'O monitor te deu espaço para praticar e tomar decisões, acompanhando sem fazer por você?' },
+  { campo: 'ambiente',        titulo: 'Ambiente seguro',           pergunta: 'Você se sentiu à vontade para perguntar, discordar e admitir que não sabia algo?' },
+  { campo: 'integracao',      titulo: 'Integração',                pergunta: 'O monitor te conectou com pessoas-chave, outras áreas e processos importantes da unidade?' },
+  { campo: 'exemplo',         titulo: 'Exemplo',                   pergunta: 'Na sua percepção, a conduta do monitor reflete os valores da Perbras e serviu de referência para você?' },
+  { campo: 'resultado',       titulo: 'Resultado',                 pergunta: 'O quanto você está se sentindo mais preparado para assumir a função no momento?' },
+];
+let avaliacoesMonitor = [];
 const ETAPAS = ['Captação','Triagem','Entrevista','Apres. Perbras','Gest./Cultura','Av. Psi','Exames','Documentos','Pré-contrato','Passagens','Início'];
 const TL_FIELDS = ['tl_captacao','tl_triagem','tl_entrevista','tl_perbras','tl_gestao_cultura','tl_av_psi','tl_exames','tl_documentos','tl_pre_contrato','tl_passagens','tl_inicio'];
 
@@ -1486,8 +1589,10 @@ async function init() {
   // Monitorias: mesma lógica — se a tabela ainda não existir, não quebra o resto.
   // O gestor não lê as respostas dos monitores: só o consolidado publicado.
   if (profile && profile.role === 'gestor') {
+    renderAvaliarMonitor();
     renderMinhaMonitoria();
   } else {
+    await carregarAvaliacoesMonitor();
     try {
       monitorias = await dbGet('monitorias');
     } catch(e) {
@@ -2773,14 +2878,12 @@ function renderMeuPDI() {
   r$('mpGroups').innerHTML = anos.map(ano => {
     const rows = mine.filter(p=>(p.ano||'Sem ano')===ano).sort((a,b)=>(a.data_inicio||'').localeCompare(b.data_inicio||''));
     const open = meuPdiOpenGroups.has(String(ano));
-    return `<div class="pdi-group">
-      <div class="pdi-group-head${open?' open':''}" onclick="toggleMeuPdiGroup('${ano}')"><i class="ti ti-chevron-right"></i> ${ano} <span class="cnt">(${rows.length})</span></div>
-      <div class="pdi-group-body${open?' open':''}">
-        <div class="table-wrap" style="border-radius:0;border:none;box-shadow:none">
-          <table><thead><tr><th>Canal</th><th>Ação</th><th>Detalhe</th><th>Início</th><th>Término prog.</th><th>Status</th></tr></thead>
-          <tbody>${rows.map(meuPdiRowHtml).join('')}</tbody></table>
-        </div>
+    return `<div class="mpa-year">
+      <div class="mpa-year-head${open?' open':''}" onclick="toggleMeuPdiGroup('${ano}')">
+        <i class="ti ti-chevron-right"></i><span class="ano">${ano}</span>
+        <span class="cnt">${rows.length} ${rows.length!==1?'ações':'ação'}</span>
       </div>
+      ${open ? `<div class="mpa-grid">${rows.map(meuPdiCardHtml).join('')}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -2858,6 +2961,37 @@ function toggleMeuPdiGroup(ano) {
   ano = String(ano);
   if (meuPdiOpenGroups.has(ano)) meuPdiOpenGroups.delete(ano); else meuPdiOpenGroups.add(ano);
   renderMeuPDI();
+}
+
+// Card de uma ação no "Meu PDI": status em destaque e barra do prazo
+// (quanto do período início → término já passou).
+const MPA_STATUS_CLS = { 'Concluído':'concl', 'Em andamento':'andam', 'Atrasado':'atras', 'Não iniciado':'naoini', 'Descontinuado':'desc' };
+function meuPdiCardHtml(p) {
+  const st = pdiEffectiveStatus(p);
+  const cls = MPA_STATUS_CLS[st] || 'naoini';
+  const ini = p.data_inicio ? new Date(p.data_inicio+'T00:00') : null;
+  const fim = p.data_termino_programada ? new Date(p.data_termino_programada+'T00:00') : null;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  let pct = null, prazo = '';
+  if (st === 'Concluído') { pct = 100; prazo = 'Concluída'; }
+  else if (ini && fim && fim > ini) {
+    pct = Math.max(0, Math.min(100, (hoje - ini) / (fim - ini) * 100));
+    const dias = Math.round((fim - hoje) / 864e5);
+    prazo = hoje < ini ? `começa em ${Math.round((ini - hoje)/864e5)}d` : dias >= 0 ? `faltam ${dias}d` : `${-dias}d de atraso`;
+  }
+  const canais = pdiSplit(p.canal_mapeamento);
+  return `<div class="mpa-card ${cls}" onclick="verPDI('${p.id}', pdis.map(x=>x.id))">
+    <div class="mpa-top">
+      <span class="mpa-acao">${escHtml(p.acao||'Ação')}</span>
+      ${canais.map(c=>`<span class="mpa-canal">${escHtml(c)}</span>`).join('')}
+      <span class="mpa-status">${st}</span>
+    </div>
+    <div class="mpa-title">${escHtml(p.detalhe_desenvolvimento||p.acao||'—')}</div>
+    <div class="mpa-prazo">
+      <div class="mpa-datas"><span><i class="ti ti-calendar"></i> ${p.data_inicio?fmt(p.data_inicio):'—'}</span><span>${p.data_termino_programada?fmt(p.data_termino_programada):'—'} <i class="ti ti-flag"></i></span></div>
+      ${pct!=null?`<div class="mpa-bar"><span style="width:${pct}%"></span></div><div class="mpa-falta">${prazo}</div>`:''}
+    </div>
+  </div>`;
 }
 
 function meuPdiRowHtml(p) {
@@ -3199,6 +3333,7 @@ function renderMonitorias() {
   const termo=(r$('monFiltro')?.value||'').toLowerCase().trim();
   const f = monitorias.filter(m => !termo || (m.gestor_nome||'').toLowerCase().includes(termo) || (m.monitor_nome||'').toLowerCase().includes(termo));
 
+  renderAvaliacoesMonitor();
   const gestoresSet=new Set(f.map(m=>m.gestor_nome).filter(Boolean));
   r$('monTotalAval').dataset.target = f.length;
   r$('monTotalGestores').dataset.target = gestoresSet.size;
@@ -3311,6 +3446,16 @@ function abrirGestorMonitorias(nome) {
     aviso.style.display = 'flex';
   } else aviso.style.display = 'none';
   r$('mcPilaresAdm').innerHTML = mcPilaresHtml(monPilares(items));
+  const navIds = items.slice().sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).map(m=>m.id);
+  r$('mcIndividuais').innerHTML = navIds.map(id => {
+    const m = items.find(x=>x.id===id), md = monMedia(m);
+    return `<div class="mc-ind">
+      <div style="flex:1"><b>Monitor: ${escHtml(m.monitor_nome||'—')}</b><span>${escHtml([m.unidade, m.duracao].filter(Boolean).join(' · '))}</span></div>
+      ${md!=null?`<span class="mon-nota ${monNotaClass(md)}">${md.toFixed(1)}</span>`:''}
+      <button class="btn" onclick="r$('mConsolidado').classList.remove('open');abrirMonitoriaFicha('${id}', ${JSON.stringify(navIds).replace(/"/g,"'")})"><i class="ti ti-eye"></i> Ver</button>
+      <button class="btn btn-primary" onclick="exportarMonitoriaPDF('${id}')"><i class="ti ti-file-type-pdf"></i> Exportar PDF</button>
+    </div>`;
+  }).join('');
   r$('mcResumo').value = c.resumo || '';
   r$('mcPositivos').value = (c.pontos_positivos||[]).join('\n');
   r$('mcDesenvolver').value = (c.pontos_desenvolver||[]).join('\n');
@@ -3756,6 +3901,254 @@ async function onMonitoriaPdfSelected(input) {
   } catch(e) {
     toast('Não consegui ler esse PDF: '+e.message, true);
   }
+}
+
+// ============================================================
+// PDF NO PADRÃO "AVALIAÇÃO DA MONITORIA"
+// Abre uma página pronta pra impressão (A4, cores da marca) e o botão
+// "Salvar PDF" chama a impressão do navegador → "Salvar como PDF".
+// ============================================================
+function abrirPdfAvaliacao(cfg) {
+  const e = escHtml;
+  const dots = n => `<div class="dots">${[1,2,3,4,5].map(i=>`<i class="${n!=null && i<=n ? 'on' : ''}"></i>`).join('')}</div>`;
+  const notas = cfg.criterios.map(c=>c.nota).filter(n=>n!=null);
+  const media = notas.length ? notas.reduce((a,b)=>a+b,0)/notas.length : null;
+  const altas = notas.filter(n=>n>=4).length;
+  const fmtN = n => n==null ? '—' : n.toFixed(1).replace('.', ',');
+  const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<title>${e(cfg.arquivo)}</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 14mm 16mm 10mm; }
+  /* Rodapé em toda página: fica fixo no pé, e o tfoot vazio da tabela
+     externa reserva o espaço pra o conteúdo nunca passar por cima dele. */
+  table.pg { width: 100%; border-collapse: collapse; }
+  table.pg > tfoot td { height: 20mm; }
+  table.crit { table-layout: fixed; }
+  table.crit col.c1 { width: 64mm; } table.crit col.c2 { width: 20mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; color: #091C28; font-size: 10.5pt; background: #fff; }
+  .graf { position: fixed; top: -16mm; right: -16mm; width: 120mm; height: 297mm; z-index: -1; }
+  .wrap { max-width: 178mm; margin: 0 auto; }
+  .tool { position: sticky; top: 0; background: #091C28; color: #fff; padding: 10px 16px; display: flex; gap: 14px; align-items: center; font-size: 13px; margin-bottom: 18px; }
+  .tool button { background: #1A88FF; color: #fff; border: 0; border-radius: 4px; padding: 8px 16px; font: inherit; font-weight: 600; cursor: pointer; }
+  .logo { height: 34px; display: block; margin: 4mm 0 9mm; }
+  .kicker { color: #1A88FF; font-weight: 700; font-size: 9pt; letter-spacing: .03em; text-transform: uppercase; }
+  h1 { font-size: 20pt; font-weight: 700; margin: 2mm 0 1.5mm; }
+  .sub { color: #4a6577; font-size: 10.5pt; padding-bottom: 3mm; border-bottom: 2px solid #1A88FF; margin-bottom: 4mm; }
+  table.info { width: 100%; border-collapse: collapse; margin-bottom: 6mm; }
+  table.info td { padding: 2.2mm 2.5mm; border-bottom: 1px solid #CFE3FA; }
+  table.info td:first-child { width: 48mm; color: #4a6577; font-weight: 600; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); background: #EAF3FD; padding: 4.5mm 4mm; margin-bottom: 7mm; }
+  .kpis .v { font-size: 22pt; font-weight: 700; color: #1A88FF; line-height: 1; }
+  .kpis .v small { font-size: 11pt; font-weight: 400; color: #4a6577; }
+  .kpis .l { font-size: 9.5pt; margin-top: 2mm; }
+  h2 { color: #1A88FF; font-size: 10.5pt; font-weight: 700; text-transform: uppercase; padding-bottom: 2mm; border-bottom: 1px solid #CFE3FA; margin: 0 0 3mm; }
+  table.crit { width: 100%; border-collapse: collapse; margin-bottom: 7mm; }
+  table.crit th { background: #1A88FF; color: #fff; text-align: left; font-size: 9pt; font-weight: 600; padding: 2.4mm 2.5mm; }
+  table.crit td { padding: 3mm 2.5mm; border-bottom: 1px solid #CFE3FA; vertical-align: middle; }
+  table.crit tr { page-break-inside: avoid; break-inside: avoid; }
+  thead { display: table-header-group; }
+  .ct { font-weight: 700; font-size: 10.5pt; }
+  .cq { color: #4a6577; font-size: 8.5pt; line-height: 1.45; margin-top: 1mm; }
+  .nota { text-align: center; width: 22mm; }
+  .nota b { display: block; font-size: 15pt; color: #1A88FF; }
+  .dots { display: flex; gap: 2px; justify-content: center; margin-top: 1mm; }
+  .dots i { width: 5px; height: 5px; border-radius: 50%; background: #CFE3FA; }
+  .dots i.on { background: #1A88FF; }
+  .com { font-size: 10pt; line-height: 1.5; }
+  .txt { font-size: 10.5pt; line-height: 1.6; margin-bottom: 6mm; white-space: pre-wrap; }
+  .foot { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-end; color: #1A88FF; font-size: 8pt; line-height: 1.4; }
+  .foot b { font-weight: 700; }
+  @media print { .tool { display: none; } }
+</style></head><body>
+<svg class="graf" viewBox="0 0 120 297" preserveAspectRatio="none"><path fill="#EEF0F3" d="M30 90 L52 68 H120 V297 H52 L30 275 Z"/><path fill="#EEF0F3" d="M60 0 H120 V60 Z"/></svg>
+<div class="tool"><button onclick="print()">Salvar PDF</button><span>Na janela que abrir, escolha <b>Salvar como PDF</b> em "Destino".</span></div>
+<table class="pg"><tfoot><tr><td></td></tr></tfoot><tbody><tr><td>
+<div class="wrap">
+  <img class="logo" src="${location.origin}/perbras_logo_horizontal.png" alt="Perbras">
+  <div class="kicker">${e(cfg.kicker)}</div>
+  <h1>${e(cfg.titulo)}</h1>
+  <div class="sub">${e(cfg.subtitulo)}</div>
+  <table class="info">${cfg.infos.map(([l,v])=>`<tr><td>${e(l)}</td><td>${e(v||'—')}</td></tr>`).join('')}</table>
+  <div class="kpis">
+    <div><div class="v">${fmtN(media)}<small> / 5</small></div><div class="l">Média dos critérios</div></div>
+    <div><div class="v">${cfg.nps ?? '—'}<small> / 10</small></div><div class="l">${e(cfg.npsLabel)}</div></div>
+    <div><div class="v">${altas}<small> / ${cfg.criterios.length}</small></div><div class="l">Critérios com nota 4 ou 5</div></div>
+  </div>
+  <h2>Avaliação por critério (escala de 1 a 5)</h2>
+  <table class="crit"><colgroup><col class="c1"><col class="c2"><col></colgroup><thead><tr><th>Critério</th><th style="text-align:center">Nota</th><th>${e(cfg.colComentario)}</th></tr></thead><tbody>
+  ${cfg.criterios.map((c,i)=>`<tr><td><div class="ct">${i+1}. ${e(c.titulo)}</div>${c.pergunta?`<div class="cq">${e(c.pergunta)}</div>`:''}</td>
+    <td class="nota"><b>${c.nota ?? '—'}</b>${dots(c.nota)}</td><td class="com">${e(c.coment||'—')}</td></tr>`).join('')}
+  </tbody></table>
+  ${cfg.secoes.filter(([,t])=>t && String(t).trim()).map(([h,t])=>`<div style="break-inside:avoid;page-break-inside:avoid"><h2>${e(h)}</h2><div class="txt">${e(t)}</div></div>`).join('')}
+</div>
+</td></tr></tbody></table>
+<div class="foot"><div>Rua Eugênio Narciso Barbosa, s/nº -<br>Pioneiro - Catu-BA - CEP 48110-000<br>Tel. (71) 3599-0844</div><b>www.perbras.com.br</b></div>
+</body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) { toast('O navegador bloqueou a janela do PDF. Libere pop-ups pra este site.', true); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
+const periodoTxt = s => s || '—';
+
+// Monitor → gestor (as monitorias que já existiam)
+function exportarMonitoriaPDF(id) {
+  const m = monitorias.find(x=>x.id===id); if (!m) return;
+  abrirPdfAvaliacao({
+    arquivo: `Monitoria - ${m.gestor_nome} x ${m.monitor_nome||'monitor'}`,
+    kicker: 'Avaliação do monitorado',
+    titulo: `${m.gestor_nome||'—'}  ×  ${m.monitor_nome||'—'}`,
+    subtitulo: 'Percepção do monitor sobre o desenvolvimento do gestor em treinamento.',
+    infos: [['Monitorado(a)', m.gestor_nome], ['Monitor(a)', m.monitor_nome], ['Unidade', m.unidade], ['Período', periodoTxt(m.duracao)]],
+    nps: m.nps, npsLabel: 'Recomendaria o monitorando',
+    colComentario: 'Comentário do monitor',
+    criterios: MON_PERGUNTAS.map(p => ({ titulo: p.titulo, nota: m['nota_'+p.campo], coment: m['coment_'+p.campo] })),
+    secoes: [['Pontos de melhoria / treinamentos sugeridos', m.pontos_melhoria]],
+  });
+}
+
+// Gestor → monitor ("Avaliar seu Monitor")
+function exportarAvaliacaoMonitorPDF(id) {
+  const a = avaliacoesMonitor.find(x=>x.id===id); if (!a) return;
+  abrirPdfAvaliacao({
+    arquivo: `Monitoria - ${a.gestor_nome} x ${a.monitor_nome}`,
+    kicker: 'Avaliação da monitoria',
+    titulo: `${a.gestor_nome}  ×  ${a.monitor_nome}`,
+    subtitulo: 'Percepção do monitorado sobre o processo de monitoria e a atuação do monitor.',
+    infos: [['Monitorado(a)', a.gestor_nome], ['Monitor(a)', a.monitor_nome], ['Unidade', a.unidade], ['Período', periodoTxt(a.periodo)]],
+    nps: a.nps, npsLabel: 'Recomendaria o monitor',
+    colComentario: 'Comentário do monitorado',
+    criterios: AVM_PERGUNTAS.map(p => ({ titulo: p.titulo, pergunta: p.pergunta, nota: a['nota_'+p.campo], coment: a['coment_'+p.campo] })),
+    secoes: [['O que poderia ser melhorado no processo e na atuação do monitor', a.melhoria], ['Comentários livres', a.comentarios]],
+  });
+}
+
+function avmMedia(a) {
+  const ns = AVM_PERGUNTAS.map(p=>a['nota_'+p.campo]).filter(n=>n!=null);
+  return ns.length ? ns.reduce((x,y)=>x+y,0)/ns.length : null;
+}
+
+// RH: lista das avaliações que os gestores fizeram dos monitores
+async function carregarAvaliacoesMonitor() {
+  try {
+    const r = await authFetch(`${SUPA_URL}/monitoria_avaliacao_monitor?select=*&order=created_at.desc`);
+    if (!r.ok) throw new Error(await r.text());
+    avaliacoesMonitor = await r.json();
+  } catch(e) {
+    avaliacoesMonitor = [];
+    console.warn('"monitoria_avaliacao_monitor" não encontrada ainda — rode monitoria_avaliacao_monitor.sql.', e.message);
+  }
+}
+
+function renderAvaliacoesMonitor() {
+  const el = r$('avmLista'); if (!el) return;
+  const termo = (r$('monFiltro')?.value||'').toLowerCase().trim();
+  const f = avaliacoesMonitor.filter(a => !termo || (a.gestor_nome||'').toLowerCase().includes(termo) || (a.monitor_nome||'').toLowerCase().includes(termo));
+  r$('avmVazio').style.display = f.length ? 'none' : 'block';
+  el.innerHTML = f.length ? `<div class="table-wrap"><table>
+    <thead><tr><th>Monitor avaliado</th><th>Avaliado por</th><th>Unidade</th><th>Período</th><th>Média</th><th>Recomendaria</th><th></th></tr></thead>
+    <tbody>${f.map(a => { const md = avmMedia(a); return `<tr>
+      <td><b>${escHtml(a.monitor_nome)}</b></td><td>${escHtml(a.gestor_nome)}</td><td>${escHtml(a.unidade||'—')}</td><td>${escHtml(a.periodo||'—')}</td>
+      <td>${md!=null?`<span class="mon-nota ${monNotaClass(md)}">${md.toFixed(1)}</span>`:'—'}</td>
+      <td>${a.nps!=null?a.nps+' / 10':'—'}</td>
+      <td style="white-space:nowrap;text-align:right">
+        <button class="btn" onclick="exportarAvaliacaoMonitorPDF('${a.id}')"><i class="ti ti-file-type-pdf"></i> Ver / PDF</button>
+        <button class="icon-btn del" title="Excluir" onclick="excluirAvaliacaoMonitor('${a.id}')"><i class="ti ti-trash"></i></button>
+      </td></tr>`; }).join('')}</tbody></table></div>` : '';
+}
+
+async function excluirAvaliacaoMonitor(id) {
+  const a = avaliacoesMonitor.find(x=>x.id===id); if (!a) return;
+  if (!confirm(`Excluir a avaliação de ${a.monitor_nome} feita por ${a.gestor_nome}?`)) return;
+  try { await dbDelete('monitoria_avaliacao_monitor', id); await carregarAvaliacoesMonitor(); renderAvaliacoesMonitor(); toast('Excluído.'); }
+  catch(e) { toast('Erro: '+e.message, true); }
+}
+
+// Gestor: formulário "Avaliar seu Monitor"
+let avmNotas = {}, avmNps = null, meusMonitores = [];
+
+async function renderAvaliarMonitor() {
+  const el = r$('mmAvm'); if (!el) return;
+  let minhas = [];
+  try {
+    const r = await authFetch(`${SUPA_URL}/monitoria_avaliacao_monitor?select=id,monitor_nome,created_at&order=created_at.desc`);
+    if (r.ok) minhas = await r.json();
+  } catch(e) {}
+  el.innerHTML = `<div class="card avm-cta">
+    <div class="avm-cta-txt">
+      <div class="card-title" style="margin-bottom:4px"><i class="ti ti-message-star"></i> Avaliar seu monitor</div>
+      <p>Conte como foi a sua monitoria e a atuação do seu monitor. Sua avaliação vai só para o RH — o monitor não tem acesso às respostas.</p>
+      ${minhas.length ? `<div class="avm-feitas">${minhas.map(a=>`<span><i class="ti ti-circle-check"></i> ${escHtml(a.monitor_nome)} · ${new Date(a.created_at).toLocaleDateString('pt-BR')}</span>`).join('')}</div>` : ''}
+    </div>
+    <button class="btn btn-primary" onclick="abrirAvaliarMonitor()"><i class="ti ti-pencil"></i> ${minhas.length ? 'Avaliar outro monitor' : 'Avaliar meu monitor'}</button>
+  </div>`;
+}
+
+async function abrirAvaliarMonitor() {
+  avmNotas = {}; avmNps = null;
+  try {
+    const r = await authFetch(`${SUPA_URL}/rpc/meus_monitores`, { method: 'POST', body: '{}' });
+    meusMonitores = r.ok ? await r.json() : [];
+  } catch(e) { meusMonitores = []; }
+  mkDatalist('dlAvmMonitores', meusMonitores.map(m=>m.monitor_nome));
+  ['avmMonitor','avmUnidade','avmPeriodo','avmMelhoria','avmComentarios'].forEach(id => r$(id).value = '');
+  if (meusMonitores.length === 1) { r$('avmMonitor').value = meusMonitores[0].monitor_nome; avmMonitorEscolhido(); }
+  r$('avmPerguntas').innerHTML = AVM_PERGUNTAS.map((p,i) => `
+    <div class="avm-q">
+      <div class="avm-q-t">${i+1}. ${p.titulo}</div>
+      <div class="avm-q-p">${p.pergunta}</div>
+      <div class="nps-pick" id="avmPick_${p.campo}">${[1,2,3,4,5].map(n=>`<button type="button" onclick="avmPick('${p.campo}',${n})">${n}</button>`).join('')}</div>
+      <textarea id="avm_coment_${p.campo}" placeholder="Detalhe a sua nota"></textarea>
+    </div>`).join('');
+  r$('avmNpsPick').innerHTML = [0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" onclick="avmPickNps(${n})">${n}</button>`).join('');
+  r$('avmErr').style.display = 'none';
+  r$('mAvaliarMonitor').classList.add('open');
+}
+
+function avmMonitorEscolhido() {
+  const m = meusMonitores.find(x => x.monitor_nome === r$('avmMonitor').value.trim());
+  if (!m) return;
+  if (!r$('avmUnidade').value) r$('avmUnidade').value = m.unidade || '';
+  if (!r$('avmPeriodo').value) r$('avmPeriodo').value = m.duracao || '';
+}
+function avmPick(campo, n) {
+  avmNotas[campo] = n;
+  r$('avmPick_'+campo).querySelectorAll('button').forEach((b,i) => b.classList.toggle('sel', i+1 === n));
+}
+function avmPickNps(n) {
+  avmNps = n;
+  r$('avmNpsPick').querySelectorAll('button').forEach((b,i) => b.classList.toggle('sel', i === n));
+}
+
+async function enviarAvaliacaoMonitor() {
+  const errEl = r$('avmErr'); errEl.style.display = 'none';
+  const dados = {
+    gestor_nome: profile.gestor_nome,
+    monitor_nome: r$('avmMonitor').value.trim(),
+    unidade: r$('avmUnidade').value.trim(),
+    periodo: r$('avmPeriodo').value.trim(),
+    nps: avmNps,
+    melhoria: r$('avmMelhoria').value.trim(),
+    comentarios: r$('avmComentarios').value.trim(),
+  };
+  AVM_PERGUNTAS.forEach(p => { dados['nota_'+p.campo] = avmNotas[p.campo] ?? null; dados['coment_'+p.campo] = r$('avm_coment_'+p.campo).value.trim(); });
+  const faltando = !dados.monitor_nome ? 'o nome do seu monitor'
+    : !dados.unidade ? 'a unidade' : !dados.periodo ? 'o período'
+    : (AVM_PERGUNTAS.find(p => dados['nota_'+p.campo] == null) || {}).titulo ? `a nota de "${AVM_PERGUNTAS.find(p => dados['nota_'+p.campo] == null).titulo}"`
+    : (AVM_PERGUNTAS.find(p => !dados['coment_'+p.campo]) || {}).titulo ? `o detalhe da nota de "${AVM_PERGUNTAS.find(p => !dados['coment_'+p.campo]).titulo}"`
+    : dados.nps == null ? 'o quanto você recomendaria o monitor'
+    : !dados.melhoria ? 'o que poderia ser melhorado' : !dados.comentarios ? 'o espaço livre para comentários' : null;
+  if (faltando) { errEl.textContent = 'Falta preencher ' + faltando + '.'; errEl.style.display = 'block'; return; }
+  const btn = r$('avmBtnEnviar'); btn.disabled = true;
+  try {
+    await dbInsert('monitoria_avaliacao_monitor', dados);
+    fecharModal('mAvaliarMonitor');
+    toast('Avaliação enviada. Obrigado!');
+    renderAvaliarMonitor();
+  } catch(e) { errEl.textContent = 'Erro ao enviar: ' + e.message; errEl.style.display = 'block'; }
+  btn.disabled = false;
 }
 
 // Visão do gestor: só o consolidado que o RH publicou (o banco não devolve
