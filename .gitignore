@@ -21,3 +21,6 @@ av360_import*.sql
 
 # Auxílios reais da folha (valores por pessoa). Fica só local.
 auxilios_import*.sql
+
+# Cargos e salários reais dos gestores. Fica só local.
+pessoas_rh_import*.sql

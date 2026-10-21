@@ -1732,7 +1732,7 @@ async function dbDelete(table, id) {
 // STATE
 // ============================================================
 let candidatos=[], custos=[], turmas=[], editId=null, viewId=null, charts={};
-let pessoas=[], meuCandidato=null, meusMarcos=[];
+let pessoas=[], meuCandidato=null, meusMarcos=[], meuRH=null, rhPorPessoa={};
 function pessoaPorNome(nome) { return pessoas.find(p=>p.nome===nome); }
 function candidatoVinculadoDaPessoa(pessoaId) { return candidatos.find(c=>c.pessoa_id===pessoaId); }
 let pdis=[], editPDIId=null, viewPDIId=null;
@@ -4439,6 +4439,11 @@ async function carregarTrajetoria() {
     const rows = r.ok ? await r.json() : [];
     meuCandidato = rows[0] || null;
   } catch(e) { meuCandidato = null; }
+  // Cargo e admissão oficiais (pessoas_rh, vindos da folha) — o RLS só devolve a própria linha.
+  try {
+    const r = await authFetch(`${SUPA_URL}/pessoas_rh?pessoa_id=eq.${profile.pessoa_id}&select=cargo,admissao&limit=1`);
+    meuRH = r.ok ? ((await r.json())[0] || null) : null;
+  } catch(e) { meuRH = null; }
   try {
     meusMarcos = await dbGet('trajetoria_marcos');
   } catch(e) { meusMarcos = []; }
@@ -4476,6 +4481,13 @@ function aniversarioInfo(dtStr) {
   return { anos: anosCompletos };
 }
 
+// "GESTOR JUNIOR 2" → "Gestor Júnior 2"; "ADVOGADO 0" → "Advogado"
+function cargoBonito(c) {
+  if (!c) return '';
+  const ac = { JUNIOR: 'Júnior', SENIOR: 'Sênior', QSMS: 'QSMS' };
+  return c.trim().replace(/\s+0$/, '').split(/\s+/).map(w => ac[w] || (/^(DE|DA|DO|DOS|DAS|E)$/.test(w) ? w.toLowerCase() : w.charAt(0) + w.slice(1).toLowerCase())).join(' ');
+}
+
 // "faz 2 anos e 7 meses" / "faz 1 ano" / "faz 3 meses" / "faz 12 dias"
 function tempoCasaFrase(chegada) {
   const hoje = new Date();
@@ -4497,24 +4509,27 @@ function renderTrajetoria() {
   // é preenchido por renderTrilhaGestor, que carrega depois).
   const fotoMe = profile && profile.foto_url;
   const avatarMe = `<div class="avatar">${fotoMe ? `<img src="${fotoMe}">` : initials(me)}</div>`;
-  const nivelHtml = `<div class="th-nivel"><span>Seu nível</span><b>Gestor Jr</b><em id="trajNivelTrilha"></em></div>`;
+  const nivelHtml = `<div class="th-nivel"><span>Seu nível</span><b>${escHtml(cargoBonito(meuRH && meuRH.cargo) || 'Gestor Jr')}</b><em id="trajNivelTrilha"></em></div>`;
   headEl.className = 'traj-hero mp-anim';
-  if (!meuCandidato || !meuCandidato.dt_contr) {
+  // Admissão oficial (folha) primeiro; o contrato do R&S fica de reserva.
+  const dtChegada = (meuRH && meuRH.admissao) || (meuCandidato && meuCandidato.dt_contr);
+  if (!dtChegada) {
     headEl.innerHTML = `${avatarMe}<div class="th-txt"><div class="th-ola">Olá, ${escHtml(me.split(' ')[0])}!</div>${nivelHtml}</div>`;
     semVinculoEl.style.display = '';
     aniEl.style.display = 'none';
   } else {
     semVinculoEl.style.display = 'none';
-    const canal = [meuCandidato.fonte, meuCandidato.recrutador].filter(Boolean).join(' · ');
-    const chegada = new Date(meuCandidato.dt_contr + 'T00:00');
+    const canal = meuCandidato ? [meuCandidato.fonte, meuCandidato.recrutador].filter(Boolean).join(' · ') : '';
+    const turma = meuCandidato && meuCandidato.turma_nome;
+    const chegada = new Date(dtChegada + 'T00:00');
     headEl.innerHTML = `${avatarMe}
       <div class="th-txt">
         <div class="th-ola">Olá, ${escHtml(me.split(' ')[0])}!</div>
         <div class="th-frase">Você chegou na Perbras em <b>${chegada.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}</b> — ${tempoCasaFrase(chegada)} que você está aqui com a gente.</div>
         ${nivelHtml}
-        ${canal || meuCandidato.turma_nome ? `<div class="th-canal">${[meuCandidato.turma_nome, canal ? 'veio por ' + canal : null].filter(Boolean).map(escHtml).join(' · ')}</div>` : ''}
+        ${canal || turma ? `<div class="th-canal">${[turma, canal ? 'veio por ' + canal : null].filter(Boolean).map(escHtml).join(' · ')}</div>` : ''}
       </div>`;
-    const ani = aniversarioInfo(meuCandidato.dt_contr);
+    const ani = aniversarioInfo(dtChegada);
     if (ani) {
       aniEl.style.display = 'flex';
       aniEl.innerHTML = `
@@ -4957,6 +4972,9 @@ async function carregarTrilhaAuxilios() {
   try { trilhaEtapas = await get(`${SUPA_URL}/trilha_etapas?select=*&order=ordem.asc`); } catch(e) { trilhaEtapas = []; console.warn('trilha_etapas — rode trilha_auxilios_schema.sql', e.message); }
   try { trilhaProg = await get(`${SUPA_URL}/trilha_progresso?select=*`); } catch(e) { trilhaProg = []; }
   try { auxilios = await get(`${SUPA_URL}/auxilios?select=*&order=inicio.desc`); } catch(e) { auxilios = []; }
+  if (profile && profile.role === 'admin') {
+    try { rhPorPessoa = Object.fromEntries((await get(`${SUPA_URL}/pessoas_rh?select=pessoa_id,cargo,admissao`)).map(x => [x.pessoa_id, x])); } catch(e) { rhPorPessoa = {}; }
+  }
 }
 
 // Resumo da trilha de uma pessoa: pontos, nível, próximo nível, etapas vencidas.
@@ -5150,9 +5168,9 @@ function renderTrilhaAdm() {
   if (!trilhaEtapas.length) { el.innerHTML = '<div class="empty">Rode o <b>trilha_auxilios_schema.sql</b> no Supabase pra carregar a matriz.</div>'; return; }
   const linhas = trilhaGestoresAdm().map(g => ({ g, r: trilhaResumo(g.pessoa_id) })).sort((a,b) => b.r.pct - a.r.pct);
   el.innerHTML = `<div class="table-wrap"><table>
-    <thead><tr><th>Gestor</th><th>Nível</th><th style="min-width:180px">Progresso</th><th>Etapas</th><th>Pontos</th><th>Última conclusão</th><th></th></tr></thead>
+    <thead><tr><th>Gestor</th><th>Cargo</th><th>Nível na trilha</th><th style="min-width:180px">Progresso</th><th>Etapas</th><th>Pontos</th><th>Última conclusão</th><th></th></tr></thead>
     <tbody>${linhas.map(({g,r}) => `<tr style="cursor:pointer" onclick="abrirTrilhaGestor('${g.pessoa_id}')">
-      <td><b>${escHtml(g.nome)}</b></td><td>${r.nivel.nome}</td>
+      <td><b>${escHtml(g.nome)}</b></td><td>${escHtml(cargoBonito((rhPorPessoa[g.pessoa_id]||{}).cargo) || '—')}</td><td>${r.nivel.nome}</td>
       <td><div class="tr-cat-bar" style="width:100%"><span style="width:${r.pct}%"></span></div><div style="font-size:11px;color:var(--text2);margin-top:3px">${r.pct}%</div></td>
       <td>${r.feitas.length} / ${r.ativas.length}</td><td>${r.pontos}</td>
       <td>${r.ultima ? fmt(r.ultima) : '—'}</td>
