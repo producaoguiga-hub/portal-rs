@@ -1681,7 +1681,7 @@
   <div class="modal" style="max-width:640px">
     <div class="modal-title" id="auxTitulo">Novo auxílio / incentivo</div>
     <div class="form-grid">
-      <div class="fg span2"><label>Pessoa</label><input id="auxPessoa" type="text" list="dlAuxPessoas" placeholder="Digite o nome"><datalist id="dlAuxPessoas"></datalist></div>
+      <div class="fg span2"><label>Pessoa</label><input id="auxPessoa" type="text" list="dlAuxPessoas" placeholder="Digite o nome — pode ser alguém sem cadastro no portal"><datalist id="dlAuxPessoas"></datalist></div>
       <div class="fg"><label>Tipo</label><select id="auxTipo" onchange="auxSugerirValor()"><option>Auxílio Moradia</option><option>Auxílio Mobilidade</option><option>Ressarcimento de mudança</option><option>Bônus</option><option>Incentivo</option><option>Outro</option></select></div>
       <div class="fg"><label>Região</label><select id="auxRegiao" onchange="auxSugerirValor()"><option value="">—</option><option>Norte</option><option>Nordeste</option><option>Sul</option><option>Sudeste</option></select></div>
       <div class="fg"><label>Porte da cidade</label><select id="auxPorte" onchange="auxSugerirValor()"><option value="">—</option><option>Capital</option><option>Médio porte</option><option>Pequeno porte</option></select></div>
@@ -5705,11 +5705,15 @@ function auxStatus(a) {
 const AUX_ICO = { 'Auxílio Moradia': 'ti-home', 'Auxílio Mobilidade': 'ti-truck', 'Ressarcimento de mudança': 'ti-package', 'Bônus': 'ti-gift', 'Incentivo': 'ti-award', 'Outro': 'ti-coin' };
 // Unidade (vinda da folha) ou cidade (cadastro manual)
 const auxLocal = a => a.unidade || a.cidade || '';
+// Quem recebe: o cadastro do portal ou, pra quem não tem cadastro, o nome da folha.
+const auxNome = a => a.pessoa_id ? ((pessoas.find(p => p.id === a.pessoa_id) || {}).nome || '—') : (a.nome_folha || '—');
+const auxChave = a => a.pessoa_id || 'folha:' + semAcento(a.nome_folha);
+const auxSemCadastro = a => a.pessoa_id ? '' : ' <span class="aux-st enc" title="Recebe pela folha, mas não tem cadastro nem login no portal">Sem cadastro</span>';
 
 function renderAuxiliosGestor() {
   const el = r$('trajAuxilios'); if (!el) return;
   const pid = profile && profile.pessoa_id;
-  const meus = auxilios.filter(a => a.pessoa_id === pid).sort((a,b) => (auxStatus(a).cls==='enc') - (auxStatus(b).cls==='enc') || b.inicio.localeCompare(a.inicio));
+  const meus = auxilios.filter(a => pid && a.pessoa_id === pid).sort((a,b) => (auxStatus(a).cls==='enc') - (auxStatus(b).cls==='enc') || b.inicio.localeCompare(a.inicio));
   if (!meus.length) { el.innerHTML = ''; return; }
   el.innerHTML = `<div class="card"><div class="card-title"><i class="ti ti-home-dollar"></i> Meus auxílios e incentivos</div>
     <div class="aux-grid">${meus.map(a => { const st = auxStatus(a); return `<div class="aux-card ${st.cls}">
@@ -5880,7 +5884,7 @@ async function salvarTrilhaLote() {
 // ---------- Auxílios: linha do tempo das vigências ----------
 // Uma linha por auxílio mensal, barra do início ao fim; sem data de término a
 // barra vai até a borda e some aos poucos. Respeita a busca e o filtro de status.
-function renderAuxTimeline(lista, nomeDe) {
+function renderAuxTimeline(lista) {
   const el = r$('taAuxTimeline'); if (!el) return;
   const rows = lista.filter(a => a.recorrencia === 'Mensal');
   if (!rows.length) { el.innerHTML = ''; return; }
@@ -5900,7 +5904,7 @@ function renderAuxTimeline(lista, nomeDe) {
   const rotMes = d => d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '') + (d.getMonth() === 0 || d === meses[0] ? '/' + String(d.getFullYear()).slice(2) : '');
   const grade = meses.map(d => `<span class="auxtl-grid" style="left:${pos(d)}%"></span>`).join('');
   const ordemSt = { vence: 0, ativo: 1, agend: 2, enc: 3 };
-  const ord = [...rows].sort((a, b) => (ordemSt[auxStatus(a).cls] ?? 9) - (ordemSt[auxStatus(b).cls] ?? 9) || nomeDe(a.pessoa_id).localeCompare(nomeDe(b.pessoa_id)));
+  const ord = [...rows].sort((a, b) => (ordemSt[auxStatus(a).cls] ?? 9) - (ordemSt[auxStatus(b).cls] ?? 9) || auxNome(a).localeCompare(auxNome(b)));
   const xHoje = pos(hoje);
   el.innerHTML = `<div class="card auxtl-card">
     <div class="auxtl-top">
@@ -5922,9 +5926,9 @@ function renderAuxTimeline(lista, nomeDe) {
         const st = auxStatus(a);
         const fimA = a.fim ? dia(a.fim) : null;
         const x0 = pos(dia(a.inicio)), x1 = fimA ? pos(new Date(fimA.getTime() + 864e5)) : 100;
-        const dica = `${nomeDe(a.pessoa_id)} — ${a.tipo}\n${brl(a.valor)} / mês\n${fmt(a.inicio)} → ${a.fim ? fmt(a.fim) : 'sem data de término'}\n${st.txt}`;
+        const dica = `${auxNome(a)} — ${a.tipo}\n${brl(a.valor)} / mês\n${fmt(a.inicio)} → ${a.fim ? fmt(a.fim) : 'sem data de término'}\n${st.txt}`;
         return `<div class="auxtl-row">
-          <div class="auxtl-nome"><b title="${escHtml(nomeDe(a.pessoa_id))}">${escHtml(nomeDe(a.pessoa_id))}</b><span><i class="ti ${AUX_ICO[a.tipo] || 'ti-coin'}"></i> ${escHtml(a.tipo)}</span></div>
+          <div class="auxtl-nome"><b title="${escHtml(auxNome(a))}">${escHtml(auxNome(a))}</b><span><i class="ti ${AUX_ICO[a.tipo] || 'ti-coin'}"></i> ${escHtml(a.tipo)}${a.pessoa_id ? '' : ' · sem cadastro'}</span></div>
           <div class="auxtl-track">${grade}<span class="auxtl-hoje" style="left:${xHoje}%"></span>
             <div class="auxtl-bar ${st.cls}${fimA ? '' : ' aberto'}" style="left:${x0}%;width:${Math.max(x1 - x0, 1.2)}%" title="${escHtml(dica)}" onclick="abrirAuxilio('${a.id}')">${x1 - x0 > 9 ? brl(a.valor) + ' / mês' : ''}</div>
           </div>
@@ -5943,18 +5947,18 @@ function abrirTrilhaGestor(pessoaId) {
 
 function renderAuxiliosAdm() {
   const lista = r$('taAuxLista'); if (!lista) return;
-  const nomeDe = pid => (pessoas.find(p => p.id === pid) || {}).nome || '—';
   const ativos = auxilios.filter(a => ['ativo','vence'].includes(auxStatus(a).cls));
   const custo = ativos.filter(a => a.recorrencia === 'Mensal').reduce((s,a) => s + Number(a.valor||0), 0);
   const vencendo = auxilios.filter(a => auxStatus(a).cls === 'vence').length;
   const porPessoa = {};
-  ativos.filter(a => ['Auxílio Moradia','Auxílio Mobilidade'].includes(a.tipo)).forEach(a => { (porPessoa[a.pessoa_id] = porPessoa[a.pessoa_id] || new Set()).add(a.tipo); });
-  const acumulados = Object.entries(porPessoa).filter(([,s]) => s.size > 1).map(([pid]) => nomeDe(pid));
+  const nomePorChave = {};
+  ativos.filter(a => ['Auxílio Moradia','Auxílio Mobilidade'].includes(a.tipo)).forEach(a => { nomePorChave[auxChave(a)] = auxNome(a); (porPessoa[auxChave(a)] = porPessoa[auxChave(a)] || new Set()).add(a.tipo); });
+  const acumulados = Object.entries(porPessoa).filter(([,s]) => s.size > 1).map(([k]) => nomePorChave[k]);
   r$('taAuxKpis').innerHTML = `<div class="metric-grid">
       <div class="metric m-b"><div class="lbl">Auxílios ativos</div><div class="val">${ativos.length}</div></div>
       <div class="metric"><div class="lbl">Custo mensal (ativos)</div><div class="val" style="font-size:20px">${brl(custo)}</div></div>
       <div class="metric m-r"><div class="lbl">Vencendo em 30 dias</div><div class="val">${vencendo}</div></div>
-      <div class="metric"><div class="lbl">Pessoas com auxílio</div><div class="val">${new Set(ativos.map(a=>a.pessoa_id)).size}</div></div>
+      <div class="metric"><div class="lbl">Pessoas com auxílio</div><div class="val">${new Set(ativos.map(auxChave)).size}</div></div>
     </div>
     ${acumulados.length ? `<div class="mp-alert"><i class="ti ti-alert-triangle"></i> Moradia e Mobilidade ativos ao mesmo tempo (não são cumulativos — PI-023): <b>${acumulados.map(escHtml).join(', ')}</b></div>` : ''}`;
   const termo = (r$('taAuxFiltro').value||'').toLowerCase().trim();
@@ -5965,13 +5969,13 @@ function renderAuxiliosAdm() {
     if (filtroSt === 'Pago' && st.cls !== 'pago') return false;
     if (filtroSt === 'Vence em breve' && st.cls !== 'vence') return false;
     if (filtroSt === 'Encerrado' && st.cls !== 'enc') return false;
-    return !termo || nomeDe(a.pessoa_id).toLowerCase().includes(termo) || a.tipo.toLowerCase().includes(termo);
+    return !termo || auxNome(a).toLowerCase().includes(termo) || a.tipo.toLowerCase().includes(termo);
   });
-  renderAuxTimeline(f, nomeDe);
+  renderAuxTimeline(f);
   lista.innerHTML = f.length ? `<div class="table-wrap"><table>
     <thead><tr><th>Pessoa</th><th>Tipo</th><th>Valor</th><th>Ativado em</th><th>Vigente até</th><th>Unidade / cidade</th><th>Status</th></tr></thead>
     <tbody>${f.map(a => { const st = auxStatus(a); return `<tr style="cursor:pointer" onclick="abrirAuxilio('${a.id}')">
-      <td><b>${escHtml(nomeDe(a.pessoa_id))}</b></td><td><i class="ti ${AUX_ICO[a.tipo]||'ti-coin'}"></i> ${escHtml(a.tipo)}</td>
+      <td><b>${escHtml(auxNome(a))}</b>${auxSemCadastro(a)}</td><td><i class="ti ${AUX_ICO[a.tipo]||'ti-coin'}"></i> ${escHtml(a.tipo)}</td>
       <td>${brl(a.valor)}${a.recorrencia==='Mensal'?' / mês':''}</td><td>${fmt(a.inicio)}</td><td>${a.fim?fmt(a.fim):'—'}</td>
       <td>${escHtml(auxLocal(a)||'—')}</td><td><span class="aux-st ${st.cls}">${st.txt}</span></td></tr>`; }).join('')}</tbody></table></div>`
     : '<div class="empty">Nenhum auxílio nesse filtro.</div>';
@@ -5998,7 +6002,7 @@ function abrirAuxilio(id) {
   const a = id ? auxilios.find(x => x.id === id) : null;
   mkDatalist('dlAuxPessoas', [...new Set(pessoas.map(p => p.nome))].sort((x,y)=>x.localeCompare(y)));
   r$('auxTitulo').textContent = a ? 'Editar auxílio / incentivo' : 'Novo auxílio / incentivo';
-  r$('auxPessoa').value = a ? ((pessoas.find(p => p.id === a.pessoa_id)||{}).nome || '') : '';
+  r$('auxPessoa').value = a ? auxNome(a) : '';
   r$('auxTipo').value = a ? a.tipo : 'Auxílio Moradia';
   r$('auxRegiao').value = a ? (a.regiao||'') : '';
   r$('auxPorte').value = a ? (a.porte||'') : '';
@@ -6015,20 +6019,27 @@ function abrirAuxilio(id) {
 }
 
 async function salvarAuxilio() {
-  const pessoa = pessoas.find(p => p.nome === r$('auxPessoa').value.trim());
-  if (!pessoa) { toast('Escolha a pessoa da lista (precisa estar cadastrada no portal).', true); return; }
+  const nomeDigitado = r$('auxPessoa').value.trim().replace(/\s+/g, ' ');
+  if (!nomeDigitado) { toast('Informe a pessoa.', true); return; }
   if (!r$('auxInicio').value) { toast('Informe a data de ativação.', true); return; }
+  // Sem cadastro no portal: o auxílio fica só com o nome (não cria cadastro nem login).
+  const pessoa = pessoas.find(p => p.nome === nomeDigitado);
+  const atual = editAuxId ? auxilios.find(x => x.id === editAuxId) : null;
+  const jaEraSemCadastro = atual && !atual.pessoa_id && atual.nome_folha === nomeDigitado;
+  if (!pessoa && !jaEraSemCadastro && !confirm(`"${nomeDigitado}" não tem cadastro no portal.\n\nSalvar o auxílio só com o nome, sem criar cadastro nem login?`)) return;
   const dados = {
-    pessoa_id: pessoa.id, tipo: r$('auxTipo').value,
+    pessoa_id: pessoa ? pessoa.id : null, tipo: r$('auxTipo').value,
     valor: r$('auxValor').value === '' ? null : moneyParse(r$('auxValor').value),
     recorrencia: r$('auxRecorrencia').value, inicio: r$('auxInicio').value, fim: r$('auxFim').value || null,
     regiao: r$('auxRegiao').value || null, porte: r$('auxPorte').value || null, cidade: r$('auxCidade').value.trim() || null,
     observacao: r$('auxObs').value.trim() || null,
   };
+  if (!pessoa) dados.nome_folha = nomeDigitado;
+  else if (atual && atual.nome_folha) dados.nome_folha = null;   // ganhou cadastro: passa a valer o vínculo
   if (['Auxílio Moradia','Auxílio Mobilidade'].includes(dados.tipo)) {
     const outro = dados.tipo === 'Auxílio Moradia' ? 'Auxílio Mobilidade' : 'Auxílio Moradia';
-    const conflito = auxilios.find(a => a.id !== editAuxId && a.pessoa_id === pessoa.id && a.tipo === outro && auxStatus(a).cls !== 'enc');
-    if (conflito && !confirm(`${pessoa.nome} já tem ${outro} ativo. Pela PI-023 os dois não são cumulativos. Salvar mesmo assim?`)) return;
+    const conflito = auxilios.find(a => a.id !== editAuxId && auxChave(a) === auxChave(dados) && a.tipo === outro && auxStatus(a).cls !== 'enc');
+    if (conflito && !confirm(`${nomeDigitado} já tem ${outro} ativo. Pela PI-023 os dois não são cumulativos. Salvar mesmo assim?`)) return;
   }
   try {
     if (editAuxId) await dbUpdate('auxilios', editAuxId, dados); else await dbInsert('auxilios', dados);
