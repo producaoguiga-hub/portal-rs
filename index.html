@@ -312,19 +312,65 @@
 
   /* Minha Trajetória (visão do gestor) */
   .traj-timeline-head { display: flex; justify-content: space-between; align-items: center; margin: 1.25rem 0 .75rem; flex-wrap: wrap; gap: 10px; }
-  .traj-timeline { position: relative; padding-left: 26px; }
-  .traj-item { position: relative; padding-bottom: 1.5rem; }
-  .traj-item:last-child { padding-bottom: 0; }
-  .traj-item::before { content: ''; position: absolute; left: -22px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
-  .traj-item::after { content: ''; position: absolute; left: -17px; top: 18px; bottom: -8px; width: 2px; background: var(--border); }
-  .traj-item:last-child::after { display: none; }
-  .traj-item.marco-inicio::before { background: var(--green-text); box-shadow: 0 0 0 3px var(--green-bg); }
-  .traj-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; box-shadow: var(--shadow); cursor: pointer; }
-  .traj-card.sem-clique { cursor: default; }
-  .traj-card .data { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
-  .traj-card .titulo { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-  .traj-card .desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
-  .traj-card img { max-width: 100%; max-height: 220px; border-radius: 10px; margin-top: 8px; display: block; object-fit: cover; }
+  /* Linha do tempo em formato de livro: página da esquerda = foto, da direita = texto */
+  .livro-wrap { display: flex; align-items: center; gap: 10px; }
+  .livro-seta { flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; border: 0.5px solid var(--border); background: var(--bg); color: var(--text); box-shadow: var(--shadow); cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: transform .15s, background .15s; }
+  .livro-seta:hover:not(:disabled) { background: var(--blue); color: #fff; transform: scale(1.06); }
+  .livro-seta:disabled { opacity: .3; cursor: default; }
+  .livro { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); height: 440px; perspective: 1800px; position: relative;
+    filter: drop-shadow(0 10px 18px rgba(9,28,40,0.14)); }
+  .livro-pag { position: relative; background: var(--bg); border: 0.5px solid var(--border); overflow: hidden; backface-visibility: hidden; }
+  .livro-pag.esq { border-radius: 14px 0 0 14px; border-right: none; transform-origin: right center; }
+  .livro-pag.dir { border-radius: 0 14px 14px 0; transform-origin: left center; display: flex; flex-direction: column; }
+  /* sombra da lombada */
+  .livro-pag.esq::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 34px; background: linear-gradient(to left, rgba(9,28,40,0.16), transparent); pointer-events: none; }
+  .livro-pag.dir::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 26px; background: linear-gradient(to right, rgba(9,28,40,0.12), transparent); pointer-events: none; z-index: 1; }
+  .livro-foto { width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in; }
+  .livro-capa { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff; text-align: center; padding: 24px;
+    background: var(--grafismo-petroleo, none) right bottom / 70% no-repeat, linear-gradient(140deg, #091C28, #0B3A4D); }
+  .livro-capa.inicio { background: radial-gradient(circle at 80% 20%, rgba(188,255,72,0.22), transparent 55%), linear-gradient(140deg, #0B3A2E, #1e4800); }
+  .livro-capa i { font-size: 54px; color: #BCFF48; }
+  .livro-capa .ano { font-size: 46px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+  .livro-capa .sub { font-size: 12px; opacity: .7; text-transform: uppercase; letter-spacing: .12em; }
+  .livro-texto { flex: 1; overflow-y: auto; padding: 28px 30px 12px 36px; }
+  .livro-texto .data { font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .livro-texto .titulo { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.25; margin-bottom: 12px; }
+  .livro-texto .desc { font-size: 14px; color: var(--text2); line-height: 1.7; white-space: pre-line; }
+  .livro-rodape { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px 14px 36px; font-size: 11px; color: var(--text3); }
+  .livro-rodape .btn { font-size: 12px; padding: 5px 10px; }
+  /* virada de página: a folha gira na lombada até sumir, troca o conteúdo e a nova abre do outro lado */
+  @keyframes livroSaiDir { to { transform: rotateY(-90deg); } }
+  @keyframes livroSaiEsq { to { transform: rotateY(90deg); } }
+  @keyframes livroEntraEsq { from { transform: rotateY(90deg); } to { transform: rotateY(0); } }
+  @keyframes livroEntraDir { from { transform: rotateY(-90deg); } to { transform: rotateY(0); } }
+  .livro.vira-prox .livro-pag.dir { animation: livroSaiDir .28s ease-in forwards; }
+  .livro.abre-prox .livro-pag.esq { animation: livroEntraEsq .28s ease-out; }
+  .livro.vira-ant .livro-pag.esq { animation: livroSaiEsq .28s ease-in forwards; }
+  .livro.abre-ant .livro-pag.dir { animation: livroEntraDir .28s ease-out; }
+  /* cronologia em bolinhas */
+  .livro-crono { position: relative; display: flex; gap: 6px; overflow-x: auto; padding: 18px 50px 4px; scrollbar-width: thin; }
+  .livro-crono-item { flex: 1 0 74px; position: relative; display: flex; flex-direction: column; align-items: center; gap: 7px; background: none; border: none; cursor: pointer; padding: 0; font-family: inherit; }
+  .livro-crono-item::before { content: ''; position: absolute; top: 7px; left: -3px; right: -3px; height: 2px; background: var(--border); z-index: 0; }
+  .livro-crono-item:first-child::before { left: 50%; }
+  .livro-crono-item:last-child::before { right: 50%; }
+  .livro-crono-item .pt { position: relative; z-index: 1; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); border: 2px solid var(--blue); transition: transform .2s, background .2s, box-shadow .2s; }
+  .livro-crono-item.inicio .pt { border-color: var(--green-text); }
+  .livro-crono-item:hover .pt { transform: scale(1.2); }
+  .livro-crono-item.ativo .pt { background: var(--blue); transform: scale(1.3); box-shadow: 0 0 0 5px var(--blue-bg); }
+  .livro-crono-item.inicio.ativo .pt { background: var(--green-text); box-shadow: 0 0 0 5px var(--green-bg); }
+  .livro-crono-item .rot { font-size: 11px; color: var(--text3); white-space: nowrap; }
+  .livro-crono-item.ativo .rot { color: var(--text); font-weight: 700; }
+  @media (max-width: 760px) {
+    .livro { grid-template-columns: minmax(0,1fr); grid-template-rows: 200px auto; height: auto; }
+    .livro-wrap { gap: 6px; }
+    .livro-pag.esq { border-radius: 14px 14px 0 0; border-right: 0.5px solid var(--border); border-bottom: none; transform-origin: center bottom; }
+    .livro-pag.esq::after, .livro-pag.dir::before { display: none; }
+    .livro-pag.dir { border-radius: 0 0 14px 14px; min-height: 240px; }
+    .livro-texto { padding: 20px 18px 10px; }
+    .livro-rodape { padding: 8px 18px 12px; }
+    .livro-seta { width: 34px; height: 34px; }
+    .livro-crono { padding: 16px 4px 4px; }
+  }
 
   /* Meu PDI (visão do gestor) */
   @keyframes mpIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -4842,30 +4888,93 @@ function renderTrajetoria() {
     }
   }
 
+  // Linha do tempo em formato de livro: cada marco é uma página dupla
+  // (foto à esquerda, texto à direita) e as bolinhas embaixo pulam pra página.
   const timelineEl = r$('trajTimeline');
   const marcos = [...meusMarcos].sort((a,b)=>(a.data||'').localeCompare(b.data||''));
-  const itens = [];
+  trajPaginas = [];
   if (meuCandidato && meuCandidato.dt_contr) {
-    itens.push(`<div class="traj-item marco-inicio">
-      <div class="traj-card sem-clique">
-        <div class="data">${fmt(meuCandidato.dt_contr)}</div>
-        <div class="titulo">Chegada na Perbras 🌱</div>
-        <div class="desc">${[meuCandidato.turma_nome, [meuCandidato.fonte,meuCandidato.recrutador].filter(Boolean).join(' · ')].filter(Boolean).join(' — ')||'O começo da sua jornada por aqui.'}</div>
-      </div>
-    </div>`);
+    trajPaginas.push({ inicio: true, data: meuCandidato.dt_contr, titulo: 'Chegada na Perbras 🌱',
+      descricao: [meuCandidato.turma_nome, [meuCandidato.fonte,meuCandidato.recrutador].filter(Boolean).join(' · ')].filter(Boolean).join(' — ') || 'O começo da sua jornada por aqui.' });
   }
-  marcos.forEach(m => {
-    itens.push(`<div class="traj-item">
-      <div class="traj-card" onclick="abrirEditarMarco('${m.id}')">
-        <div class="data">${m.data?fmt(m.data):'Sem data'}</div>
-        <div class="titulo">${m.titulo||'Marco'}</div>
-        ${m.descricao?`<div class="desc">${m.descricao}</div>`:''}
-        ${m.foto_url?`<img src="${m.foto_url}" loading="lazy" decoding="async">`:''}
+  marcos.forEach(m => trajPaginas.push(m));
+  if (!trajPaginas.length) {
+    timelineEl.innerHTML = `<div class="empty"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum marco adicionado ainda — clica em "Adicionar marco" e começa a contar sua história aqui.</div>`;
+    return;
+  }
+  if (trajMarcoNovo) { const i = trajPaginas.findIndex(p => p.id === trajMarcoNovo); if (i >= 0) trajPag = i; trajMarcoNovo = null; }
+  trajPag = Math.min(Math.max(trajPag, 0), trajPaginas.length - 1);
+  timelineEl.innerHTML = `
+    <div class="livro-wrap">
+      <button class="livro-seta" id="livroAnt" onclick="trajIr(trajPag-1)" title="Página anterior"><i class="ti ti-chevron-left"></i></button>
+      <div class="livro" id="trajLivro">
+        <div class="livro-pag esq" id="livroEsq"></div>
+        <div class="livro-pag dir" id="livroDir"></div>
       </div>
-    </div>`);
+      <button class="livro-seta" id="livroProx" onclick="trajIr(trajPag+1)" title="Próxima página"><i class="ti ti-chevron-right"></i></button>
+    </div>
+    <div class="livro-crono" id="livroCrono">${trajPaginas.map((p, i) => {
+      const d = p.data ? new Date(p.data + 'T00:00') : null;
+      const rot = d ? d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '').replace(' de ', '/') : 'sem data';
+      return `<button class="livro-crono-item${p.inicio ? ' inicio' : ''}" onclick="trajIr(${i})" title="${escHtml(p.titulo || 'Marco')}"><span class="pt"></span><span class="rot">${rot}</span></button>`;
+    }).join('')}</div>`;
+  const livro = r$('trajLivro');
+  let x0 = null;
+  livro.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  livro.addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 50) trajIr(trajPag + (dx < 0 ? 1 : -1));
   });
-  timelineEl.innerHTML = itens.length ? `<div class="traj-timeline">${itens.join('')}</div>` : `<div class="empty"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum marco adicionado ainda — clica em "Adicionar marco" e começa a contar sua história aqui.</div>`;
+  trajPintarPagina();
 }
+
+let trajPaginas = [], trajPag = 0, trajVirando = false, trajMarcoNovo = null;
+
+function trajPintarPagina() {
+  const p = trajPaginas[trajPag]; if (!p) return;
+  const d = p.data ? new Date(p.data + 'T00:00') : null;
+  r$('livroEsq').innerHTML = p.foto_url
+    ? `<img class="livro-foto" src="${p.foto_url}" alt="" onclick="window.open(this.src,'_blank')">`
+    : `<div class="livro-capa${p.inicio ? ' inicio' : ''}"><i class="ti ti-${p.inicio ? 'plant-2' : 'bookmark'}"></i><div class="ano">${d ? d.getFullYear() : '—'}</div><div class="sub">${d ? d.toLocaleDateString('pt-BR', { month: 'long' }) : 'Sem data'}</div></div>`;
+  r$('livroDir').innerHTML = `
+    <div class="livro-texto">
+      <div class="data">${d ? d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sem data'}</div>
+      <div class="titulo">${escHtml(p.titulo || 'Marco')}</div>
+      ${p.descricao ? `<div class="desc">${escHtml(p.descricao)}</div>` : ''}
+    </div>
+    <div class="livro-rodape">
+      <span>Página ${trajPag + 1} de ${trajPaginas.length}</span>
+      ${p.inicio ? '' : `<button class="btn" onclick="abrirEditarMarco('${p.id}')"><i class="ti ti-pencil"></i> Editar</button>`}
+    </div>`;
+  r$('livroAnt').disabled = trajPag === 0;
+  r$('livroProx').disabled = trajPag === trajPaginas.length - 1;
+  document.querySelectorAll('#livroCrono .livro-crono-item').forEach((b, i) => b.classList.toggle('ativo', i === trajPag));
+  const ativo = document.querySelector('#livroCrono .livro-crono-item.ativo');
+  if (ativo) ativo.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+}
+
+function trajIr(n) {
+  if (trajVirando || n < 0 || n >= trajPaginas.length || n === trajPag) return;
+  const livro = r$('trajLivro'), prox = n > trajPag;
+  trajVirando = true;
+  livro.classList.add(prox ? 'vira-prox' : 'vira-ant');
+  setTimeout(() => {
+    trajPag = n; trajPintarPagina();
+    livro.classList.remove('vira-prox', 'vira-ant');
+    livro.classList.add(prox ? 'abre-prox' : 'abre-ant');
+    setTimeout(() => { livro.classList.remove('abre-prox', 'abre-ant'); trajVirando = false; }, 280);
+  }, 280);
+}
+
+// Setas do teclado viram as páginas quando a trajetória está aberta
+document.addEventListener('keydown', e => {
+  const pg = r$('page-trajetoria');
+  if (!pg || !pg.classList.contains('active') || !r$('trajLivro')) return;
+  if (document.querySelector('.modal-overlay.open') || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+  if (e.key === 'ArrowRight') trajIr(trajPag + 1);
+  if (e.key === 'ArrowLeft') trajIr(trajPag - 1);
+});
 
 let marcoEditId = null;
 let marcoFotoFile = null;
@@ -4949,7 +5058,10 @@ async function salvarMarco() {
     else await dbInsert('trajetoria_marcos', data);
     fecharModal('mMarco');
     toast(marcoEditId ? 'Marco atualizado!' : 'Marco adicionado! 🎉');
+    const antes = new Set(meusMarcos.map(m => m.id));
     meusMarcos = await dbGet('trajetoria_marcos');
+    // abre o livro na página do marco recém-criado (ou na do que foi editado)
+    trajMarcoNovo = marcoEditId || (meusMarcos.find(m => !antes.has(m.id)) || {}).id || null;
     renderTrajetoria();
   } catch(e) {
     toast('Não consegui salvar: '+e.message, true);
