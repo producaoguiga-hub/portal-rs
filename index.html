@@ -785,6 +785,71 @@
   .tr-etapa.feita .tr-pts { color: #4a8a00; }
   .ta-sub { display: none; } .ta-sub.active { display: block; animation: pageIn .3s ease; }
 
+  /* Trilha (admin): faixa "precisa de atenção" */
+  .ta-atencao { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-bottom: 1.25rem; }
+  .ta-at-card { background: var(--bg); border: 0.5px solid var(--border); border-top: 3px solid var(--border2); border-radius: var(--radius-lg); padding: 14px 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+  .ta-at-card.vencido { border-top-color: var(--red); }
+  .ta-at-card.vence { border-top-color: var(--st-atr); }
+  .ta-at-card.parado { border-top-color: var(--purple); }
+  .ta-at-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .ta-at-head .n { font-size: 26px; font-weight: 700; line-height: 1; color: var(--text); }
+  .ta-at-head .t { font-size: 12.5px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .ta-at-head .t small { display: block; font-weight: 400; color: var(--text3); font-size: 11px; }
+  .ta-at-item { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-top: 0.5px solid var(--border); font-size: 12.5px; }
+  .ta-at-item .txt { flex: 1; min-width: 0; }
+  .ta-at-item .txt b { display: block; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ta-at-item .txt span { color: var(--text3); font-size: 11.5px; }
+  .ta-at-item .btn { font-size: 11.5px; padding: 4px 9px; white-space: nowrap; }
+  .ta-at-mais { font-size: 11.5px; color: var(--text3); padding-top: 6px; border-top: 0.5px solid var(--border); }
+  .ta-at-ok { display: flex; align-items: center; gap: 6px; color: var(--green-text); font-size: 12.5px; padding: 6px 0; }
+  .ta-at-ok i { font-size: 18px; }
+  .ta-at-vazio { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; background: var(--blue-bg); color: var(--blue-text); border-radius: var(--radius-lg); padding: 14px 18px; font-size: 13px; }
+  .ta-at-vazio i { font-size: 26px; }
+  .ta-at-vazio .btn { margin-left: auto; }
+  /* Registro de conclusão em lote */
+  .lote-head { display: flex; gap: 6px; margin: 4px 0 8px; flex-wrap: wrap; }
+  .lote-head input { flex: 1; min-width: 160px; font-size: 13px; padding: 6px 10px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); font-family: inherit; }
+  .lote-head input:focus { outline: none; border-color: var(--blue); }
+  .lote-head .btn { font-size: 12px; padding: 5px 10px; }
+  .lote-lista { max-height: 300px; overflow-y: auto; border: 0.5px solid var(--border); border-radius: var(--radius); }
+  .lote-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid var(--border); cursor: pointer; font-size: 13px; transition: background .12s; }
+  .lote-row:last-child { border-bottom: none; }
+  .lote-row:hover { background: var(--bg2); }
+  .lote-row.sel { background: var(--blue-bg); }
+  .lote-row input { width: auto; margin: 0; accent-color: var(--blue); }
+  .lote-row .lote-nome { flex: 1; font-weight: 500; }
+  .lote-st { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: var(--bg3); color: var(--text2); white-space: nowrap; }
+  /* Auxílios (admin): linha do tempo das vigências */
+  .auxtl-card { margin-bottom: 1rem; }
+  .auxtl-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .auxtl-top .sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .auxtl-leg { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11.5px; color: var(--text2); }
+  .auxtl-leg span { display: inline-flex; align-items: center; gap: 5px; }
+  .auxtl-leg i { width: 18px; height: 8px; border-radius: 4px; display: inline-block; }
+  .auxtl { max-height: 400px; overflow-y: auto; position: relative; }
+  .auxtl-row { display: grid; grid-template-columns: 210px minmax(0,1fr); align-items: center; }
+  .auxtl-row.eixo { position: sticky; top: 0; z-index: 3; background: var(--bg); border-bottom: 0.5px solid var(--border); }
+  .auxtl-nome { font-size: 12.5px; padding: 5px 12px 5px 0; min-width: 0; }
+  .auxtl-nome b { display: block; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .auxtl-nome span { font-size: 11px; color: var(--text3); }
+  .auxtl-track { position: relative; height: 38px; }
+  .auxtl-row:not(.eixo):hover .auxtl-track { background: var(--bg2); }
+  .auxtl-row.eixo .auxtl-track { height: 26px; }
+  .auxtl-mes { position: absolute; top: 6px; font-size: 10.5px; color: var(--text3); transform: translateX(-50%); white-space: nowrap; }
+  .auxtl-grid { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); opacity: .6; }
+  .auxtl-hoje { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--text); opacity: .55; z-index: 2; pointer-events: none; }
+  .auxtl-hoje-lbl { position: absolute; top: 5px; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: #fff; background: var(--text); padding: 1px 6px; border-radius: 8px; z-index: 2; }
+  .auxtl-bar { position: absolute; top: 9px; height: 20px; border-radius: 4px; background: var(--st-and); color: #fff; font-size: 10.5px; font-weight: 600; line-height: 20px; padding: 0 7px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; z-index: 1; transition: filter .15s, transform .15s; }
+  .auxtl-bar:hover { filter: brightness(1.1); transform: scaleY(1.12); }
+  .auxtl-bar.vence { background: var(--st-atr); }
+  .auxtl-bar.agend { background: transparent; color: var(--blue-text); border: 1.5px dashed var(--st-and); line-height: 17px; }
+  .auxtl-bar.enc { background: var(--st-nao); color: var(--text); }
+  .auxtl-bar.aberto { border-radius: 4px 0 0 4px; -webkit-mask-image: linear-gradient(to right, #000 85%, transparent); mask-image: linear-gradient(to right, #000 85%, transparent); }
+  @media (max-width: 900px) {
+    .ta-atencao { grid-template-columns: 1fr; }
+    .auxtl-row { grid-template-columns: 120px minmax(0,1fr); }
+  }
+
   /* Auxílios */
   .aux-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
   .aux-card { display: flex; gap: 12px; padding: 14px; border-radius: var(--radius); border: 1px solid var(--border); border-left: 4px solid var(--perbras-azul); }
@@ -1255,7 +1320,14 @@
       <button class="tl-tab" onclick="switchTrilhaTab('auxilios',this)"><i class="ti ti-home-dollar"></i> Auxílios e incentivos</button>
       <button class="tl-tab" onclick="switchTrilhaTab('matriz',this)"><i class="ti ti-list-check"></i> Matriz de treinamento</button>
     </div>
-    <div class="ta-sub active" id="ta-progresso"><div id="taProgresso"></div></div>
+    <div class="ta-sub active" id="ta-progresso">
+      <div class="toolbar">
+        <p style="font-size:12.5px;color:var(--text2);max-width:640px;line-height:1.6">O que pede ação primeiro; embaixo, o progresso de cada gestor (clique pra ver a trilha completa).</p>
+        <button class="btn btn-primary" onclick="abrirTrilhaLote()" style="margin-left:auto"><i class="ti ti-checks"></i> Registrar conclusão em lote</button>
+      </div>
+      <div id="taAtencao"></div>
+      <div id="taProgresso"></div>
+    </div>
     <div class="ta-sub" id="ta-auxilios">
       <div id="taAuxKpis"></div>
       <div class="toolbar">
@@ -1263,6 +1335,7 @@
         <select id="taAuxStatus" onchange="renderAuxiliosAdm()"><option value="">Todos</option><option value="Ativo" selected>Ativos</option><option value="Vence em breve">Vencendo em 30 dias</option><option value="Encerrado">Encerrados</option><option value="Pago">Pagamentos únicos</option></select>
         <button class="btn btn-primary" onclick="abrirAuxilio()" style="margin-left:auto"><i class="ti ti-plus"></i> Novo auxílio / incentivo</button>
       </div>
+      <div id="taAuxTimeline"></div>
       <div id="taAuxLista"></div>
     </div>
     <div class="ta-sub" id="ta-matriz">
@@ -1613,7 +1686,7 @@
       <div class="fg"><label>Região</label><select id="auxRegiao" onchange="auxSugerirValor()"><option value="">—</option><option>Norte</option><option>Nordeste</option><option>Sul</option><option>Sudeste</option></select></div>
       <div class="fg"><label>Porte da cidade</label><select id="auxPorte" onchange="auxSugerirValor()"><option value="">—</option><option>Capital</option><option>Médio porte</option><option>Pequeno porte</option></select></div>
       <div class="fg"><label>Cidade</label><input id="auxCidade" type="text" placeholder="Ex: Catu/BA"></div>
-      <div class="fg"><label>Valor (R$)</label><input id="auxValor" type="number" step="0.01" min="0"></div>
+      <div class="fg"><label>Valor (R$)</label><input id="auxValor" class="money" type="text" inputmode="numeric" placeholder="0,00"></div>
       <div class="fg"><label>Recorrência</label><select id="auxRecorrencia"><option>Mensal</option><option>Pagamento único</option></select></div>
       <div class="fg"><label>Data de ativação</label><input id="auxInicio" type="date"></div>
       <div class="fg"><label>Vigente até <span style="font-weight:400;color:var(--text3)">(opcional)</span></label><input id="auxFim" type="date"></div>
@@ -1648,6 +1721,30 @@
     <div class="modal-footer">
       <button class="btn" onclick="fecharModal('mEtapa')">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarEtapa()"><i class="ti ti-check"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONCLUSÃO EM LOTE NA TRILHA (admin) -->
+<div class="modal-overlay" id="mTrilhaLote">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title">Registrar conclusão em lote</div>
+    <p style="font-size:12.5px;color:var(--text2);line-height:1.6;margin:-0.5rem 0 1rem">Depois de uma turma ou treinamento: escolha a etapa, a data e marque quem participou. Quem já tinha concluído tem a data atualizada (reciclagem).</p>
+    <div class="form-grid">
+      <div class="fg span3"><label>Etapa / curso</label><select id="loteEtapa" onchange="renderTrilhaLoteLista()"></select></div>
+      <div class="fg"><label>Data de conclusão</label><input id="loteData" type="date"></div>
+      <div class="fg span2"><label>Comentário <span style="font-weight:400;color:var(--text3)">(opcional)</span></label><input id="loteComent" type="text" placeholder="Ex: Turma NR-35 out/26"></div>
+    </div>
+    <div class="lote-head">
+      <input id="loteBusca" type="text" placeholder="Buscar gestor..." oninput="renderTrilhaLoteLista()">
+      <button class="btn" onclick="trilhaLoteMarcar('pendentes')" title="Marca quem ainda não fez ou está com a etapa vencida">Só quem falta</button>
+      <button class="btn" onclick="trilhaLoteMarcar('todos')">Todos</button>
+      <button class="btn" onclick="trilhaLoteMarcar('nenhum')">Nenhum</button>
+    </div>
+    <div class="lote-lista" id="loteLista"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mTrilhaLote')">Cancelar</button>
+      <button class="btn btn-primary" id="loteSalvar" onclick="salvarTrilhaLote()"><i class="ti ti-check"></i> Registrar</button>
     </div>
   </div>
 </div>
@@ -5642,6 +5739,7 @@ function trilhaGestoresAdm() {
 function renderTrilhaAdm() {
   const el = r$('taProgresso'); if (!el) return;
   if (!trilhaEtapas.length) { el.innerHTML = '<div class="empty">Rode o <b>trilha_auxilios_schema.sql</b> no Supabase pra carregar a matriz.</div>'; return; }
+  renderTrilhaAtencao();
   const linhas = trilhaGestoresAdm().map(g => ({ g, r: trilhaResumo(g.pessoa_id) })).sort((a,b) => b.r.pct - a.r.pct);
   el.innerHTML = `<div class="table-wrap"><table>
     <thead><tr><th>Gestor</th><th>Cargo</th><th>Nível na trilha</th><th style="min-width:180px">Progresso</th><th>Etapas</th><th>Pontos</th><th>Última conclusão</th><th></th></tr></thead>
@@ -5652,6 +5750,188 @@ function renderTrilhaAdm() {
       <td>${r.ultima ? fmt(r.ultima) : '—'}</td>
       <td>${r.vencidas ? `<span class="aux-st vence">${r.vencidas} vencido${r.vencidas>1?'s':''}</span>` : ''}</td>
     </tr>`).join('')}</tbody></table></div>`;
+}
+
+// Faixa do topo da trilha (admin): só o que pede ação — reciclagens vencidas,
+// reciclagens vencendo em 60 dias e gestores sem avanço há 90+ dias.
+function renderTrilhaAtencao() {
+  const el = r$('taAtencao'); if (!el) return;
+  const gest = trilhaGestoresAdm();
+  const algumRegistro = trilhaProg.some(p => gest.some(g => g.pessoa_id === p.pessoa_id));
+  if (!algumRegistro) {
+    el.innerHTML = `<div class="ta-atencao"><div class="ta-at-vazio"><i class="ti ti-route"></i>
+      <div><b>Nenhuma conclusão registrada ainda.</b><br>Depois de uma turma ou treinamento, registre todo mundo de uma vez.</div>
+      <button class="btn btn-primary" onclick="abrirTrilhaLote()"><i class="ti ti-checks"></i> Registrar conclusão em lote</button></div></div>`;
+    return;
+  }
+  // Reciclagens agrupadas por etapa: um clique registra a turma inteira de reciclagem.
+  const porEtapa = cls => {
+    const grupos = {};
+    trilhaProg.forEach(p => {
+      if (!gest.some(g => g.pessoa_id === p.pessoa_id)) return;
+      const et = trilhaEtapas.find(e => e.id === p.etapa_id && e.ativo); if (!et) return;
+      if (trilhaValidade(p).cls !== cls) return;
+      (grupos[et.id] = grupos[et.id] || { et, pessoas: [] }).pessoas.push(p.pessoa_id);
+    });
+    return Object.values(grupos).sort((a, b) => b.pessoas.length - a.pessoas.length);
+  };
+  const nomeG = pid => (gest.find(g => g.pessoa_id === pid) || {}).nome || '—';
+  const nomesCurtos = pids => pids.map(pid => nomeG(pid).split(' ')[0]).slice(0, 3).join(', ') + (pids.length > 3 ? ` e +${pids.length - 3}` : '');
+  const itemReciclagem = ({ et, pessoas }) => `<div class="ta-at-item">
+      <div class="txt"><b title="${escHtml(et.nome)}">${escHtml(et.nome)}</b><span>${pessoas.length} gestor${pessoas.length > 1 ? 'es' : ''} · ${escHtml(nomesCurtos(pessoas))}</span></div>
+      <button class="btn" onclick='abrirTrilhaLote("${et.id}", ${JSON.stringify(pessoas)})'>Registrar reciclagem</button>
+    </div>`;
+  const lista = (itens, fn, ok) => itens.length
+    ? itens.slice(0, 4).map(fn).join('') + (itens.length > 4 ? `<div class="ta-at-mais">+${itens.length - 4} mais</div>` : '')
+    : `<div class="ta-at-ok"><i class="ti ti-circle-check"></i> ${ok}</div>`;
+  const vencidos = porEtapa('vencido'), vencendo = porEtapa('vence');
+  const hoje = new Date(hojeISO() + 'T00:00');
+  const parados = gest.map(g => {
+    const ult = trilhaResumo(g.pessoa_id).ultima;
+    return { g, ult, dias: ult ? Math.round((hoje - new Date(ult + 'T00:00')) / 864e5) : Infinity };
+  }).filter(x => x.dias >= 90).sort((a, b) => b.dias - a.dias);
+  const ha = d => d === Infinity ? 'nunca registrou uma etapa' : d >= 60 ? `última etapa há ${Math.floor(d / 30)} meses` : `última etapa há ${d} dias`;
+  const card = (cls, n, titulo, sub, corpo) => `<div class="ta-at-card ${cls}">
+      <div class="ta-at-head"><div class="n">${n}</div><div class="t">${titulo}<small>${sub}</small></div></div>${corpo}</div>`;
+  const qtd = gs => gs.reduce((s, x) => s + x.pessoas.length, 0);
+  el.innerHTML = `<div class="ta-atencao">
+    ${card('vencido', qtd(vencidos), 'Reciclagens vencidas', 'cursos com validade expirada', lista(vencidos, itemReciclagem, 'Nenhuma reciclagem vencida'))}
+    ${card('vence', qtd(vencendo), 'Vencem em 60 dias', 'programe a próxima turma', lista(vencendo, itemReciclagem, 'Nada vencendo nos próximos 60 dias'))}
+    ${card('parado', parados.length, 'Sem avanço há 90+ dias', 'gestores parados na trilha', lista(parados, x => `<div class="ta-at-item">
+        <div class="txt"><b>${escHtml(x.g.nome)}</b><span>${ha(x.dias)}</span></div>
+        <button class="btn" onclick="abrirTrilhaGestor('${x.g.pessoa_id}')">Ver trilha</button>
+      </div>`, 'Todo mundo avançando'))}
+  </div>`;
+}
+
+// ---------- Conclusão em lote ----------
+let loteSel = new Set();
+const semAcento = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+function abrirTrilhaLote(etapaId, pessoaIds) {
+  const ativas = trilhaEtapas.filter(e => e.ativo);
+  if (!ativas.length) { toast('Rode o trilha_auxilios_schema.sql pra carregar a matriz.', true); return; }
+  const cats = [...new Set(ativas.map(e => e.categoria))];
+  r$('loteEtapa').innerHTML = cats.map(c => `<optgroup label="${escHtml(c)}">${ativas.filter(e => e.categoria === c)
+    .map(e => `<option value="${e.id}">${escHtml(e.nome)}${e.carga_horaria ? ` (${e.carga_horaria}h)` : ''}</option>`).join('')}</optgroup>`).join('');
+  if (etapaId) r$('loteEtapa').value = etapaId;
+  r$('loteData').value = hojeISO(); r$('loteComent').value = ''; r$('loteBusca').value = '';
+  loteSel = new Set(pessoaIds || []);
+  renderTrilhaLoteLista();
+  r$('mTrilhaLote').classList.add('open');
+}
+
+// Situação de cada gestor na etapa escolhida
+function trilhaLoteSituacao(pessoaId) {
+  const p = trilhaProg.find(x => x.pessoa_id === pessoaId && x.etapa_id === r$('loteEtapa').value);
+  if (!p) return { pendente: true, html: '<span class="lote-st">Não fez</span>' };
+  const v = trilhaValidade(p);
+  if (v.cls === 'vencido') return { pendente: true, html: `<span class="aux-st vence">Vencido · fez em ${fmt(p.concluido_em)}</span>` };
+  return { pendente: false, html: `<span class="aux-st ativo">Concluído em ${fmt(p.concluido_em)}</span>` };
+}
+
+function trilhaLoteVisiveis() {
+  const termo = semAcento(r$('loteBusca').value.trim());
+  return trilhaGestoresAdm().filter(g => !termo || semAcento(g.nome).includes(termo));
+}
+
+function renderTrilhaLoteLista() {
+  r$('loteLista').innerHTML = trilhaLoteVisiveis().map(g => {
+    const sel = loteSel.has(g.pessoa_id);
+    return `<label class="lote-row${sel ? ' sel' : ''}">
+      <input type="checkbox" ${sel ? 'checked' : ''} onchange="trilhaLoteToggle('${g.pessoa_id}', this.checked)">
+      <span class="lote-nome">${escHtml(g.nome)}</span>${trilhaLoteSituacao(g.pessoa_id).html}</label>`;
+  }).join('') || '<div class="empty">Nenhum gestor encontrado.</div>';
+  const n = loteSel.size, btn = r$('loteSalvar');
+  btn.innerHTML = `<i class="ti ti-check"></i> Registrar${n ? ` para ${n} gestor${n > 1 ? 'es' : ''}` : ''}`;
+  btn.disabled = !n;
+}
+
+function trilhaLoteToggle(pid, on) { on ? loteSel.add(pid) : loteSel.delete(pid); renderTrilhaLoteLista(); }
+
+function trilhaLoteMarcar(modo) {
+  trilhaLoteVisiveis().forEach(g => {
+    const on = modo === 'todos' || (modo === 'pendentes' && trilhaLoteSituacao(g.pessoa_id).pendente);
+    on ? loteSel.add(g.pessoa_id) : loteSel.delete(g.pessoa_id);
+  });
+  renderTrilhaLoteLista();
+}
+
+async function salvarTrilhaLote() {
+  const etapaId = r$('loteEtapa').value, data = r$('loteData').value || hojeISO(), coment = r$('loteComent').value.trim() || null;
+  const et = trilhaEtapas.find(e => e.id === etapaId);
+  if (!et || !loteSel.size) return;
+  const btn = r$('loteSalvar'); btn.disabled = true;
+  try {
+    const novos = [], existentes = [];
+    loteSel.forEach(pid => {
+      const p = trilhaProg.find(x => x.pessoa_id === pid && x.etapa_id === etapaId);
+      if (p) existentes.push(p); else novos.push({ pessoa_id: pid, etapa_id: etapaId, concluido_em: data, comentario: coment });
+    });
+    if (novos.length) await dbInsert('trilha_progresso', novos);
+    for (const p of existentes) await dbUpdate('trilha_progresso', p.id, coment ? { concluido_em: data, comentario: coment } : { concluido_em: data });
+    await carregarTrilhaAuxilios();
+    fecharModal('mTrilhaLote'); renderTrilhaAdm();
+    toast(`${et.nome}: registrado para ${loteSel.size} gestor${loteSel.size > 1 ? 'es' : ''}.`);
+  } catch(e) { toast('Erro: ' + e.message, true); }
+  btn.disabled = false;
+}
+
+// ---------- Auxílios: linha do tempo das vigências ----------
+// Uma linha por auxílio mensal, barra do início ao fim; sem data de término a
+// barra vai até a borda e some aos poucos. Respeita a busca e o filtro de status.
+function renderAuxTimeline(lista, nomeDe) {
+  const el = r$('taAuxTimeline'); if (!el) return;
+  const rows = lista.filter(a => a.recorrencia === 'Mensal');
+  if (!rows.length) { el.innerHTML = ''; return; }
+  const dia = s => new Date(s + 'T00:00');
+  const hoje = dia(hojeISO());
+  const minIni = rows.map(a => a.inicio).sort()[0];
+  const limite = new Date(hoje.getFullYear(), hoje.getMonth() - 18, 1);
+  let ini = new Date(Math.max(dia(minIni), limite)); ini = new Date(ini.getFullYear(), ini.getMonth(), 1);
+  const fimMax = rows.map(a => a.fim).filter(Boolean).sort().pop();
+  let fim = new Date(hoje.getFullYear(), hoje.getMonth() + 7, 1);
+  if (fimMax && dia(fimMax) > fim) fim = new Date(dia(fimMax).getFullYear(), dia(fimMax).getMonth() + 2, 1);
+  const span = fim - ini;
+  const pos = d => Math.min(100, Math.max(0, (d - ini) / span * 100));
+  const meses = [];
+  for (let d = new Date(ini); d < fim; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) meses.push(d);
+  const passo = meses.length > 16 ? 3 : meses.length > 9 ? 2 : 1;
+  const rotMes = d => d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '') + (d.getMonth() === 0 || d === meses[0] ? '/' + String(d.getFullYear()).slice(2) : '');
+  const grade = meses.map(d => `<span class="auxtl-grid" style="left:${pos(d)}%"></span>`).join('');
+  const ordemSt = { vence: 0, ativo: 1, agend: 2, enc: 3 };
+  const ord = [...rows].sort((a, b) => (ordemSt[auxStatus(a).cls] ?? 9) - (ordemSt[auxStatus(b).cls] ?? 9) || nomeDe(a.pessoa_id).localeCompare(nomeDe(b.pessoa_id)));
+  const xHoje = pos(hoje);
+  el.innerHTML = `<div class="card auxtl-card">
+    <div class="auxtl-top">
+      <div><div class="card-title" style="margin:0"><i class="ti ti-timeline"></i> Vigências</div><div class="sub">Do início ao fim de cada auxílio mensal · clique numa barra para editar</div></div>
+      <div class="auxtl-leg">
+        <span><i style="background:var(--st-and)"></i>Ativo</span>
+        <span><i style="background:var(--st-atr)"></i>Vence em 30 dias</span>
+        <span><i style="border:1.5px dashed var(--st-and)"></i>Agendado</span>
+        <span><i style="background:var(--st-nao)"></i>Encerrado</span>
+        <span><i style="background:linear-gradient(to right,var(--st-and),transparent)"></i>Sem data de término</span>
+      </div>
+    </div>
+    <div class="auxtl">
+      <div class="auxtl-row eixo"><div></div><div class="auxtl-track">
+        ${meses.map((d, i) => i % passo || Math.abs(pos(d) - xHoje) < 4 ? '' : `<span class="auxtl-mes" style="left:${pos(d)}%">${rotMes(d)}</span>`).join('')}
+        <span class="auxtl-hoje-lbl" style="left:${xHoje}%">Hoje</span>
+      </div></div>
+      ${ord.map(a => {
+        const st = auxStatus(a);
+        const fimA = a.fim ? dia(a.fim) : null;
+        const x0 = pos(dia(a.inicio)), x1 = fimA ? pos(new Date(fimA.getTime() + 864e5)) : 100;
+        const dica = `${nomeDe(a.pessoa_id)} — ${a.tipo}\n${brl(a.valor)} / mês\n${fmt(a.inicio)} → ${a.fim ? fmt(a.fim) : 'sem data de término'}\n${st.txt}`;
+        return `<div class="auxtl-row">
+          <div class="auxtl-nome"><b title="${escHtml(nomeDe(a.pessoa_id))}">${escHtml(nomeDe(a.pessoa_id))}</b><span><i class="ti ${AUX_ICO[a.tipo] || 'ti-coin'}"></i> ${escHtml(a.tipo)}</span></div>
+          <div class="auxtl-track">${grade}<span class="auxtl-hoje" style="left:${xHoje}%"></span>
+            <div class="auxtl-bar ${st.cls}${fimA ? '' : ' aberto'}" style="left:${x0}%;width:${Math.max(x1 - x0, 1.2)}%" title="${escHtml(dica)}" onclick="abrirAuxilio('${a.id}')">${x1 - x0 > 9 ? brl(a.valor) + ' / mês' : ''}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
 }
 
 function abrirTrilhaGestor(pessoaId) {
@@ -5687,6 +5967,7 @@ function renderAuxiliosAdm() {
     if (filtroSt === 'Encerrado' && st.cls !== 'enc') return false;
     return !termo || nomeDe(a.pessoa_id).toLowerCase().includes(termo) || a.tipo.toLowerCase().includes(termo);
   });
+  renderAuxTimeline(f, nomeDe);
   lista.innerHTML = f.length ? `<div class="table-wrap"><table>
     <thead><tr><th>Pessoa</th><th>Tipo</th><th>Valor</th><th>Ativado em</th><th>Vigente até</th><th>Unidade / cidade</th><th>Status</th></tr></thead>
     <tbody>${f.map(a => { const st = auxStatus(a); return `<tr style="cursor:pointer" onclick="abrirAuxilio('${a.id}')">
@@ -5703,7 +5984,7 @@ function auxSugerirValor() {
   if (r$('auxTipo').value !== 'Auxílio Moradia') { dica.style.display = 'none'; return; }
   const v = (PI023[r$('auxPorte').value] || {})[r$('auxRegiao').value];
   if (v) {
-    if (!editAuxId || !r$('auxValor').value) r$('auxValor').value = v;
+    if (!editAuxId || !r$('auxValor').value) r$('auxValor').value = moneyFmt(v);
     dica.innerHTML = `<i class="ti ti-info-circle"></i> Valor da política PI-023 para ${r$('auxRegiao').value} · ${r$('auxPorte').value}: <b>${brl(v)}</b> / mês. Pago em folha (rubrica AUX MORADIA); não cumulativo com Auxílio Mobilidade.`;
     dica.style.display = '';
   } else if (r$('auxRegiao').value && r$('auxPorte').value) {
@@ -5722,7 +6003,7 @@ function abrirAuxilio(id) {
   r$('auxRegiao').value = a ? (a.regiao||'') : '';
   r$('auxPorte').value = a ? (a.porte||'') : '';
   r$('auxCidade').value = a ? (a.cidade||'') : '';
-  r$('auxValor').value = a ? (a.valor ?? '') : '';
+  r$('auxValor').value = a && a.valor != null ? moneyFmt(a.valor) : '';
   r$('auxRecorrencia').value = a ? a.recorrencia : 'Mensal';
   r$('auxInicio').value = a ? a.inicio : hojeISO();
   r$('auxFim').value = a ? (a.fim||'') : '';
@@ -5739,7 +6020,7 @@ async function salvarAuxilio() {
   if (!r$('auxInicio').value) { toast('Informe a data de ativação.', true); return; }
   const dados = {
     pessoa_id: pessoa.id, tipo: r$('auxTipo').value,
-    valor: r$('auxValor').value === '' ? null : Number(r$('auxValor').value),
+    valor: r$('auxValor').value === '' ? null : moneyParse(r$('auxValor').value),
     recorrencia: r$('auxRecorrencia').value, inicio: r$('auxInicio').value, fim: r$('auxFim').value || null,
     regiao: r$('auxRegiao').value || null, porte: r$('auxPorte').value || null, cidade: r$('auxCidade').value.trim() || null,
     observacao: r$('auxObs').value.trim() || null,
