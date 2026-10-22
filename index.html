@@ -850,6 +850,26 @@
     .auxtl-row { grid-template-columns: 120px minmax(0,1fr); }
   }
 
+  /* Pedido de +15 dias de prazo no PDI */
+  .mpa-prazo-acao { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border); font-size: 11.5px; flex-wrap: wrap; cursor: default; }
+  .mpa-prazo-acao .btn { font-size: 11.5px; padding: 4px 10px; }
+  .prazo-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
+  .prazo-chip.pend { background: var(--amber-bg); color: var(--amber-text); }
+  .prazo-chip.ok { background: var(--green-bg); color: var(--green-text); }
+  .prazo-chip.nao { background: var(--bg3); color: var(--text2); }
+  .prazo-resumo { background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; font-size: 13px; line-height: 1.6; margin-bottom: 12px; }
+  .prazo-resumo b.novo { color: var(--blue-text); }
+  .prazo-card { border-left: 4px solid var(--perbras-laranja); margin-bottom: 1rem; }
+  .prazo-item { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-top: 0.5px solid var(--border); flex-wrap: wrap; }
+  .prazo-item:first-of-type { border-top: none; }
+  .prazo-item .txt { flex: 1; min-width: 220px; font-size: 13px; }
+  .prazo-item .txt b { color: var(--text); }
+  .prazo-item .acao { color: var(--text2); margin: 2px 0 4px; }
+  .prazo-item .datas { font-size: 12px; color: var(--text2); }
+  .prazo-item .motivo { font-size: 12.5px; color: var(--text2); border-left: 3px solid var(--border2); padding: 2px 10px; margin-top: 6px; white-space: pre-line; }
+  .prazo-item .bts { display: flex; gap: 6px; align-items: center; }
+  .nav-badge { margin-left: auto; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--perbras-laranja); color: #fff; font-size: 10.5px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+
   /* Auxílios */
   .aux-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
   .aux-card { display: flex; gap: 12px; padding: 14px; border-radius: var(--radius); border: 1px solid var(--border); border-left: 4px solid var(--perbras-azul); }
@@ -1170,6 +1190,7 @@
   <div class="page" id="page-pdi">
     <div class="page-title">PDI Gestão</div>
     <div class="gestor-banner gestor-only"><i class="ti ti-info-circle"></i> Você está vendo apenas o seu próprio PDI, em modo leitura.</div>
+    <div id="pdPrazos" class="admin-only"></div>
     <div class="tl-tabs">
       <button class="tl-tab active" onclick="switchPDITab('dash',this)"><i class="ti ti-chart-dots-3"></i> Painel</button>
       <button class="tl-tab" onclick="switchPDITab('lista',this)"><i class="ti ti-list"></i> Todas as ações</button>
@@ -1749,6 +1770,34 @@
   </div>
 </div>
 
+<!-- MODAL PEDIR +15 DIAS DE PRAZO (gestor) -->
+<div class="modal-overlay" id="mPedirPrazo">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title"><i class="ti ti-clock-plus"></i> Pedir mais 15 dias</div>
+    <div class="prazo-resumo" id="ppResumo"></div>
+    <div class="fg"><label>Por que você precisa de mais prazo?</label><textarea id="ppMotivo" placeholder="Ex: o curso só abriu turma no fim do mês..."></textarea></div>
+    <p style="font-size:12px;color:var(--text3);margin-top:6px">O RH recebe seu pedido e responde por aqui. Se aprovar, o novo prazo já aparece no seu PDI.</p>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mPedirPrazo')">Cancelar</button>
+      <button class="btn btn-primary" id="ppEnviar" onclick="enviarPedidoPrazo()"><i class="ti ti-send"></i> Enviar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DECIDIR PEDIDO DE PRAZO (admin) -->
+<div class="modal-overlay" id="mDecidirPrazo">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-title"><i class="ti ti-clock-plus"></i> Pedido de +15 dias</div>
+    <div class="prazo-resumo" id="dpResumo"></div>
+    <div class="fg"><label>Resposta pro gestor <span style="font-weight:400;color:var(--text3)">(opcional)</span></label><textarea id="dpResposta" placeholder="Ex: aprovado, bora fechar essa!"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="fecharModal('mDecidirPrazo')">Fechar</button>
+      <button class="btn btn-danger" id="dpRecusar" onclick="decidirPrazo(false)"><i class="ti ti-x"></i> Recusar</button>
+      <button class="btn btn-primary" id="dpAprovar" onclick="decidirPrazo(true)"><i class="ti ti-check"></i> Aprovar +15 dias</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL AVALIAR SEU MONITOR (gestor avalia o monitor) -->
 <div class="modal-overlay" id="mAvaliarMonitor">
   <div class="modal" style="max-width:720px">
@@ -2076,8 +2125,10 @@ async function init() {
     pdis = [];
     console.warn('Aba "PDI Gestão": tabela "pdi" não encontrada no Supabase ainda, ou sem permissão.', e.message);
   }
+  await carregarPrazos();
   populatePDISels();
   renderPDI();
+  abrirPrazoDoLink();
 
   // Monitorias: mesma lógica — se a tabela ainda não existir, não quebra o resto.
   // O gestor não lê as respostas dos monitores: só o consolidado publicado.
@@ -3104,6 +3155,7 @@ function switchPDITab(tab,el) {
 
 function renderPDI() {
   if (profile && profile.role === 'gestor') { renderMeuPDI(); return; }
+  renderPrazosAdm();
   const qfCounts = {
     todos: pdis.length,
     atrasados: pdis.filter(p=>pdiEffectiveStatus(p)==='Atrasado').length,
@@ -3572,6 +3624,154 @@ function renderMeuPDI() {
   }).join('');
 }
 
+// ============================================================
+// PDI: pedido de +15 dias de prazo
+// O gestor pede (com motivo), o RH recebe e-mail e aprova aqui; ao aprovar,
+// o banco calcula e grava o novo prazo (decidir_prorrogacao).
+// ============================================================
+let prazos = [];
+let prazoPdiId = null, prazoDecidirId = null;
+
+async function carregarPrazos() {
+  try { prazos = await dbGet('pdi_prorrogacoes'); }
+  catch(e) { prazos = []; console.warn('pdi_prorrogacoes — rode pdi_prazo_schema.sql', e.message); }
+}
+
+const prazoPendente = pdiId => prazos.find(x => x.pdi_id === pdiId && x.status === 'pendente');
+const prazoUltimo = pdiId => prazos.filter(x => x.pdi_id === pdiId).pop();
+
+// Mesma regra do banco: prazo ainda valendo → +15 dias; já vencido → hoje + 15.
+function prazoSeAprovar(prazoAtual, dias = 15) {
+  const hoje = hojeISO();
+  const base = new Date(((prazoAtual && prazoAtual > hoje) ? prazoAtual : hoje) + 'T00:00');
+  base.setDate(base.getDate() + dias);
+  return base.getFullYear() + '-' + String(base.getMonth() + 1).padStart(2, '0') + '-' + String(base.getDate()).padStart(2, '0');
+}
+
+// Rodapé do card da ação no "Meu PDI": botão de pedir ou a situação do pedido.
+function prazoRodapeHtml(p) {
+  const st = pdiEffectiveStatus(p);
+  if (st === 'Concluído' || st === 'Descontinuado' || !p.data_termino_programada) return '';
+  const pend = prazoPendente(p.id), ult = prazoUltimo(p.id);
+  let info = '<span style="color:var(--text3)">Precisa de mais tempo?</span>';
+  if (pend) info = '<span class="prazo-chip pend"><i class="ti ti-hourglass"></i> +15 dias pedidos — aguardando o RH</span>';
+  else if (ult && ult.status === 'aprovado') info = `<span class="prazo-chip ok" title="${escHtml(ult.resposta || '')}"><i class="ti ti-check"></i> Prazo estendido até ${fmt(ult.prazo_novo)}</span>`;
+  else if (ult && ult.status === 'recusado') info = `<span class="prazo-chip nao" title="${escHtml(ult.resposta || '')}"><i class="ti ti-x"></i> Pedido de prazo não aprovado</span>`;
+  return `<div class="mpa-prazo-acao" onclick="event.stopPropagation()">
+    ${info}
+    ${pend ? '' : `<button class="btn" onclick="abrirPedirPrazo('${p.id}')"><i class="ti ti-clock-plus"></i> Pedir +15 dias</button>`}
+  </div>`;
+}
+
+function abrirPedirPrazo(pdiId) {
+  const p = pdis.find(x => x.id === pdiId); if (!p) return;
+  if (prazoPendente(pdiId)) { toast('Você já tem um pedido de prazo aguardando o RH nessa ação.'); return; }
+  prazoPdiId = pdiId;
+  const venceu = p.data_termino_programada < hojeISO();
+  r$('ppResumo').innerHTML = `<b>${escHtml(p.detalhe_desenvolvimento || p.acao || 'Ação de PDI')}</b><br>
+    Prazo atual: <b>${fmt(p.data_termino_programada)}</b>${venceu ? ' (já venceu)' : ''}<br>
+    Se o RH aprovar, o novo prazo fica: <b class="novo">${fmt(prazoSeAprovar(p.data_termino_programada))}</b>`;
+  r$('ppMotivo').value = '';
+  r$('mPedirPrazo').classList.add('open');
+  setTimeout(() => r$('ppMotivo').focus(), 50);
+}
+
+async function enviarPedidoPrazo() {
+  const motivo = r$('ppMotivo').value.trim();
+  if (motivo.length < 5) { toast('Conta rapidinho o motivo pro RH :)', true); return; }
+  const btn = r$('ppEnviar'); btn.disabled = true;
+  try {
+    await dbInsert('pdi_prorrogacoes', { pdi_id: prazoPdiId, gestor_nome: profile.gestor_nome, motivo });
+    await carregarPrazos();
+    fecharModal('mPedirPrazo');
+    renderPDI();
+    toast('Pedido enviado pro RH! Você vê aqui quando ele responder.');
+  } catch(e) {
+    toast(/duplicate|um_pendente/.test(e.message) ? 'Já existe um pedido aguardando o RH nessa ação.' : 'Não consegui enviar: ' + e.message, true);
+  }
+  btn.disabled = false;
+}
+
+// ---------- Admin ----------
+function renderPrazosAdm() {
+  const el = r$('pdPrazos');
+  const pend = prazos.filter(x => x.status === 'pendente');
+  const nav = r$('navItemPdi');
+  if (nav) {
+    let b = nav.querySelector('.nav-badge');
+    if (pend.length) {
+      if (!b) { b = document.createElement('span'); b.className = 'nav-badge'; nav.appendChild(b); }
+      b.textContent = pend.length; b.title = `${pend.length} pedido(s) de prazo aguardando`;
+    } else if (b) b.remove();
+  }
+  if (!el) return;
+  if (!pend.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="card prazo-card">
+    <div class="card-title"><i class="ti ti-clock-plus"></i> Pedidos de +15 dias aguardando você (${pend.length})</div>
+    ${pend.map(x => {
+      const p = pdis.find(y => y.id === x.pdi_id) || {};
+      const venceu = p.data_termino_programada && p.data_termino_programada < hojeISO();
+      return `<div class="prazo-item">
+        <div class="txt">
+          <b>${escHtml(x.gestor_nome)}</b> <span style="color:var(--text3);font-size:12px">· pediu em ${fmt(x.created_at.slice(0, 10))}</span>
+          <div class="acao">${escHtml(p.detalhe_desenvolvimento || p.acao || 'Ação de PDI')}</div>
+          <div class="datas">Prazo atual <b>${p.data_termino_programada ? fmt(p.data_termino_programada) : '—'}</b>${venceu ? ' (vencido)' : ''} → se aprovar: <b style="color:var(--blue-text)">${fmt(prazoSeAprovar(p.data_termino_programada))}</b></div>
+          ${x.motivo ? `<div class="motivo">${escHtml(x.motivo)}</div>` : ''}
+        </div>
+        <div class="bts">
+          <button class="btn" onclick="abrirDecidirPrazo('${x.id}')"><i class="ti ti-message"></i> Responder</button>
+          <button class="btn btn-primary" onclick="decidirPrazo(true, '${x.id}')"><i class="ti ti-check"></i> Aprovar</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function abrirDecidirPrazo(id) {
+  const x = prazos.find(y => y.id === id);
+  if (!x) { toast('Pedido de prazo não encontrado.', true); return; }
+  const p = pdis.find(y => y.id === x.pdi_id) || {};
+  prazoDecidirId = id;
+  const decidido = x.status !== 'pendente';
+  r$('dpResumo').innerHTML = `<b>${escHtml(x.gestor_nome)}</b> pediu +${x.dias} dias em ${fmt(x.created_at.slice(0, 10))}<br>
+    <span style="color:var(--text2)">${escHtml(p.detalhe_desenvolvimento || p.acao || 'Ação de PDI')}</span><br>
+    ${decidido
+      ? `<b>Esse pedido já foi ${x.status}</b>${x.status === 'aprovado' ? ` — novo prazo ${fmt(x.prazo_novo)}` : ''}.`
+      : `Prazo atual: <b>${p.data_termino_programada ? fmt(p.data_termino_programada) : '—'}</b> → se aprovar: <b class="novo">${fmt(prazoSeAprovar(p.data_termino_programada))}</b>`}
+    ${x.motivo ? `<div style="margin-top:8px;white-space:pre-line"><span style="color:var(--text3);font-size:11px;font-weight:700;text-transform:uppercase">Motivo</span><br>${escHtml(x.motivo)}</div>` : ''}`;
+  r$('dpResposta').value = x.resposta || '';
+  r$('dpResposta').disabled = decidido;
+  r$('dpAprovar').style.display = r$('dpRecusar').style.display = decidido ? 'none' : '';
+  r$('mDecidirPrazo').classList.add('open');
+}
+
+async function decidirPrazo(aprovar, idDireto) {
+  const id = idDireto || prazoDecidirId;
+  const resposta = idDireto ? null : (r$('dpResposta').value.trim() || null);
+  if (!aprovar && !confirm('Recusar esse pedido de prazo?')) return;
+  try {
+    const r = await authFetch(`${SUPA_URL}/rpc/decidir_prorrogacao`, { method: 'POST', body: JSON.stringify({ p_id: id, p_aprovar: aprovar, p_resposta: resposta }) });
+    if (!r.ok) throw new Error((await r.json().catch(() => ({}))).message || r.statusText);
+    const dec = await r.json();
+    fecharModal('mDecidirPrazo');
+    pdis = await dbGet('pdi');
+    await carregarPrazos();
+    renderPDI(); renderPrazosAdm();
+    toast(aprovar ? `Aprovado! Novo prazo de ${dec.gestor_nome}: ${fmt(dec.prazo_novo)}.` : 'Pedido recusado.');
+  } catch(e) { toast('Erro: ' + e.message, true); }
+}
+
+// Link do e-mail: maisgestor.vercel.app/?prazo=<id> abre o pedido direto.
+function abrirPrazoDoLink() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get('prazo');
+  if (!id || !profile || profile.role !== 'admin') return;
+  params.delete('prazo');
+  history.replaceState(null, '', location.pathname + (params.toString() ? '?' + params : '') + location.hash);
+  goPage('pdi', r$('navItemPdi'));
+  abrirDecidirPrazo(id);
+}
+
 let mpSpotlightList = [];
 let mpSpotlightMode = 'vazio';
 let mpSpotlightIdx = 0;
@@ -3625,6 +3825,7 @@ function mpSpotlightRender(nomeCompleto) {
       <div class="mp-spotlight-msg">Olá, <b>${primeiroNome}</b>! ${cfg.verbo(titulo)}</div>
       ${p.acao_pdi_link?`<div class="mp-spotlight-linkbox">${pdiLinkFieldHtml(p.acao_pdi_link, 'Abrir link da ação')}</div>`:''}
       <button class="btn" style="margin-top:8px;font-size:12px;padding:6px 10px" onclick="abrirConcluirPDI('${p.id}')"><i class="ti ti-circle-check"></i> Já concluí essa ação</button>
+      ${p.data_termino_programada && !prazoPendente(p.id) ? `<button class="btn" style="margin-top:8px;font-size:12px;padding:6px 10px" onclick="abrirPedirPrazo('${p.id}')"><i class="ti ti-clock-plus"></i> Pedir +15 dias</button>` : ''}
     </div>
     ${mpSpotlightList.length>1?`
     <div class="mp-spotlight-nav">
@@ -3675,6 +3876,7 @@ function meuPdiCardHtml(p) {
       <div class="mpa-datas"><span><i class="ti ti-calendar"></i> ${p.data_inicio?fmt(p.data_inicio):'—'}</span><span>${p.data_termino_programada?fmt(p.data_termino_programada):'—'} <i class="ti ti-flag"></i></span></div>
       ${pct!=null?`<div class="mpa-bar"><span style="width:${pct}%"></span></div><div class="mpa-falta">${prazo}</div>`:''}
     </div>
+    ${prazoRodapeHtml(p)}
   </div>`;
 }
 
