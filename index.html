@@ -903,6 +903,46 @@
   }
   .ta-sub { display: none; } .ta-sub.active { display: block; animation: pageIn .3s ease; }
 
+  /* Trilha dos gestores (admin): filtros, resumo, lista e mapa */
+  .ta-filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .ta-filtros input { min-width: 200px; font-size: 13px; padding: 7px 10px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); font-family: inherit; }
+  .ta-modo { display: inline-flex; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 2px; margin-left: auto; }
+  .ta-modo button { border: none; background: none; font-family: inherit; font-size: 12.5px; padding: 6px 12px; border-radius: 6px; cursor: pointer; color: var(--text2); display: inline-flex; align-items: center; gap: 5px; }
+  .ta-modo button.on { background: var(--perbras-azul); color: #fff; font-weight: 600; }
+  .ta-resumo { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 12px; margin-bottom: 1rem; }
+  .ta-resumo > div { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 18px; box-shadow: var(--shadow); }
+  .ta-res-kpi { min-width: 170px; }
+  .ta-res-kpi .v { font-size: 28px; font-weight: 700; line-height: 1; color: var(--text); }
+  .ta-res-kpi .v small { font-size: 14px; font-weight: 500; color: var(--text3); }
+  .ta-res-kpi .l, .ta-res-dist .l { font-size: 12px; color: var(--text2); margin-top: 6px; }
+  .ta-res-dist .l { margin: 0 0 8px; }
+  .ta-dist-bar { display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden; background: var(--bg3); }
+  .ta-dist-bar span { display: block; min-width: 4px; }
+  .ta-dist-leg { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 11.5px; color: var(--text2); }
+  .ta-dist-leg span { display: inline-flex; align-items: center; gap: 5px; }
+  .ta-dist-leg span.zero { opacity: .45; }
+  .ta-dist-leg i, .ta-nivel i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; box-shadow: inset 0 0 0 1px rgba(9,28,40,0.12); }
+  .ta-dist-leg b { color: var(--text); }
+  .ta-lista tbody tr, .ta-mapa tbody tr { cursor: pointer; }
+  .ta-lista th small { font-weight: 400; color: var(--text3); text-transform: none; letter-spacing: 0; }
+  .ta-nome { display: flex; align-items: center; gap: 10px; }
+  .ta-nome b { display: block; font-size: 13px; font-weight: 600; color: var(--text); }
+  .ta-nome span { font-size: 11.5px; color: var(--text3); }
+  .ta-nivel { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text2); background: var(--bg2); padding: 3px 10px 3px 8px; border-radius: 12px; white-space: nowrap; }
+  .ta-prog { display: flex; align-items: center; gap: 10px; }
+  .ta-prog .bar { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+  .ta-prog .bar span { display: block; height: 100%; background: var(--perbras-azul); border-radius: 4px; }
+  .ta-prog b { font-size: 12.5px; min-width: 36px; text-align: right; color: var(--text); }
+  .ta-mapa th { text-align: center; vertical-align: bottom; }
+  .ta-mapa th:first-child { text-align: left; }
+  .ta-mapa th i { display: block; font-size: 16px; color: var(--perbras-azul); margin-bottom: 3px; }
+  .ta-mapa th span { font-size: 10.5px; }
+  .ta-cel { text-align: center; font-size: 11.5px; font-weight: 600; border: 2px solid var(--bg) !important; border-radius: 6px; min-width: 64px; transition: filter .15s; }
+  .ta-cel:hover { filter: brightness(0.93); }
+  .ta-tot { text-align: center; }
+  .ta-mapa-leg { font-size: 12px; color: var(--text3); margin-top: 8px; }
+  @media (max-width: 900px) { .ta-resumo { grid-template-columns: 1fr 1fr; } .ta-res-dist { grid-column: 1 / -1; } .ta-modo { margin-left: 0; } }
+
   /* Trilha (admin): faixa "precisa de atenção" */
   .ta-atencao { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-bottom: 1.25rem; }
   .ta-at-card { background: var(--bg); border: 0.5px solid var(--border); border-top: 3px solid var(--border2); border-radius: var(--radius-lg); padding: 14px 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
@@ -1467,6 +1507,12 @@
         <button class="btn btn-primary" onclick="abrirTrilhaLote()" style="margin-left:auto"><i class="ti ti-checks"></i> Registrar conclusão em lote</button>
       </div>
       <div id="taAtencao"></div>
+      <div class="ta-filtros">
+        <div class="qf-row" id="taNivelChips"></div>
+        <input type="text" id="taBusca" placeholder="Buscar gestor..." oninput="renderTrilhaAdm()">
+        <div class="ta-modo" id="taModoBtns"></div>
+      </div>
+      <div id="taResumo"></div>
       <div id="taProgresso"></div>
     </div>
     <div class="ta-sub" id="ta-auxilios">
@@ -6219,19 +6265,97 @@ function trilhaGestoresAdm() {
     .map(p => ({ nome: p.gestor_nome, pessoa_id: p.pessoa_id })).sort((a,b) => a.nome.localeCompare(b.nome));
 }
 
+// ---------- Trilha dos gestores (admin): filtro por nível do cargo, resumo,
+// lista (quem está mais atrás primeiro) e mapa gestores × categorias ----------
+const TA_NIVEIS_CARGO = ['Júnior', 'Pleno', 'Master', 'Sênior', 'Outros'];
+// Tons de um azul só, do mais claro (Iniciante) ao mais escuro (Gestor formado)
+const TA_NIVEL_COR = { 'Iniciante': '#CFE5FF', 'Em formação': '#8EC3FF', 'Em desenvolvimento': '#4FA2FF', 'Quase lá': '#1A88FF', 'Gestor formado': '#0A5FC4' };
+let taNivel = null, taModo = 'lista';
+
+function nivelDoCargo(pessoaId) {
+  const c = semAcento((rhPorPessoa[pessoaId] || {}).cargo || '');
+  if (/junior|\bjr\b/.test(c)) return 'Júnior';
+  if (/pleno|\bpl\b/.test(c)) return 'Pleno';
+  if (/master/.test(c)) return 'Master';
+  if (/senior|\bsr\b/.test(c)) return 'Sênior';
+  return 'Outros';
+}
+
+function haQuanto(iso) {
+  if (!iso) return '—';
+  const d = Math.round((new Date(hojeISO() + 'T00:00') - new Date(iso + 'T00:00')) / 864e5);
+  if (d <= 0) return 'hoje';
+  if (d < 31) return `há ${d} dia${d > 1 ? 's' : ''}`;
+  const m = Math.round(d / 30.4);
+  return m < 12 ? `há ${m} ${m > 1 ? 'meses' : 'mês'}` : `há ${Math.floor(m / 12)} ano${m >= 24 ? 's' : ''}`;
+}
+
+function taSetNivel(n) { taNivel = n; renderTrilhaAdm(); }
+function taSetModo(m) { taModo = m; renderTrilhaAdm(); }
+
 function renderTrilhaAdm() {
   const el = r$('taProgresso'); if (!el) return;
   if (!trilhaEtapas.length) { el.innerHTML = '<div class="empty">Rode o <b>trilha_auxilios_schema.sql</b> no Supabase pra carregar a matriz.</div>'; return; }
   renderTrilhaAtencao();
-  const linhas = trilhaGestoresAdm().map(g => ({ g, r: trilhaResumo(g.pessoa_id) })).sort((a,b) => b.r.pct - a.r.pct);
-  el.innerHTML = `<div class="table-wrap"><table>
-    <thead><tr><th>Gestor</th><th>Cargo</th><th>Nível na trilha</th><th style="min-width:180px">Progresso</th><th>Etapas</th><th>Pontos</th><th>Última conclusão</th><th></th></tr></thead>
-    <tbody>${linhas.map(({g,r}) => `<tr style="cursor:pointer" onclick="abrirTrilhaGestor('${g.pessoa_id}')">
-      <td><b>${escHtml(g.nome)}</b></td><td>${escHtml(cargoBonito((rhPorPessoa[g.pessoa_id]||{}).cargo) || '—')}</td><td>${r.nivel.nome}</td>
-      <td><div class="tr-cat-bar" style="width:100%"><span style="width:${r.pct}%"></span></div><div style="font-size:11px;color:var(--text2);margin-top:3px">${r.pct}%</div></td>
+  const todos = trilhaGestoresAdm().map(g => ({ g, nivel: nivelDoCargo(g.pessoa_id), r: trilhaResumo(g.pessoa_id) }));
+  const cont = n => todos.filter(x => x.nivel === n).length;
+  // Matriz é do Gestor Júnior: abre nele (se tiver alguém), mas dá pra ver todo mundo
+  if (taNivel === null) taNivel = cont('Júnior') ? 'Júnior' : '';
+  r$('taNivelChips').innerHTML = [...TA_NIVEIS_CARGO.filter(cont).map(n => [n, n, cont(n)]), ['', 'Todos', todos.length]]
+    .map(([k, l, n]) => `<button class="qf-btn${taNivel === k ? ' active' : ''}" onclick="taSetNivel('${k}')">${l} <span style="opacity:.6">${n}</span></button>`).join('');
+  r$('taModoBtns').innerHTML = [['lista', 'ti-list', 'Lista'], ['mapa', 'ti-layout-grid', 'Mapa']]
+    .map(([k, i, l]) => `<button class="${taModo === k ? 'on' : ''}" onclick="taSetModo('${k}')"><i class="ti ${i}"></i> ${l}</button>`).join('');
+  const termo = semAcento(r$('taBusca').value.trim());
+  const grupo = todos.filter(x => !taNivel || x.nivel === taNivel);
+  const linhas = grupo.filter(x => !termo || semAcento(x.g.nome).includes(termo))
+    .sort((a, b) => a.r.pct - b.r.pct || a.g.nome.localeCompare(b.g.nome));
+
+  // Resumo do grupo filtrado
+  const media = grupo.length ? Math.round(grupo.reduce((s, x) => s + x.r.pct, 0) / grupo.length) : 0;
+  const comecaram = grupo.filter(x => x.r.feitas.length).length;
+  const porNivel = TRILHA_NIVEIS.map(n => ({ nome: n.nome, n: grupo.filter(x => x.r.nivel.nome === n.nome).length }));
+  r$('taResumo').innerHTML = grupo.length ? `<div class="ta-resumo">
+    <div class="ta-res-kpi"><div class="v">${media}%</div><div class="l">progresso médio${taNivel ? ' · ' + taNivel : ''}</div></div>
+    <div class="ta-res-kpi"><div class="v">${comecaram}<small> de ${grupo.length}</small></div><div class="l">já começaram a trilha</div></div>
+    <div class="ta-res-dist">
+      <div class="l">Onde estão na trilha</div>
+      <div class="ta-dist-bar">${porNivel.filter(x => x.n).map(x => `<span style="flex:${x.n};background:${TA_NIVEL_COR[x.nome]}" title="${x.nome}: ${x.n}"></span>`).join('')}</div>
+      <div class="ta-dist-leg">${porNivel.map(x => `<span class="${x.n ? '' : 'zero'}"><i style="background:${TA_NIVEL_COR[x.nome]}"></i>${x.nome} <b>${x.n}</b></span>`).join('')}</div>
+    </div>
+  </div>` : '';
+
+  if (!linhas.length) { el.innerHTML = '<div class="empty">Ninguém encontrado nesse filtro.</div>'; return; }
+  const avatar = g => { const gp = gestorProfiles[g.nome]; return `<div class="avatar" style="width:32px;height:32px;font-size:11px;flex-shrink:0">${gp && gp.foto_url ? `<img src="${gp.foto_url}" loading="lazy">` : initials(g.nome)}</div>`; };
+  const nomeCel = x => `<div class="ta-nome">${avatar(x.g)}<div><b>${escHtml(x.g.nome)}</b><span>${escHtml(cargoBonito((rhPorPessoa[x.g.pessoa_id] || {}).cargo) || 'sem cargo')}</span></div></div>`;
+
+  if (taModo === 'mapa') {
+    const cats = [...new Set(trilhaEtapas.filter(e => e.ativo).map(e => e.categoria))];
+    const celula = (pid, cat) => {
+      const etapas = trilhaEtapas.filter(e => e.ativo && e.categoria === cat);
+      const feitas = etapas.filter(e => trilhaProg.some(p => p.pessoa_id === pid && p.etapa_id === e.id)).length;
+      const pct = etapas.length ? feitas / etapas.length : 0;
+      const bg = pct === 0 ? 'var(--bg2)' : `rgba(26,136,255,${(0.15 + pct * 0.85).toFixed(2)})`;
+      return `<td class="ta-cel" style="background:${bg};color:${pct > 0.55 ? '#fff' : 'var(--text2)'}" title="${escHtml(cat)}: ${feitas} de ${etapas.length}"
+        onclick="event.stopPropagation();trilhaCatSel='${cat.replace(/'/g, "\\'")}';abrirTrilhaGestor('${pid}')">${feitas}/${etapas.length}</td>`;
+    };
+    el.innerHTML = `<div class="table-wrap"><table class="ta-mapa">
+      <thead><tr><th>Gestor</th>${cats.map(c => `<th title="${escHtml(c)}"><i class="ti ${TR_CAT_ICO[c] || 'ti-book'}"></i><span>${escHtml(c)}</span></th>`).join('')}<th>Total</th></tr></thead>
+      <tbody>${linhas.map(x => `<tr onclick="abrirTrilhaGestor('${x.g.pessoa_id}')">
+        <td>${nomeCel(x)}</td>${cats.map(c => celula(x.g.pessoa_id, c)).join('')}<td class="ta-tot"><b>${x.r.pct}%</b></td></tr>`).join('')}</tbody>
+    </table></div>
+    <div class="ta-mapa-leg">Cada célula: etapas concluídas da categoria. Quanto mais escuro, mais completa. Clique pra abrir a trilha da pessoa naquela categoria.</div>`;
+    return;
+  }
+
+  el.innerHTML = `<div class="table-wrap"><table class="ta-lista">
+    <thead><tr><th>Gestor</th><th>Nível na trilha</th><th style="min-width:220px">Progresso <small>· menos avançados primeiro</small></th><th>Etapas</th><th>Pontos</th><th>Última conclusão</th><th></th></tr></thead>
+    <tbody>${linhas.map(({ g, r, ...x }) => `<tr onclick="abrirTrilhaGestor('${g.pessoa_id}')">
+      <td>${nomeCel({ g })}</td>
+      <td><span class="ta-nivel"><i style="background:${TA_NIVEL_COR[r.nivel.nome]}"></i>${r.nivel.nome}</span></td>
+      <td><div class="ta-prog"><div class="bar"><span style="width:${r.pct}%"></span></div><b>${r.pct}%</b></div></td>
       <td>${r.feitas.length} / ${r.ativas.length}</td><td>${r.pontos}</td>
-      <td>${r.ultima ? fmt(r.ultima) : '—'}</td>
-      <td>${r.vencidas ? `<span class="aux-st vence">${r.vencidas} vencido${r.vencidas>1?'s':''}</span>` : ''}</td>
+      <td title="${r.ultima ? fmt(r.ultima) : ''}">${haQuanto(r.ultima)}</td>
+      <td>${r.vencidas ? `<span class="aux-st vence">${r.vencidas} vencido${r.vencidas > 1 ? 's' : ''}</span>` : ''}</td>
     </tr>`).join('')}</tbody></table></div>`;
 }
 
@@ -6243,8 +6367,7 @@ function renderTrilhaAtencao() {
   const algumRegistro = trilhaProg.some(p => gest.some(g => g.pessoa_id === p.pessoa_id));
   if (!algumRegistro) {
     el.innerHTML = `<div class="ta-atencao"><div class="ta-at-vazio"><i class="ti ti-route"></i>
-      <div><b>Nenhuma conclusão registrada ainda.</b><br>Depois de uma turma ou treinamento, registre todo mundo de uma vez.</div>
-      <button class="btn btn-primary" onclick="abrirTrilhaLote()"><i class="ti ti-checks"></i> Registrar conclusão em lote</button></div></div>`;
+      <div><b>Nenhuma conclusão registrada ainda.</b><br>Depois de uma turma ou treinamento, use <b>Registrar conclusão em lote</b> (no topo) pra marcar todo mundo de uma vez.</div></div></div>`;
     return;
   }
   // Reciclagens agrupadas por etapa: um clique registra a turma inteira de reciclagem.
