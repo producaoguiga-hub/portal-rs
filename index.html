@@ -629,6 +629,36 @@
   .mc-resumo-card .mc-ico { background: var(--perbras-azul); color: #fff; }
   .mc-resumo-card .mc-resumo { margin-top: 14px; font-size: 16.5px; line-height: 1.75; font-style: italic; font-weight: 500; color: var(--text); position: relative; z-index: 1; }
 
+  /* Minha Monitoria: os 4 pilares em blocos (nota grande + régua de 5) */
+  .mm-pilares { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 1rem; }
+  .mm-pilar { position: relative; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px; }
+  .mm-pilar.forte { border-color: rgba(111,179,0,0.55); box-shadow: 0 0 0 3px var(--green-bg); }
+  .mm-pilar.foco { border-color: rgba(255,143,31,0.55); box-shadow: 0 0 0 3px var(--amber-bg); }
+  .mm-pilar-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 26px; }
+  .mm-pilar-ico { width: 38px; height: 38px; border-radius: 10px; background: var(--blue-bg); color: var(--perbras-azul); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .mm-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 3px 8px; border-radius: 10px; white-space: nowrap; }
+  .mm-pilar.forte .mm-tag { background: var(--green-bg); color: var(--green-text); }
+  .mm-pilar.foco .mm-tag { background: var(--amber-bg); color: var(--amber-text); }
+  .mm-pilar-nome { font-size: 13px; font-weight: 600; color: var(--text2); line-height: 1.3; }
+  .mm-nota { display: flex; align-items: baseline; gap: 6px; }
+  .mm-nota b { font-size: 34px; font-weight: 700; line-height: 1; color: var(--text); }
+  .mm-nota span { font-size: 12px; color: var(--text3); }
+  .mm-regua { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .mm-regua i { height: 7px; border-radius: 4px; background: var(--bg3); overflow: hidden; display: block; }
+  .mm-regua i span { display: block; height: 100%; background: var(--perbras-azul); }
+  .mm-pilar.forte .mm-regua i span { background: #6fb300; }
+  .mm-pilar.foco .mm-regua i span { background: var(--perbras-laranja); }
+  .mm-faixa { font-size: 12px; font-weight: 600; color: var(--text2); }
+  .mm-secao { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin: 0 0 10px 2px; }
+  /* Pontos positivos / a desenvolver: ícone por item, letra maior */
+  .mc-box .mc-list li.mm-item { display: flex; gap: 10px; align-items: flex-start; padding: 12px 0; font-size: 14px; line-height: 1.55; }
+  .mc-box .mc-list li.mm-item::before { display: none; }
+  .mm-item > i { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .mc-pos .mm-item > i { color: #6fb300; }
+  .mc-dev .mm-item > i { color: var(--perbras-laranja); }
+  .mm-rodape { margin-top: auto; padding: 12px 18px; font-size: 12.5px; color: var(--amber-text); background: var(--amber-bg); display: flex; gap: 8px; align-items: center; }
+  @media (max-width: 1000px) { .mm-pilares { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
   .mc-box { border-radius: var(--radius-lg); background: var(--bg); box-shadow: var(--shadow); overflow: hidden; display: flex; flex-direction: column; }
   .mc-box .mc-box-head { padding: 14px 18px; border-bottom: 1px solid var(--border); }
   .mc-box .mc-list { padding: 6px 18px 12px; gap: 0; }
@@ -5217,6 +5247,31 @@ async function enviarAvaliacaoMonitor() {
 
 // Visão do gestor: só o consolidado que o RH publicou (o banco não devolve
 // rascunho nem as respostas dos monitores pra ele).
+const MM_PILAR_ICO = { 'Postura e Valores': 'ti-heart-handshake', 'Aprendizado': 'ti-bulb', 'Execução': 'ti-checklist', 'Liderança e Comunicação': 'ti-speakerphone' };
+const notaBR = v => v == null ? '—' : Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const mmFaixa = v => v == null ? '' : v >= 4.5 ? 'Excelente' : v >= 4 ? 'Muito bom' : v >= 3.5 ? 'Bom' : 'Em desenvolvimento';
+
+// Blocos dos 4 pilares: nota grande, régua de 5 e a faixa. O mais alto ganha
+// "seu ponto forte" e o mais baixo "foco agora" (se não estiverem empatados).
+function mmPilaresHtml(pilares) {
+  const com = pilares.filter(p => p.media != null);
+  const max = com.length ? Math.max(...com.map(p => p.media)) : null;
+  const min = com.length ? Math.min(...com.map(p => p.media)) : null;
+  const iForte = max !== min ? pilares.findIndex(p => p.media === max) : -1;
+  const iFoco = max !== min ? pilares.findIndex(p => p.media === min) : -1;
+  return `<div class="mm-pilares">${pilares.map((p, i) => {
+    const cls = i === iForte ? ' forte' : i === iFoco ? ' foco' : '';
+    const regua = [0, 1, 2, 3, 4].map(k => `<i><span style="width:${Math.max(0, Math.min(1, (p.media || 0) - k)) * 100}%"></span></i>`).join('');
+    return `<div class="mm-pilar${cls}">
+      <div class="mm-pilar-top"><span class="mm-pilar-ico"><i class="ti ${MM_PILAR_ICO[p.pilar] || 'ti-star'}"></i></span>${i === iForte ? '<span class="mm-tag">Seu ponto forte</span>' : i === iFoco ? '<span class="mm-tag">Foco agora</span>' : ''}</div>
+      <div class="mm-pilar-nome">${escHtml(p.pilar)}</div>
+      <div class="mm-nota"><b>${notaBR(p.media)}</b><span>de 5</span></div>
+      <div class="mm-regua" title="${notaBR(p.media)} de 5">${regua}</div>
+      <div class="mm-faixa">${mmFaixa(p.media)}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
 async function renderMinhaMonitoria() {
   const el = r$('mmConteudo'); if (!el) return;
   let c = null;
@@ -5231,45 +5286,34 @@ async function renderMinhaMonitoria() {
   const nome = (profile && profile.gestor_nome) || c.gestor_nome;
   const fotoUrl = profile && profile.foto_url;
   const pilares = c.pilares || [];
-  const li = arr => (arr||[]).map(t => `<li>${escHtml(t)}</li>`).join('');
+  const li = (arr, ico) => (arr || []).map(t => `<li class="mm-item"><i class="ti ${ico}"></i><span>${escHtml(t)}</span></li>`).join('');
   el.innerHTML = `
     <div class="mc-hero mp-anim">
       <div class="avatar">${fotoUrl ? `<img src="${fotoUrl}">` : initials(nome)}</div>
       <div><div class="nm">${escHtml(nome)}</div>
         <div class="sub">Consolidado de ${c.n_monitorias} ${c.n_monitorias!==1?'avaliações':'avaliação'} de monitoria${c.publicado_em ? ' · publicado em '+new Date(c.publicado_em).toLocaleDateString('pt-BR') : ''}</div></div>
-      <div class="media"><div class="v">${c.media_geral!=null ? Number(c.media_geral).toFixed(1) : '—'}</div><div class="l">Média geral (1 a 5)</div></div>
+      <div class="media"><div class="v">${notaBR(c.media_geral)}</div><div class="l">Média dos 4 pilares (de 5)</div></div>
     </div>
-    <div class="mc-grid mp-anim" style="animation-delay:.05s">
-      <div class="card" style="margin:0"><div class="card-title">Seus pilares</div><div class="mc-radar"><canvas id="mmRadar"></canvas></div></div>
-      <div class="card" style="margin:0"><div class="card-title">Nota por pilar</div>${mcPilaresHtml(pilares)}</div>
-    </div>
-    <div class="mc-resumo-card mp-anim" style="animation-delay:.1s">
+    <div class="mc-resumo-card mp-anim" style="animation-delay:.05s">
       <div class="mc-box-head"><span class="mc-ico"><i class="ti ti-file-description"></i></span>Resumo executivo</div>
       <div class="mc-resumo">${escHtml(c.resumo||'')}</div>
+    </div>
+    <div class="mp-anim" style="animation-delay:.1s">
+      <div class="mm-secao">Seus pilares</div>
+      ${mmPilaresHtml(pilares)}
     </div>
     <div class="mc-grid mp-anim" style="animation-delay:.15s">
       <div class="mc-box mc-pos">
         <div class="mc-box-head"><span class="mc-ico"><i class="ti ti-thumb-up"></i></span>Pontos positivos<span class="mc-count">${(c.pontos_positivos||[]).length}</span></div>
-        <ul class="mc-list">${li(c.pontos_positivos)}</ul>
+        <ul class="mc-list">${li(c.pontos_positivos, 'ti-circle-check')}</ul>
       </div>
       <div class="mc-box mc-dev">
         <div class="mc-box-head"><span class="mc-ico"><i class="ti ti-trending-up"></i></span>Pontos a desenvolver<span class="mc-count">${(c.pontos_desenvolver||[]).length}</span></div>
-        <ul class="mc-list">${li(c.pontos_desenvolver)}</ul>
+        <ul class="mc-list">${li(c.pontos_desenvolver, 'ti-arrow-up-right')}</ul>
+        <div class="mm-rodape"><i class="ti ti-message-circle"></i> Converse com o RH para transformar esses pontos em ações do seu PDI.</div>
       </div>
     </div>`;
-
-  if (charts.mmRadar) charts.mmRadar.destroy();
-  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
-  const grid = dark ? 'rgba(255,255,255,0.12)' : 'rgba(9,28,40,0.12)';
-  charts.mmRadar = new Chart(r$('mmRadar'), {
-    type: 'radar',
-    data: { labels: pilares.map(p => p.pilar), datasets: [{
-      data: pilares.map(p => p.media), borderColor: '#1A88FF', backgroundColor: 'rgba(26,136,255,0.18)',
-      pointBackgroundColor: '#1A88FF', borderWidth: 2 }] },
-    options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
-      scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, display: false }, grid: { color: grid }, angleLines: { color: grid },
-        pointLabels: { color: dark ? '#dceef8' : '#091C28', font: { family: 'IBM Plex Sans', size: 12, weight: '600' } } } } }
-  });
+  if (charts.mmRadar) { charts.mmRadar.destroy(); delete charts.mmRadar; }
 }
 
 // ============================================================
