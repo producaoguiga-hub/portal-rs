@@ -346,7 +346,12 @@
   .marco-foto button:hover { background: var(--blue); }
   .livro-capa { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #fff; text-align: center; padding: 24px;
     background: var(--grafismo-petroleo, none) right bottom / 70% no-repeat, linear-gradient(140deg, #091C28, #0B3A4D); }
-  .livro-capa.inicio { background: radial-gradient(circle at 80% 20%, rgba(188,255,72,0.22), transparent 55%), linear-gradient(140deg, #0B3A2E, #1e4800); }
+  /* Capa da "Chegada na Perbras": azul Perbras com a logo em branco */
+  .livro-capa.inicio { gap: 0; background: radial-gradient(circle at 85% 15%, rgba(255,255,255,0.22), transparent 50%), radial-gradient(circle at 10% 95%, rgba(46,215,237,0.35), transparent 55%), linear-gradient(150deg, #1A88FF, #0a5fc4); }
+  .livro-capa .logo-perbras { width: min(240px, 62%); filter: brightness(0) invert(1); margin-bottom: 26px; }
+  .livro-capa.inicio .ano { font-size: 52px; }
+  .livro-capa.inicio .sub { opacity: .85; margin-top: 8px; }
+  .livro-capa.inicio .linha { width: 44px; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.55); margin-bottom: 22px; }
   .livro-capa i { font-size: 54px; color: #BCFF48; }
   .livro-capa .ano { font-size: 46px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
   .livro-capa .sub { font-size: 12px; opacity: .7; text-transform: uppercase; letter-spacing: .12em; }
@@ -372,10 +377,8 @@
   .livro-crono-item:first-child::before { left: 50%; }
   .livro-crono-item:last-child::before { right: 50%; }
   .livro-crono-item .pt { position: relative; z-index: 1; width: 16px; height: 16px; border-radius: 50%; background: var(--bg); border: 2px solid var(--blue); transition: transform .2s, background .2s, box-shadow .2s; }
-  .livro-crono-item.inicio .pt { border-color: var(--green-text); }
   .livro-crono-item:hover .pt { transform: scale(1.2); }
   .livro-crono-item.ativo .pt { background: var(--blue); transform: scale(1.3); box-shadow: 0 0 0 5px var(--blue-bg); }
-  .livro-crono-item.inicio.ativo .pt { background: var(--green-text); box-shadow: 0 0 0 5px var(--green-bg); }
   .livro-crono-item .rot { font-size: 11px; color: var(--text3); white-space: nowrap; }
   .livro-crono-item.ativo .rot { color: var(--text); font-weight: 700; }
   @media (max-width: 760px) {
@@ -5330,7 +5333,7 @@ function trajPintarPagina() {
        <button class="livro-foto-nav prox" onclick="trajFoto(1)" title="Próxima foto"><i class="ti ti-chevron-right"></i></button>
        <div class="livro-foto-cont"><i class="ti ti-photo"></i> <span id="livroFotoN">${trajFotoIdx + 1}</span>/${fotos.length}</div>
        <div class="livro-foto-pts">${fotos.map((_, i) => `<span class="${i === trajFotoIdx ? 'ativo' : ''}" onclick="trajFoto(${i - trajFotoIdx})"></span>`).join('')}</div>` : ''}`
-    : `<div class="livro-capa${p.inicio ? ' inicio' : ''}"><i class="ti ti-${p.inicio ? 'plant-2' : 'bookmark'}"></i><div class="ano">${d ? d.getFullYear() : '—'}</div><div class="sub">${d ? d.toLocaleDateString('pt-BR', { month: 'long' }) : 'Sem data'}</div></div>`;
+    : `<div class="livro-capa${p.inicio ? ' inicio' : ''}">${p.inicio ? '<img class="logo-perbras" src="perbras_logo_horizontal.png" alt="Perbras"><span class="linha"></span>' : '<i class="ti ti-bookmark"></i>'}<div class="ano">${d ? d.getFullYear() : '—'}</div><div class="sub">${d ? d.toLocaleDateString('pt-BR', { month: 'long' }) : 'Sem data'}</div></div>`;
   r$('livroDir').innerHTML = `
     <div class="livro-texto">
       <div class="data">${d ? d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Sem data'}</div>
