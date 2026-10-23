@@ -212,6 +212,40 @@
   .tl-avg-row td { background: var(--bg2) !important; color: var(--text2); font-style: italic; font-weight: 500; }
   .tl-avg-row td:first-child { font-weight: 700; color: var(--text); }
 
+  /* Custos */
+  .cu-kpi-sub { font-size: 11.5px; color: var(--text3); margin-top: 4px; }
+  .cu-cats { margin-bottom: 1rem; }
+  .cu-cat { margin-bottom: 12px; }
+  .cu-cat:last-child { margin-bottom: 0; }
+  .cu-cat-head { display: flex; align-items: baseline; gap: 10px; font-size: 13px; margin-bottom: 5px; flex-wrap: wrap; }
+  .cu-cat-head b { font-weight: 600; color: var(--text); }
+  .cu-fixo { font-size: 11px; color: var(--text3); background: var(--bg2); padding: 1px 8px; border-radius: 10px; }
+  .cu-cat-v { margin-left: auto; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .cu-cat-v small { font-weight: 500; color: var(--text3); margin-left: 4px; }
+  .cu-bar { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+  .cu-bar span { display: block; height: 100%; background: var(--perbras-azul); border-radius: 4px; }
+  .cu-row { cursor: pointer; }
+  .cu-nome { display: flex; align-items: center; gap: 8px; }
+  .cu-nome b { font-weight: 600; color: var(--text); }
+  .cu-nome i { color: var(--text3); transition: transform .2s; }
+  .cu-row.aberto .cu-nome i { transform: rotate(90deg); }
+  .cu-itens { font-size: 12.5px; color: var(--text2); }
+  .cu-itens span { white-space: nowrap; margin-right: 12px; }
+  .cu-itens em { font-style: normal; color: var(--text3); }
+  .cu-itens .mais { color: var(--text3); font-size: 11.5px; }
+  .cu-total { font-weight: 700; color: var(--text); white-space: nowrap; text-align: right; }
+  .cu-acoes { display: flex; gap: 2px; justify-content: flex-end; opacity: 0; transition: opacity .15s; }
+  .cu-row:hover .cu-acoes, .cu-acoes:focus-within { opacity: 1; }
+  @media (hover: none) { .cu-acoes { opacity: 1; } }
+  .cu-detalhe td { background: var(--bg2); padding: 10px 16px 14px 40px !important; }
+  .cu-det-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+  .cu-det-grid > div { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .cu-det-grid span { font-size: 11px; color: var(--text3); }
+  .cu-det-grid b { font-size: 13.5px; color: var(--text); white-space: nowrap; }
+  .cu-det-grid .zero { opacity: .5; }
+  .cu-grupo-tot { margin-left: auto; margin-right: 84px; font-weight: 700; color: var(--text); font-size: 13.5px; }
+  @media (max-width: 700px) { .cu-grupo-tot { margin-right: 0; } }
+
   /* Lista de admitidos */
   .cand-busca { min-width: 220px; }
   .cand-nome { display: flex; align-items: center; gap: 10px; }
@@ -1298,8 +1332,9 @@
       <button class="btn btn-primary" onclick="abrirModal('custo')"><i class="ti ti-plus"></i> Registrar custo</button>
     </div>
     <div class="metric-grid" id="kpisCusto"></div>
+    <div id="cuCategorias"></div>
     <div class="table-wrap">
-      <table><thead><tr><th>Candidato</th><th>Turma</th><th>ASO</th><th>Av.Psi</th><th>Aéreo</th><th>Transfer</th><th>Hospedagem</th><th>EPI</th><th>Recrutamento</th><th>Andre Silva</th><th>Total</th><th></th></tr></thead>
+      <table><thead><tr><th>Admitido</th><th>Onde mais pesa</th><th></th><th style="text-align:right">Total</th><th></th></tr></thead>
       <tbody id="tbCusto"></tbody></table>
       <div id="emptyCusto" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum custo cadastrado</div>
     </div>
@@ -2971,34 +3006,79 @@ async function excluirCandidato(id,nome) {
 // ============================================================
 // CUSTOS
 // ============================================================
+// Custos por admitido: o que pesa no total, agrupado por turma. Cada linha
+// mostra os itens que mais pesam; clicando, abre o detalhe de todas as categorias.
+const CUSTO_CATS = [['hosp', 'Hospedagem'], ['recr', 'Recrutamento / terceiros'], ['aereo', 'Passagem aérea'], ['andre', 'Andre Silva'], ['epi', 'EPI'], ['psi', 'Av. psicológica'], ['trans', 'Transfer'], ['aso', 'ASO']];
+const brl2 = v => 'R$ ' + moneyFmt(v);
+let custoAbertos = new Set(), custoGruposFechados = new Set();
+
+function custoToggle(id) { custoAbertos.has(id) ? custoAbertos.delete(id) : custoAbertos.add(id); renderCustos(); }
+function custoToggleGrupo(g) { custoGruposFechados.has(g) ? custoGruposFechados.delete(g) : custoGruposFechados.add(g); renderCustos(); }
+// "Turma 2.2023" → 2023.02, pra ordenar da mais recente pra mais antiga
+const turmaChave = t => { const m = /(\d+)\.(\d{4})/.exec(t || ''); return m ? Number(m[2]) + Number(m[1]) / 100 : 0; };
+
 function renderCustos() {
-  const tf=r$('fCT').value;
-  const f=custos.filter(c=>!tf||c.turma_nome===tf);
-  const total=f.reduce((a,c)=>a+parseFloat(c.total||0),0);
-  const med=f.length?total/f.length:0;
-  r$('kpisCusto').innerHTML=`
-    <div class="metric"><div class="lbl">Registros</div><div class="val">${f.length}</div></div>
-    <div class="metric m-b"><div class="lbl">Custo total</div><div class="val">R$${Math.round(total).toLocaleString('pt-BR')}</div></div>
-    <div class="metric m-g"><div class="lbl">Custo médio</div><div class="val">R$${Math.round(med).toLocaleString('pt-BR')}</div></div>
-    <div class="metric"><div class="lbl">Maior custo</div><div class="val">R$${f.length?Math.round(Math.max(...f.map(c=>parseFloat(c.total||0)))).toLocaleString('pt-BR'):0}</div></div>`;
-  r$('emptyCusto').style.display=f.length?'none':'block';
-  r$('tbCusto').innerHTML=f.map(c=>`<tr>
-    <td style="font-weight:500">${c.candidato}</td>
-    <td>${(c.turma_nome||'').replace('Turma ','')}</td>
-    <td>R$ ${moneyFmt(c.aso)}</td>
-    <td>R$ ${moneyFmt(c.psi)}</td>
-    <td>R$ ${moneyFmt(c.aereo)}</td>
-    <td>R$ ${moneyFmt(c.trans)}</td>
-    <td>R$ ${moneyFmt(c.hosp)}</td>
-    <td>R$ ${moneyFmt(c.epi)}</td>
-    <td>R$ ${moneyFmt(c.recr)}</td>
-    <td>R$ ${moneyFmt(c.andre)}</td>
-    <td style="font-weight:500">R$${parseFloat(c.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-    <td style="white-space:nowrap">
-      <button class="icon-btn" onclick="editarCusto('${c.id}')" title="Editar"><i class="ti ti-pencil"></i></button>
-      <button class="icon-btn del" onclick="excluirCusto('${c.id}')" title="Excluir"><i class="ti ti-trash"></i></button>
-    </td>
-  </tr>`).join('');
+  const tf = r$('fCT').value;
+  const f = custos.filter(c => !tf || c.turma_nome === tf);
+  const num = v => parseFloat(v || 0) || 0;
+  const total = f.reduce((a, c) => a + num(c.total), 0);
+  const med = f.length ? total / f.length : 0;
+
+  // Peso de cada categoria no período filtrado
+  const cats = CUSTO_CATS.map(([k, nome]) => {
+    const vals = f.map(c => num(c[k]));
+    const soma = vals.reduce((a, b) => a + b, 0);
+    const fixo = vals.length > 1 && vals.every(v => v === vals[0]) && vals[0] > 0 ? vals[0] : null;
+    return { k, nome, soma, pct: total ? soma / total * 100 : 0, fixo };
+  }).filter(x => x.soma > 0).sort((a, b) => b.soma - a.soma);
+  const maiorCat = cats[0];
+  const nTurmas = new Set(f.map(c => c.turma_nome || 'Sem turma')).size;
+
+  r$('kpisCusto').innerHTML = `
+    <div class="metric m-b"><div class="lbl">Custo total</div><div class="val">${brl2(total)}</div><div class="cu-kpi-sub">${f.length} admitido${f.length !== 1 ? 's' : ''} · ${nTurmas} turma${nTurmas !== 1 ? 's' : ''}</div></div>
+    <div class="metric"><div class="lbl">Custo médio por admitido</div><div class="val">${brl2(med)}</div></div>
+    <div class="metric"><div class="lbl">Onde mais pesa</div><div class="val" style="font-size:20px">${maiorCat ? escHtml(maiorCat.nome) : '—'}</div><div class="cu-kpi-sub">${maiorCat ? `${Math.round(maiorCat.pct)}% do total · ${brl2(maiorCat.soma)}` : ''}</div></div>
+    <div class="metric"><div class="lbl">Maior custo individual</div><div class="val">${brl2(f.length ? Math.max(...f.map(c => num(c.total))) : 0)}</div></div>`;
+
+  r$('cuCategorias').innerHTML = cats.length ? `<div class="card cu-cats">
+    <div class="card-title">Para onde vai o dinheiro</div>
+    ${cats.map(x => `<div class="cu-cat">
+      <div class="cu-cat-head"><b>${escHtml(x.nome)}</b>${x.fixo != null ? `<span class="cu-fixo" title="Todos os admitidos do filtro têm o mesmo valor">valor fixo · ${brl2(x.fixo)} por admitido</span>` : ''}<span class="cu-cat-v">${brl2(x.soma)} <small>${Math.round(x.pct)}%</small></span></div>
+      <div class="cu-bar"><span style="width:${(x.soma / maiorCat.soma * 100).toFixed(1)}%"></span></div>
+    </div>`).join('')}
+  </div>` : '';
+
+  r$('emptyCusto').style.display = f.length ? 'none' : 'block';
+  const maxTotal = Math.max(1, ...f.map(c => num(c.total)));
+  const grupos = {};
+  f.forEach(c => (grupos[c.turma_nome || 'Sem turma'] = grupos[c.turma_nome || 'Sem turma'] || []).push(c));
+  const ordem = Object.keys(grupos).sort((a, b) => turmaChave(b) - turmaChave(a) || a.localeCompare(b));
+
+  const linha = c => {
+    const itens = CUSTO_CATS.map(([k, nome]) => ({ nome, v: num(c[k]) })).filter(x => x.v > 0).sort((a, b) => b.v - a.v);
+    const aberto = custoAbertos.has(c.id);
+    return `<tr class="cu-row${aberto ? ' aberto' : ''}" onclick="custoToggle('${c.id}')">
+      <td><div class="cu-nome"><i class="ti ti-chevron-right"></i><b>${escHtml(c.candidato)}</b></div></td>
+      <td class="cu-itens">${itens.slice(0, 2).map(x => `<span><em>${escHtml(x.nome)}</em> ${brl2(x.v)}</span>`).join('')}${itens.length > 2 ? `<span class="mais">+${itens.length - 2} ${itens.length - 2 > 1 ? 'itens' : 'item'}</span>` : ''}</td>
+      <td style="min-width:150px"><div class="cu-bar"><span style="width:${(num(c.total) / maxTotal * 100).toFixed(1)}%"></span></div></td>
+      <td class="cu-total">${brl2(c.total)}</td>
+      <td><div class="cu-acoes" onclick="event.stopPropagation()">
+        <button class="icon-btn" onclick="editarCusto('${c.id}')" title="Editar"><i class="ti ti-pencil"></i></button>
+        <button class="icon-btn del" onclick="excluirCusto('${c.id}')" title="Excluir"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>${aberto ? `<tr class="cu-detalhe"><td colspan="5"><div class="cu-det-grid">${CUSTO_CATS.map(([k, nome]) =>
+      `<div class="${num(c[k]) ? '' : 'zero'}"><span>${escHtml(nome)}</span><b>${brl2(c[k])}</b></div>`).join('')}</div></td></tr>` : ''}`;
+  };
+
+  r$('tbCusto').innerHTML = ordem.map(g => {
+    const rows = grupos[g].sort((a, b) => num(b.total) - num(a.total));
+    const tot = rows.reduce((a, c) => a + num(c.total), 0);
+    const fechado = custoGruposFechados.has(g);
+    return `<tr class="cand-grupo${fechado ? ' fechado' : ''}" onclick="custoToggleGrupo('${g.replace(/'/g, "\\'")}')"><td colspan="5">
+      <div class="cand-grupo-in"><i class="ti ti-chevron-down"></i><b>${escHtml(g)}</b>
+        <span>${rows.length} admitido${rows.length !== 1 ? 's' : ''} · média ${brl2(tot / rows.length)} por admitido</span>
+        <span class="cu-grupo-tot">${brl2(tot)}</span></div></td></tr>${fechado ? '' : rows.map(linha).join('')}`;
+  }).join('');
 }
 
 let editCustoId=null;
