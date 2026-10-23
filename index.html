@@ -212,6 +212,44 @@
   .tl-avg-row td { background: var(--bg2) !important; color: var(--text2); font-style: italic; font-weight: 500; }
   .tl-avg-row td:first-child { font-weight: 700; color: var(--text); }
 
+  /* Lista de admitidos */
+  .cand-busca { min-width: 220px; }
+  .cand-nome { display: flex; align-items: center; gap: 10px; }
+  .cand-cargo { display: inline-block; margin-left: 8px; font-size: 10.5px; color: var(--text2); background: var(--bg3); padding: 1px 7px; border-radius: 10px; vertical-align: 1px; }
+  .cand-row.desl td { color: var(--text3); }
+  .cand-row.desl .link-name { color: var(--text2); }
+  .cand-row.desl .avatar { filter: grayscale(1); opacity: .65; }
+  .cand-acoes { display: flex; gap: 2px; justify-content: flex-end; opacity: 0; transition: opacity .15s; }
+  .cand-row:hover .cand-acoes, .cand-acoes:focus-within { opacity: 1; }
+  @media (hover: none) { .cand-acoes { opacity: 1; } }
+  .cand-tempo .txt { font-size: 12.5px; color: var(--text2); }
+  .cand-tempo .txt b { color: var(--text); font-weight: 600; }
+  .cand-row.desl .cand-tempo .txt b { color: var(--text2); }
+  .cand-tempo .bar, .cand-ret .bar { display: block; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin-top: 5px; max-width: 160px; }
+  .cand-tempo .bar span, .cand-ret .bar span { display: block; height: 100%; border-radius: 2px; background: var(--perbras-azul); }
+  .cand-row.desl .cand-tempo .bar span { background: var(--border2); }
+  .cand-precoce { font-size: 10px; font-weight: 700; color: var(--amber-text); background: var(--amber-bg); padding: 1px 7px; border-radius: 10px; margin-left: 4px; white-space: nowrap; }
+  .disc { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 22px; padding: 0 6px; border-radius: 6px; font-size: 11px; font-weight: 700; color: #fff; cursor: help; }
+  .disc-D { background: #E5484D; }
+  .disc-I { background: #F5B700; color: #3d2d00; }
+  .disc-S { background: #30A46C; }
+  .disc-C { background: var(--perbras-azul); }
+  .cand-row.desl .disc { opacity: .55; }
+  .cand-grupo td { background: var(--bg2); cursor: pointer; padding-top: 10px !important; padding-bottom: 10px !important; }
+  .cand-grupo:hover td { background: var(--bg3); }
+  .cand-grupo-in { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--text2); }
+  .cand-grupo-in > i { transition: transform .2s; color: var(--text3); }
+  .cand-grupo.fechado .cand-grupo-in > i { transform: rotate(-90deg); }
+  .cand-grupo-in > b { font-size: 13.5px; color: var(--text); }
+  .cand-ret { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+  .cand-ret .bar { width: 90px; margin-top: 0; }
+  .cand-ret.ok .bar span { background: #6fb300; }
+  .cand-ret.med .bar span { background: var(--perbras-laranja); }
+  .cand-ret.baixa .bar span { background: var(--red); }
+  .cand-ret.ok b { color: var(--green-text); }
+  .cand-ret.med b { color: var(--amber-text); }
+  .cand-ret.baixa b { color: var(--red); }
+
   /* PDI */
   .b-n { background: var(--bg3); color: var(--text2); }
   .qf-row { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1114,13 +1152,15 @@
     <!-- Lista -->
     <div id="candListaView">
       <div class="toolbar">
+        <input type="text" id="fBusca" class="cand-busca" placeholder="Buscar por nome..." oninput="renderCandidatos()">
         <select id="fT" onchange="renderCandidatos()"><option value="">Todas as turmas</option></select>
-        <select id="fS" onchange="renderCandidatos()"><option value="">Todos os status</option><option>Ativo</option><option>Desligado</option></select>
         <select id="fC" onchange="renderCandidatos()"><option value="">Todos os cargos</option><option>Gestor Técnico</option><option>Gestor Administrativo</option></select>
-        <button class="btn btn-primary" onclick="abrirModal('candidato')"><i class="ti ti-plus"></i> Novo admitido</button>
+        <select id="fF" onchange="renderCandidatos()" style="display:none"></select>
+        <button class="btn btn-primary" onclick="abrirModal('candidato')" style="margin-left:auto"><i class="ti ti-plus"></i> Novo admitido</button>
       </div>
+      <div class="toolbar"><div class="qf-row" id="fStChips"></div></div>
       <div class="table-wrap">
-        <table><thead><tr><th>Nome</th><th>Cargo</th><th>Turma</th><th>UF</th><th>Fonte</th><th>DISC</th><th>Status</th><th>Contratação</th><th>Desligamento</th><th></th></tr></thead>
+        <table><thead id="thCand"></thead>
         <tbody id="tbCand"></tbody></table>
         <div id="emptyCand" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhum admitido encontrado</div>
       </div>
@@ -2665,23 +2705,111 @@ function renderTurnover() {
     <td>${c.motivo_saida||'<span style="color:var(--text3)">—</span>'}</td></tr>`}).join('');
 }
 
+// Lista de admitidos: agrupada por turma (com retenção), tempo de casa no lugar
+// das datas, desligados apagados e ações só ao passar o mouse.
+let candStatus = '', candGruposFechados = new Set();
+const DISC_NOME = { D: 'Dominância', I: 'Influência', S: 'Estabilidade', C: 'Conformidade' };
+
+// Meses completos entre duas datas (fim vazio = hoje)
+function mesesEntre(ini, fim) {
+  const a = new Date(ini + 'T00:00'), b = fim ? new Date(fim + 'T00:00') : new Date();
+  let meses = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+  if (b.getDate() < a.getDate()) meses--;
+  return meses;
+}
+
+// "2 anos e 3 meses" / "5 meses" / "12 dias"
+function tempoCasaCurto(ini, fim) {
+  if (!ini) return '—';
+  const a = new Date(ini + 'T00:00'), b = fim ? new Date(fim + 'T00:00') : new Date();
+  const meses = mesesEntre(ini, fim);
+  if (meses < 1) { const d = Math.max(0, Math.round((b - a) / 864e5)); return `${d} dia${d !== 1 ? 's' : ''}`; }
+  const anos = Math.floor(meses / 12), m = meses % 12;
+  const tA = anos ? `${anos} ano${anos > 1 ? 's' : ''}` : '', tM = m ? `${m} ${m > 1 ? 'meses' : 'mês'}` : '';
+  return [tA, tM].filter(Boolean).join(' e ');
+}
+
+function candFiltroStatus(s) { candStatus = s; renderCandidatos(); }
+function candToggleGrupo(g) { candGruposFechados.has(g) ? candGruposFechados.delete(g) : candGruposFechados.add(g); renderCandidatos(); }
+
 function renderCandidatos() {
-  const tf=r$('fT').value, sf=r$('fS').value, cf=r$('fC').value;
-  const f=candidatos.filter(c=>(!tf||c.turma_nome===tf)&&(!sf||c.status===sf)&&(!cf||c.cargo===cf));
-  r$('emptyCand').style.display=f.length?'none':'block';
-  r$('tbCand').innerHTML=f.map(c=>`<tr>
-    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px;flex-shrink:0">${c.foto_url?`<img src="${c.foto_url}" loading="lazy" decoding="async">`:`${initials(c.nome)}`}</div><button class="link-name" onclick="verCandidato('${c.id}')">${c.nome}</button></div></td>
-    <td style="color:var(--text2)">${(c.cargo||'').replace('Gestor ','')}</td>
-    <td>${(c.turma_nome||'').replace('Turma ','')}</td>
-    <td>${c.estado||'—'}</td><td>${c.fonte||'—'}</td>
-    <td><span class="badge b-b">${c.disc||'—'}</span></td>
-    <td><span class="badge ${c.status==='Ativo'?'b-g':'b-r'}">${c.status||'—'}</span></td>
-    <td>${fmt(c.dt_contr)}</td><td>${c.dt_desl?fmt(c.dt_desl):'—'}</td>
-    <td style="white-space:nowrap">
-      <button class="icon-btn" onclick="editarCandidato('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button>
-      <button class="icon-btn del" onclick="excluirCandidato('${c.id}','${c.nome.replace("'","\\'")}')"><i class="ti ti-trash"></i></button>
-    </td>
-  </tr>`).join('');
+  const tf = r$('fT').value, cf = r$('fC').value, ff = r$('fF') ? r$('fF').value : '';
+  const termo = semAcento((r$('fBusca') || {}).value || '');
+  // Filtro de fonte só aparece quando há mais de uma fonte cadastrada
+  const fontes = [...new Set(candidatos.map(c => c.fonte).filter(Boolean))].sort();
+  const fF = r$('fF');
+  if (fF) {
+    fF.style.display = fontes.length > 1 ? '' : 'none';
+    const atual = fF.value;
+    fF.innerHTML = '<option value="">Todas as fontes</option>' + fontes.map(x => `<option${x === atual ? ' selected' : ''}>${escHtml(x)}</option>`).join('');
+  }
+  const base = candidatos.filter(c => (!tf || c.turma_nome === tf) && (!cf || c.cargo === cf) && (!ff || c.fonte === ff)
+    && (!termo || semAcento(c.nome).includes(termo)));
+  const nAt = base.filter(c => c.status === 'Ativo').length, nDe = base.filter(c => c.status === 'Desligado').length;
+  r$('fStChips').innerHTML = [['', 'Todos', base.length], ['Ativo', 'Ativos', nAt], ['Desligado', 'Desligados', nDe]]
+    .map(([k, l, n]) => `<button class="qf-btn${candStatus === k ? ' active' : ''}" onclick="candFiltroStatus('${k}')">${l} <span style="opacity:.6">${n}</span></button>`).join('');
+  const f = base.filter(c => !candStatus || c.status === candStatus);
+  r$('emptyCand').style.display = f.length ? 'none' : 'block';
+
+  const mostraFonte = fontes.length > 1;
+  r$('thCand').innerHTML = `<tr><th>Nome</th><th>UF</th>${mostraFonte ? '<th>Fonte</th>' : ''}<th>DISC</th><th>Status</th><th style="min-width:190px">Tempo de casa</th><th></th></tr>`;
+  const nCols = mostraFonte ? 7 : 6;
+
+  // Barrinha do tempo de casa: proporcional ao maior tempo da lista
+  const diasDe = c => c.dt_contr ? Math.max(0, (new Date((c.dt_desl || hojeISO()) + 'T00:00') - new Date(c.dt_contr + 'T00:00')) / 864e5) : 0;
+  const maxDias = Math.max(1, ...f.map(diasDe));
+
+  // Grupos por turma, a mais recente primeiro (pela 1ª contratação da turma)
+  const grupos = {};
+  f.forEach(c => (grupos[c.turma_nome || 'Sem turma'] = grupos[c.turma_nome || 'Sem turma'] || []).push(c));
+  const ordem = Object.keys(grupos).sort((a, b) => {
+    const d = g => grupos[g].map(c => c.dt_contr || '').filter(Boolean).sort()[0] || '';
+    return d(b).localeCompare(d(a));
+  });
+  // Retenção da turma inteira (ignora o filtro de status, pra não distorcer)
+  const todosDaTurma = g => candidatos.filter(c => (c.turma_nome || 'Sem turma') === g);
+
+  const linha = c => {
+    const desl = c.status === 'Desligado';
+    const dd = diasDe(c);
+    const precoce = desl && c.dt_contr && c.dt_desl && mesesEntre(c.dt_contr, c.dt_desl) < 3;
+    const letra = (c.disc || '').trim().charAt(0).toUpperCase();
+    const cargo = (c.cargo || '').replace('Gestor ', '');
+    const datas = `${fmt(c.dt_contr)} → ${c.dt_desl ? fmt(c.dt_desl) : 'hoje'}`;
+    return `<tr class="cand-row${desl ? ' desl' : ''}">
+      <td><div class="cand-nome">
+        <div class="avatar" style="width:30px;height:30px;font-size:10px;flex-shrink:0">${c.foto_url ? `<img src="${c.foto_url}" loading="lazy" decoding="async">` : initials(c.nome)}</div>
+        <div><button class="link-name" onclick="verCandidato('${c.id}')">${escHtml(c.nome)}</button>${cargo ? `<span class="cand-cargo">${escHtml(cargo)}</span>` : ''}</div>
+      </div></td>
+      <td>${c.estado || '—'}</td>
+      ${mostraFonte ? `<td style="color:var(--text2)">${escHtml(c.fonte || '—')}</td>` : ''}
+      <td>${letra ? `<span class="disc disc-${letra}" title="${escHtml(c.disc)}${DISC_NOME[letra] ? ' — ' + DISC_NOME[letra] : ''}">${escHtml(c.disc)}</span>` : '—'}</td>
+      <td><span class="badge ${desl ? 'b-n' : 'b-g'}">${desl ? '<i class="ti ti-logout"></i> ' : ''}${c.status || '—'}</span></td>
+      <td title="${datas}"><div class="cand-tempo">
+        <div class="txt">${desl ? 'ficou ' : ''}<b>${tempoCasaCurto(c.dt_contr, c.dt_desl)}</b>${precoce ? ' <span class="cand-precoce" title="Saiu com menos de 3 meses de casa">saída precoce</span>' : ''}</div>
+        <div class="bar"><span style="width:${Math.round(dd / maxDias * 100)}%"></span></div>
+      </div></td>
+      <td><div class="cand-acoes">
+        <button class="icon-btn" onclick="editarCandidato('${c.id}')" title="Editar"><i class="ti ti-edit"></i></button>
+        <button class="icon-btn del" onclick="excluirCandidato('${c.id}','${c.nome.replace(/'/g, "\\'")}')" title="Excluir"><i class="ti ti-trash"></i></button>
+      </div></td>
+    </tr>`;
+  };
+
+  r$('tbCand').innerHTML = ordem.map(g => {
+    const tot = todosDaTurma(g), at = tot.filter(c => c.status === 'Ativo').length;
+    const ret = tot.length ? Math.round(at / tot.length * 100) : 0;
+    const cls = ret >= 70 ? 'ok' : ret >= 40 ? 'med' : 'baixa';
+    const fechado = candGruposFechados.has(g);
+    const gEsc = g.replace(/'/g, "\\'");
+    const rows = grupos[g].sort((a, b) => (a.status === 'Desligado') - (b.status === 'Desligado') || a.nome.localeCompare(b.nome));
+    return `<tr class="cand-grupo${fechado ? ' fechado' : ''}" onclick="candToggleGrupo('${gEsc}')"><td colspan="${nCols}">
+      <div class="cand-grupo-in">
+        <i class="ti ti-chevron-down"></i><b>${escHtml(g)}</b>
+        <span>${tot.length} admitido${tot.length !== 1 ? 's' : ''} · ${at} ativo${at !== 1 ? 's' : ''}</span>
+        <span class="cand-ret ${cls}"><span class="bar"><span style="width:${ret}%"></span></span>retenção <b>${ret}%</b></span>
+      </div></td></tr>${fechado ? '' : rows.map(linha).join('')}`;
+  }).join('');
 }
 
 function verCandidato(id) {
@@ -2695,7 +2823,7 @@ function verCandidato(id) {
   r$('fichaGrid').innerHTML=[
     ['Status',`<span class="badge ${c.status==='Ativo'?'b-g':'b-r'}">${c.status||'—'}</span>`],
     ['Gênero',c.genero||'—'],['UF',c.estado||'—'],
-    ['Fonte',c.fonte||'—'],['DISC',`<span class="badge b-b">${c.disc||'—'}</span>`],['Geração',c.geracao||'—'],
+    ['Fonte',c.fonte||'—'],['DISC',c.disc?`<span class="disc disc-${c.disc.trim().charAt(0).toUpperCase()}">${escHtml(c.disc)}</span>`:'—'],['Geração',c.geracao||'—'],
     ['Tipo Univ.',c.tipo_univ||'—'],['Universidade',c.univ||'—'],['Recrutador',c.recrutador||'—'],
     ['Contratação',fmt(c.dt_contr)],['Desligamento',c.dt_desl?fmt(c.dt_desl):'—'],
     c.status==='Desligado'?['Motivo da Saída',c.motivo_saida||'—']:['',''],
