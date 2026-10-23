@@ -212,6 +212,42 @@
   .tl-avg-row td { background: var(--bg2) !important; color: var(--text2); font-style: italic; font-weight: 500; }
   .tl-avg-row td:first-child { font-weight: 700; color: var(--text); }
 
+  /* Turmas em cartões */
+  .tu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+  .tu-card { position: relative; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 18px 14px; box-shadow: var(--shadow); cursor: pointer; display: flex; flex-direction: column; gap: 10px; transition: transform .15s, border-color .15s, box-shadow .15s; }
+  .tu-card:hover { transform: translateY(-2px); border-color: var(--perbras-azul); box-shadow: 0 10px 24px rgba(9,28,40,0.10); }
+  .tu-del { position: absolute; top: 10px; right: 10px; opacity: 0; transition: opacity .15s; }
+  .tu-card:hover .tu-del, .tu-del:focus { opacity: 1; }
+  @media (hover: none) { .tu-del { opacity: 1; } }
+  .tu-head b { display: block; font-size: 16px; color: var(--text); }
+  .tu-head span { font-size: 12px; color: var(--text3); }
+  .tu-head em { font-style: normal; color: var(--perbras-azul); font-weight: 600; }
+  .tu-ret { display: flex; align-items: center; gap: 12px; }
+  .tu-ret .v { font-size: 34px; font-weight: 700; line-height: 1; }
+  .tu-ret .txt { font-size: 12px; color: var(--text2); line-height: 1.35; }
+  .tu-ret .txt small { color: var(--text3); font-size: 11.5px; }
+  .tu-ret.ok .v, .tu-ret-v.ok { color: var(--green-text); }
+  .tu-ret.med .v, .tu-ret-v.med { color: var(--amber-text); }
+  .tu-ret.baixa .v, .tu-ret-v.baixa { color: var(--red); }
+  .tu-bar { height: 7px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+  .tu-bar span { display: block; height: 100%; border-radius: 4px; }
+  .tu-bar.ok span { background: #6fb300; }
+  .tu-bar.med span { background: var(--perbras-laranja); }
+  .tu-bar.baixa span { background: var(--red); }
+  .tu-pessoas { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tu-pessoas i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .tu-pessoas i.atv { background: var(--perbras-azul); }
+  .tu-pessoas i.desl { border: 2px solid var(--border2); }
+  .tu-pessoas i.prec { border: 2px solid var(--perbras-laranja); }
+  .tu-precoce { font-size: 11.5px; color: var(--amber-text); display: flex; align-items: center; gap: 5px; }
+  .tu-vazia { font-size: 12.5px; color: var(--text3); padding: 10px 0; }
+  .tu-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: auto; padding-top: 10px; border-top: 0.5px solid var(--border); }
+  .tu-stats span { display: block; font-size: 10.5px; color: var(--text3); text-transform: uppercase; letter-spacing: .03em; }
+  .tu-stats b { font-size: 13px; color: var(--text); white-space: nowrap; }
+  .tu-leg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--text2); margin: -4px 0 12px; }
+  .tu-leg span { display: inline-flex; align-items: center; gap: 5px; }
+  .tu-leg i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
   /* Custos */
   .cu-kpi-sub { font-size: 11.5px; color: var(--text3); margin-top: 4px; }
   .cu-cats { margin-bottom: 1rem; }
@@ -1345,11 +1381,10 @@
     <div class="toolbar">
       <button class="btn btn-primary" onclick="abrirModal('turma')"><i class="ti ti-plus"></i> Nova turma</button>
     </div>
-    <div class="table-wrap">
-      <table><thead><tr><th>Turma</th><th>Período</th><th>Admitidos</th><th>Ativos</th><th>Turnover</th><th>Custo total</th><th>Tempo médio processo</th><th></th></tr></thead>
-      <tbody id="tbTurma"></tbody></table>
-      <div id="emptyTurma" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma turma cadastrada</div>
-    </div>
+    <div class="metric-grid" id="tuKpis"></div>
+    <div class="tu-leg"><span><i style="background:var(--perbras-azul)"></i>ativo</span><span><i style="border:2px solid var(--border2)"></i>desligado</span><span><i style="border:2px solid var(--perbras-laranja)"></i>saída precoce (menos de 3 meses)</span><span style="color:var(--text3)">· clique numa turma pra ver os admitidos</span></div>
+    <div class="tu-grid" id="tbTurma"></div>
+    <div id="emptyTurma" class="empty" style="display:none"><i class="ti ti-mood-empty" style="font-size:28px;display:block;margin-bottom:8px"></i>Nenhuma turma cadastrada</div>
   </div>
 
   <!-- LINHA DO TEMPO -->
@@ -3123,25 +3158,67 @@ async function excluirCusto(id) {
 // ============================================================
 // TURMAS
 // ============================================================
+// Turmas em cartões (a mais recente primeiro): retenção em destaque, uma bolinha
+// por pessoa, custo e tempo do processo. Clicar abre os admitidos da turma.
+function turmaResumo(t) {
+  const cs = candidatos.filter(c => c.turma_nome === t.nome);
+  const atv = cs.filter(c => c.status === 'Ativo').length;
+  const ct = custos.filter(c => c.turma_nome === t.nome).reduce((a, c) => a + (parseFloat(c.total || 0) || 0), 0);
+  const ds = cs.filter(c => c[TL_FIELDS[0]] && c[TL_FIELDS[10]]).map(c => dias(c[TL_FIELDS[0]], c[TL_FIELDS[10]])).filter(d => d != null && d > 0);
+  const precoces = cs.filter(c => c.status === 'Desligado' && c.dt_contr && c.dt_desl && mesesEntre(c.dt_contr, c.dt_desl) < 3).length;
+  return { t, cs, adm: cs.length, atv, ret: cs.length ? Math.round(atv / cs.length * 100) : null, ct,
+    proc: ds.length ? Math.round(ds.reduce((a, b) => a + b, 0) / ds.length) : null, precoces };
+}
+const retCls = r => r == null ? '' : r >= 70 ? 'ok' : r >= 40 ? 'med' : 'baixa';
+
+function turmaVerAdmitidos(nome) {
+  switchRSTab('candidatos', document.querySelector("#page-rsgestao > .tl-tabs > .tl-tab[onclick*='candidatos']"));
+  const btLista = document.querySelector("#page-candidatos .tl-tab[onclick*='lista']");
+  if (btLista) switchCandTab('lista', btLista);
+  r$('fT').value = nome;
+  candGruposFechados.clear();
+  renderCandidatos();
+}
+
 function renderTurmas() {
-  r$('emptyTurma').style.display=turmas.length?'none':'block';
-  r$('tbTurma').innerHTML=turmas.map((t,i)=>{
-    const adm=candidatos.filter(c=>c.turma_nome===t.nome).length;
-    const atv=candidatos.filter(c=>c.turma_nome===t.nome&&c.status==='Ativo').length;
-    const to=adm>0?Math.round((adm-atv)/adm*100):0;
-    const ct=custos.filter(c=>c.turma_nome===t.nome).reduce((a,c)=>a+parseFloat(c.total||0),0);
-    const tCands=candidatos.filter(c=>c.turma_nome===t.nome&&c[TL_FIELDS[0]]&&c[TL_FIELDS[10]]);
-    const ds=tCands.map(c=>dias(c[TL_FIELDS[0]],c[TL_FIELDS[10]])).filter(d=>d!=null&&d>0);
-    const med=ds.length?Math.round(ds.reduce((a,b)=>a+b,0)/ds.length):null;
-    return `<tr>
-      <td style="font-weight:500">${t.nome}</td>
-      <td>${t.periodo||'—'}</td>
-      <td>${adm}</td><td>${atv}</td>
-      <td><span class="badge ${to>40?'b-r':to>20?'b-a':'b-g'}">${to}%</span></td>
-      <td>${ct>0?'R$'+Math.round(ct).toLocaleString('pt-BR'):'—'}</td>
-      <td>${med!=null?med+'d':'—'}</td>
-      <td><button class="icon-btn del" onclick="excluirTurma('${t.id}','${t.nome}')"><i class="ti ti-trash"></i></button></td>
-    </tr>`;
+  r$('emptyTurma').style.display = turmas.length ? 'none' : 'block';
+  const rs = turmas.map(turmaResumo).sort((a, b) => turmaChave(b.t.nome) - turmaChave(a.t.nome) || a.t.nome.localeCompare(b.t.nome));
+  const comGente = rs.filter(x => x.adm);
+  const totAdm = comGente.reduce((a, x) => a + x.adm, 0), totAtv = comGente.reduce((a, x) => a + x.atv, 0);
+  const melhor = comGente.filter(x => x.adm >= 2).sort((a, b) => b.ret - a.ret || b.adm - a.adm)[0];
+  const totCusto = rs.reduce((a, x) => a + x.ct, 0);
+  const admComCusto = custos.length;
+  const procs = rs.filter(x => x.proc != null);
+  r$('tuKpis').innerHTML = turmas.length ? `
+    <div class="metric"><div class="lbl">Turmas</div><div class="val">${turmas.length}</div><div class="cu-kpi-sub">${totAdm} admitidos no total</div></div>
+    <div class="metric"><div class="lbl">Retenção geral</div><div class="val tu-ret-v ${retCls(totAdm ? totAtv / totAdm * 100 : null)}">${totAdm ? Math.round(totAtv / totAdm * 100) : 0}%</div><div class="cu-kpi-sub">${totAtv} de ${totAdm} seguem na empresa</div></div>
+    <div class="metric"><div class="lbl">Melhor retenção</div><div class="val" style="font-size:20px">${melhor ? escHtml(melhor.t.nome) : '—'}</div><div class="cu-kpi-sub">${melhor ? `${melhor.ret}% · ${melhor.atv} de ${melhor.adm} ativos` : ''}</div></div>
+    <div class="metric"><div class="lbl">Custo médio por admitido</div><div class="val">${admComCusto ? brl2(totCusto / admComCusto) : '—'}</div><div class="cu-kpi-sub">${procs.length ? `processo seletivo: ${Math.round(procs.reduce((a, x) => a + x.proc, 0) / procs.length)} dias em média` : ''}</div></div>` : '';
+
+  r$('tbTurma').innerHTML = rs.map((x, i) => {
+    const pessoas = x.cs.slice().sort((a, b) => (a.status === 'Desligado') - (b.status === 'Desligado')).map(c => {
+      const precoce = c.status === 'Desligado' && c.dt_contr && c.dt_desl && mesesEntre(c.dt_contr, c.dt_desl) < 3;
+      return `<i class="${c.status === 'Ativo' ? 'atv' : precoce ? 'prec' : 'desl'}" title="${escHtml(c.nome)} — ${c.status === 'Ativo' ? 'ativo' : precoce ? 'saída precoce' : 'desligado'}"></i>`;
+    }).join('');
+    const nomeEsc = x.t.nome.replace(/'/g, "\\'");
+    return `<div class="tu-card" onclick="turmaVerAdmitidos('${nomeEsc}')" title="Ver os admitidos da ${escHtml(x.t.nome)}">
+      <button class="tu-del icon-btn del" onclick="event.stopPropagation();excluirTurma('${x.t.id}','${nomeEsc}')" title="Excluir turma"><i class="ti ti-trash"></i></button>
+      <div class="tu-head"><b>${escHtml(x.t.nome)}</b><span>${escHtml(x.t.periodo || '')}${i === 0 ? ' · <em>mais recente</em>' : ''}</span></div>
+      ${x.adm ? `
+      <div class="tu-ret ${retCls(x.ret)}">
+        <div class="v">${x.ret}%</div>
+        <div class="txt">retenção<br><small>${x.atv} de ${x.adm} ativos</small></div>
+      </div>
+      <div class="tu-bar ${retCls(x.ret)}"><span style="width:${x.ret}%"></span></div>
+      <div class="tu-pessoas">${pessoas}</div>
+      ${x.precoces ? `<div class="tu-precoce"><i class="ti ti-alert-triangle"></i> ${x.precoces} saída${x.precoces > 1 ? 's' : ''} precoce${x.precoces > 1 ? 's' : ''} (menos de 3 meses)</div>` : ''}`
+      : '<div class="tu-vazia">Nenhum admitido cadastrado nessa turma ainda.</div>'}
+      <div class="tu-stats">
+        <div><span>Custo total</span><b>${x.ct ? brl2(x.ct) : '—'}</b></div>
+        <div><span>Por admitido</span><b>${x.ct && x.adm ? brl2(x.ct / x.adm) : '—'}</b></div>
+        <div title="Tempo médio do processo seletivo (do 1º contato à contratação)"><span>Processo</span><b>${x.proc != null ? x.proc + ' dias' : '—'}</b></div>
+      </div>
+    </div>`;
   }).join('');
 }
 
