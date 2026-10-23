@@ -757,32 +757,79 @@
   .tr-hero-pts { text-align: right; }
   .tr-hero-pts .v { font-size: 40px; font-weight: 700; line-height: 1; color: var(--perbras-verde); }
   .tr-hero-pts .l { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px; text-transform: uppercase; letter-spacing: .05em; }
-  .tr-cat { border-bottom: 0.5px solid var(--border); }
-  .tr-cat:last-child { border-bottom: none; }
-  .tr-cat-head { display: flex; align-items: center; gap: 10px; padding: 12px 2px; cursor: pointer; user-select: none; }
-  .tr-cat-head > i { color: var(--text3); transition: transform .2s; }
-  .tr-cat-head.open > i { transform: rotate(90deg); }
-  .tr-cat-head b { font-size: 14px; min-width: 130px; }
+  /* Marcos dos níveis embaixo da barra do topo */
+  .tr-trilho { position: relative; max-width: 560px; }
+  .tr-trilho .tr-bar { max-width: none; }
+  .tr-tick { position: absolute; top: -3px; width: 2px; height: 16px; margin-left: -1px; background: rgba(255,255,255,0.35); border-radius: 1px; }
+  .tr-marcos { position: relative; max-width: 560px; height: 16px; margin-top: 6px; }
+  .tr-marcos span { position: absolute; top: 0; transform: translateX(-50%); font-size: 10.5px; color: rgba(255,255,255,0.45); white-space: nowrap; }
+  .tr-marcos span:first-child { transform: none; }
+  .tr-marcos span:last-child { transform: translateX(-100%); }
+  .tr-marcos span.ok { color: rgba(255,255,255,0.75); }
+  .tr-marcos span.atual { color: var(--perbras-verde); font-weight: 700; }
+  .tr-hero .tr-sub { margin-top: 10px; }
+  /* Próximo passo */
+  .tr-prox { display: flex; align-items: center; gap: 16px; padding: 16px 18px; margin-bottom: 1rem; border-radius: var(--radius-lg); background: var(--bg); border: 1px solid var(--border); border-left: 4px solid var(--perbras-laranja); box-shadow: var(--shadow); flex-wrap: wrap; }
+  .tr-prox-ico { width: 44px; height: 44px; border-radius: 12px; background: var(--amber-bg); color: var(--perbras-laranja); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .tr-prox-txt { flex: 1; min-width: 200px; }
+  .tr-prox-lbl { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--amber-text); }
+  .tr-prox-nome { font-size: 15px; font-weight: 700; color: var(--text); margin: 2px 0; }
+  .tr-prox-meta { font-size: 12px; color: var(--text2); }
+  .tr-prox.fim { border-left-color: #6fb300; }
+  .tr-prox.fim .tr-prox-ico { background: var(--green-bg); color: #4a8a00; }
+  /* Categorias em blocos */
+  .tr-card .card-title small { font-weight: 400; color: var(--text2); font-size: 12px; }
+  .trc-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(138px, 1fr)); gap: 10px; }
+  .trc-tile { position: relative; text-align: left; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 12px; font-family: inherit; color: var(--text); transition: border-color .15s, transform .15s, box-shadow .15s; }
+  .trc-tile:hover { border-color: var(--perbras-azul); transform: translateY(-2px); }
+  .trc-tile.sel { border-color: var(--perbras-azul); box-shadow: 0 0 0 3px var(--blue-bg); }
+  .trc-top { display: flex; align-items: center; justify-content: space-between; }
+  .trc-ico { width: 38px; height: 38px; border-radius: 10px; background: var(--blue-bg); color: var(--perbras-azul); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .trc-tile.full .trc-ico { background: var(--green-bg); color: #4a8a00; }
+  .trc-ring { position: relative; width: 40px; height: 40px; border-radius: 50%; background: conic-gradient(var(--perbras-azul) calc(var(--p) * 1%), var(--bg3) 0); }
+  .trc-tile.full .trc-ring { background: conic-gradient(#6fb300 100%, var(--bg3) 0); }
+  .trc-tile.full .trc-ring span { color: #4a8a00; font-size: 16px; }
+  .trc-ring span { position: absolute; inset: 5px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--text2); }
+  .trc-nome { font-size: 13.5px; font-weight: 700; line-height: 1.25; }
+  .trc-sub { font-size: 11.5px; color: var(--text3); margin-top: 2px; }
+  .trc-tile.full .trc-sub { color: #4a8a00; font-weight: 600; }
+  /* Etapas da categoria aberta */
+  .trc-painel { margin-top: 14px; border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; background: var(--bg2); animation: pageIn .25s ease; }
+  .trc-painel-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .trc-painel-head b { font-size: 14.5px; }
+  .trc-painel-head .cnt { font-size: 12px; color: var(--text3); }
+  .trc-filtro { display: inline-flex; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 2px; margin-left: auto; }
+  .trc-filtro button { border: none; background: none; font-family: inherit; font-size: 12px; padding: 5px 10px; border-radius: 6px; cursor: pointer; color: var(--text2); }
+  .trc-filtro button.on { background: var(--perbras-azul); color: #fff; font-weight: 600; }
+  .trc-fechar { border: none; background: none; cursor: pointer; color: var(--text3); font-size: 18px; padding: 4px; border-radius: 6px; display: flex; }
+  .trc-fechar:hover { background: var(--bg3); color: var(--text); }
+  .trc-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 6px; }
+  .trr { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 9px; background: var(--bg); border: 1px solid var(--border); transition: border-color .15s; }
+  .trr[onclick] { cursor: pointer; }
+  .trr[onclick]:hover { border-color: var(--perbras-azul); }
+  .trr .tr-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .trr.feita .tr-check { background: #6fb300; border-color: #6fb300; color: #fff; }
+  .trr.vencida .tr-check { background: var(--perbras-laranja); border-color: var(--perbras-laranja); color: #fff; }
+  .trr-txt { flex: 1; min-width: 0; }
+  .trr-nome { font-size: 12.5px; font-weight: 600; line-height: 1.35; }
+  .trr.feita .trr-nome { color: var(--text2); }
+  .trr-meta { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .trr-meta .ok { color: var(--green-text); font-weight: 600; }
+  .trr-meta .tr-val.vence, .trr-meta .tr-val.vencido { color: var(--amber-text); font-weight: 600; }
+  .tr-foto { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; flex-shrink: 0; cursor: zoom-in; }
+  .tr-pts { font-size: 11px; font-weight: 700; color: var(--perbras-azul); white-space: nowrap; background: var(--blue-bg); padding: 2px 7px; border-radius: 10px; }
+  .trr.feita .tr-pts { color: #4a8a00; background: var(--green-bg); }
+  .trc-vazio { text-align: center; padding: 18px; font-size: 13px; color: var(--text2); }
+  /* barrinha de progresso da tabela "Trilha dos gestores" (admin) */
   .tr-cat-bar { flex: 1; max-width: 260px; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
   .tr-cat-bar span { display: block; height: 100%; background: var(--perbras-azul); border-radius: 3px; }
-  .tr-cat-cnt { font-size: 12px; font-weight: 600; color: var(--text2); margin-left: auto; }
-  .tr-cat-cnt.full { color: #4a8a00; }
-  .tr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; padding: 2px 0 16px; }
-  .tr-etapa { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg); transition: border-color .15s, transform .15s; }
-  .tr-etapa[onclick] { cursor: pointer; }
-  .tr-etapa[onclick]:hover { border-color: var(--perbras-azul); transform: translateY(-1px); }
-  .tr-etapa.feita { background: var(--green-bg); border-color: rgba(111,179,0,0.35); }
-  .tr-etapa.vencida { background: var(--amber-bg); border-color: rgba(255,143,31,0.4); }
-  .tr-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
-  .tr-etapa.feita .tr-check { background: #6fb300; border-color: #6fb300; color: #fff; }
-  .tr-etapa-txt { flex: 1; min-width: 0; }
-  .tr-nome { font-size: 12.5px; font-weight: 600; line-height: 1.4; }
-  .tr-meta { font-size: 11px; color: var(--text2); margin-top: 3px; }
-  .tr-feito { font-size: 11px; color: var(--green-text); margin-top: 4px; font-weight: 500; }
-  .tr-val.vence, .tr-val.vencido { color: var(--amber-text); font-weight: 600; }
-  .tr-foto { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex-shrink: 0; cursor: zoom-in; }
-  .tr-pts { font-size: 11px; font-weight: 700; color: var(--perbras-azul); white-space: nowrap; }
-  .tr-etapa.feita .tr-pts { color: #4a8a00; }
+  @media (max-width: 700px) {
+    .tr-marcos span:not(.atual) { display: none; }
+    .tr-marcos span.atual { transform: none; left: 0 !important; }
+    .trc-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .trc-lista { grid-template-columns: 1fr; }
+    .trc-filtro { margin-left: 0; }
+  }
   .ta-sub { display: none; } .ta-sub.active { display: block; animation: pageIn .3s ease; }
 
   /* Trilha (admin): faixa "precisa de atenção" */
@@ -5730,7 +5777,7 @@ async function trocarSenha() {
 // pessoa, regras da política PI-023. Gestor vê só o dele; RH vê tudo.
 // ============================================================
 let trilhaEtapas = [], trilhaProg = [], auxilios = [];
-let trilhaOpenCats = new Set(), ecEtapaId = null, ecProgId = null, editAuxId = null, editEtapaId = null;
+let trilhaCatSel, trilhaFiltro = 'pendentes', ecEtapaId = null, ecProgId = null, editAuxId = null, editEtapaId = null;
 
 const TRILHA_NIVEIS = [
   { min: 0,   nome: 'Iniciante' },
@@ -5777,51 +5824,109 @@ function trilhaValidade(prog) {
   return { cls: 'ok', txt: `Válido até ${venc.toLocaleDateString('pt-BR')}` };
 }
 
-function trilhaCategoriasHtml(pessoaId, editavel) {
-  const cats = [...new Set(trilhaEtapas.filter(e=>e.ativo).map(e => e.categoria))];
-  return cats.map(cat => {
-    const etapas = trilhaEtapas.filter(e => e.ativo && e.categoria === cat);
-    const feitas = etapas.filter(e => trilhaProg.some(p => p.pessoa_id === pessoaId && p.etapa_id === e.id)).length;
-    const open = trilhaOpenCats.has(cat);
-    const catEsc = cat.replace(/'/g, "\\'");
-    return `<div class="tr-cat">
-      <div class="tr-cat-head${open?' open':''}" onclick="trilhaToggleCat('${catEsc}', '${pessoaId}', ${editavel})">
-        <i class="ti ti-chevron-right"></i><b>${escHtml(cat)}</b>
-        <div class="tr-cat-bar"><span style="width:${feitas/etapas.length*100}%"></span></div>
-        <span class="tr-cat-cnt${feitas===etapas.length?' full':''}">${feitas}/${etapas.length}</span>
-      </div>
-      ${open ? `<div class="tr-grid">${etapas.map(e => {
-        const p = trilhaProg.find(x => x.pessoa_id === pessoaId && x.etapa_id === e.id);
-        const v = p ? trilhaValidade(p) : null;
-        return `<div class="tr-etapa${p?' feita':''}${v&&v.cls==='vencido'?' vencida':''}" ${editavel?`onclick="abrirConcluirEtapa('${e.id}')"`:''}>
-          <span class="tr-check">${p?'<i class="ti ti-check"></i>':''}</span>
-          <div class="tr-etapa-txt">
-            <div class="tr-nome">${escHtml(e.nome)}</div>
-            <div class="tr-meta">${[e.carga_horaria?e.carga_horaria+'h':null, e.modalidade, e.instrutor].filter(Boolean).map(escHtml).join(' · ')}</div>
-            ${p?`<div class="tr-feito">Concluída em ${fmt(p.concluido_em)}${v&&v.txt?` · <span class="tr-val ${v.cls}">${v.txt}</span>`:''}</div>`:''}
-          </div>
-          ${p&&p.foto_url?`<img class="tr-foto" src="${p.foto_url}" loading="lazy" onclick="event.stopPropagation();window.open('${p.foto_url}','_blank')">`:''}
-          <span class="tr-pts">+${e.pontos}</span>
-        </div>`;
-      }).join('')}</div>` : ''}
-    </div>`;
-  }).join('');
+// Ícone de cada categoria da matriz (as que não estiverem aqui usam o livro).
+const TR_CAT_ICO = { 'Capacitação': 'ti-school', 'Diretriz de SMS': 'ti-shield-check', 'Extra': 'ti-sparkles', 'Normativo': 'ti-file-certificate', 'Operacional': 'ti-tool', 'Saúde': 'ti-heartbeat', 'Segurança': 'ti-helmet' };
+
+// Próxima etapa a fazer: a primeira (na ordem da matriz) ainda não concluída.
+function trilhaProxima(pessoaId) {
+  return trilhaEtapas.find(e => e.ativo && !trilhaProg.some(p => p.pessoa_id === pessoaId && p.etapa_id === e.id)) || null;
 }
 
+function trilhaEtapaHtml(e, pessoaId, editavel) {
+  const p = trilhaProg.find(x => x.pessoa_id === pessoaId && x.etapa_id === e.id);
+  const v = p ? trilhaValidade(p) : null;
+  const vencida = v && v.cls === 'vencido';
+  const meta = p
+    ? `<span class="ok">Concluída em ${fmt(p.concluido_em)}</span>${v && v.txt ? ` · <span class="tr-val ${v.cls}">${v.txt}</span>` : ''}`
+    : [e.carga_horaria ? e.carga_horaria + 'h' : null, e.modalidade, e.instrutor].filter(Boolean).map(escHtml).join(' · ');
+  return `<div class="trr${p ? ' feita' : ''}${vencida ? ' vencida' : ''}" ${editavel ? `onclick="abrirConcluirEtapa('${e.id}')" title="${p ? 'Editar conclusão' : 'Marcar como concluída'}"` : ''}>
+    <span class="tr-check">${vencida ? '<i class="ti ti-refresh"></i>' : p ? '<i class="ti ti-check"></i>' : ''}</span>
+    <div class="trr-txt"><div class="trr-nome">${escHtml(e.nome)}</div><div class="trr-meta">${meta}</div></div>
+    ${p && p.foto_url ? `<img class="tr-foto" src="${p.foto_url}" loading="lazy" onclick="event.stopPropagation();window.open('${p.foto_url}','_blank')">` : ''}
+    <span class="tr-pts">+${e.pontos}</span>
+  </div>`;
+}
+
+// Categorias em blocos (com anel de progresso); a categoria escolhida abre as
+// etapas embaixo, com filtro Pendentes / Concluídas / Todas.
+function trilhaCategoriasHtml(pessoaId, editavel) {
+  const ativas = trilhaEtapas.filter(e => e.ativo);
+  const cats = [...new Set(ativas.map(e => e.categoria))];
+  const feita = e => trilhaProg.find(p => p.pessoa_id === pessoaId && p.etapa_id === e.id);
+  // Primeira vez: abre a categoria do próximo passo. Depois vale o que a pessoa escolheu
+  // (inclusive "nenhuma" — trilhaCatSel = null).
+  if (trilhaCatSel === undefined) { const prox = trilhaProxima(pessoaId); trilhaCatSel = prox ? prox.categoria : null; }
+  if (trilhaCatSel && !cats.includes(trilhaCatSel)) trilhaCatSel = null;
+  const tiles = cats.map(cat => {
+    const etapas = ativas.filter(e => e.categoria === cat);
+    const nFeitas = etapas.filter(feita).length;
+    const pts = etapas.reduce((s, e) => s + e.pontos, 0);
+    const pct = Math.round(nFeitas / etapas.length * 100);
+    const full = nFeitas === etapas.length;
+    return `<button class="trc-tile${trilhaCatSel === cat ? ' sel' : ''}${full ? ' full' : ''}" onclick="trilhaToggleCat('${cat.replace(/'/g, "\\'")}', '${pessoaId}', ${editavel})">
+      <div class="trc-top"><span class="trc-ico"><i class="ti ${TR_CAT_ICO[cat] || 'ti-book'}"></i></span><span class="trc-ring" style="--p:${pct}"><span>${full ? '<i class="ti ti-check"></i>' : pct + '%'}</span></span></div>
+      <div><div class="trc-nome">${escHtml(cat)}</div><div class="trc-sub">${full ? 'Completa ✓' : `${nFeitas} de ${etapas.length} · ${pts} pts`}</div></div>
+    </button>`;
+  }).join('');
+  let painel = '';
+  if (trilhaCatSel) {
+    const etapas = ativas.filter(e => e.categoria === trilhaCatSel);
+    const pend = etapas.filter(e => { const p = feita(e); return !p || trilhaValidade(p).cls === 'vencido'; });
+    const concl = etapas.filter(e => feita(e));
+    const lista = trilhaFiltro === 'concluidas' ? concl : trilhaFiltro === 'todas' ? etapas : pend;
+    const bt = (k, txt, n) => `<button class="${trilhaFiltro === k ? 'on' : ''}" onclick="trilhaSetFiltro('${k}', '${pessoaId}', ${editavel})">${txt} (${n})</button>`;
+    painel = `<div class="trc-painel">
+      <div class="trc-painel-head">
+        <i class="ti ${TR_CAT_ICO[trilhaCatSel] || 'ti-book'}" style="color:var(--perbras-azul);font-size:18px"></i><b>${escHtml(trilhaCatSel)}</b>
+        <span class="cnt">${concl.length} de ${etapas.length} concluídas</span>
+        <div class="trc-filtro">${bt('pendentes', 'Pendentes', pend.length)}${bt('concluidas', 'Concluídas', concl.length)}${bt('todas', 'Todas', etapas.length)}</div>
+        <button class="trc-fechar" onclick="trilhaToggleCat(null, '${pessoaId}', ${editavel})" title="Fechar"><i class="ti ti-x"></i></button>
+      </div>
+      ${lista.length ? `<div class="trc-lista">${lista.map(e => trilhaEtapaHtml(e, pessoaId, editavel)).join('')}</div>`
+        : `<div class="trc-vazio">${trilhaFiltro === 'pendentes' ? 'Nada pendente aqui — categoria em dia! 🎉' : 'Nenhuma etapa concluída nessa categoria ainda.'}</div>`}
+    </div>`;
+  }
+  return `<div class="trc-tiles">${tiles}</div>${painel}`;
+}
+
+// Clicar no bloco aberto fecha; clicar em outro troca. null = fechar.
 function trilhaToggleCat(cat, pessoaId, editavel) {
-  if (trilhaOpenCats.has(cat)) trilhaOpenCats.delete(cat); else trilhaOpenCats.add(cat);
+  trilhaCatSel = (cat === null || trilhaCatSel === cat) ? null : cat;
+  if (editavel) renderTrilhaGestor(); else abrirTrilhaGestor(pessoaId);
+}
+
+function trilhaSetFiltro(f, pessoaId, editavel) {
+  trilhaFiltro = f;
   if (editavel) renderTrilhaGestor(); else abrirTrilhaGestor(pessoaId);
 }
 
 function trilhaHeroHtml(res, titulo) {
+  const marcos = TRILHA_NIVEIS.map(n => `<span class="${res.pct >= n.min ? 'ok' : ''}${n.nome === res.nivel.nome ? ' atual' : ''}" style="left:${n.min}%">${n.nome}</span>`).join('');
   return `<div class="tr-hero">
     <div class="tr-hero-main">
       <div class="tr-kicker">${titulo}</div>
       <div class="tr-nivel">${res.nivel.nome}</div>
-      <div class="tr-bar"><span style="width:${res.pct}%"></span></div>
+      <div class="tr-trilho"><div class="tr-bar"><span style="width:${res.pct}%"></span></div>${TRILHA_NIVEIS.filter(n => n.min > 0 && n.min < 100).map(n => `<i class="tr-tick" style="left:${n.min}%"></i>`).join('')}</div>
+      <div class="tr-marcos">${marcos}</div>
       <div class="tr-sub">${res.prox ? `Faltam <b>${res.pontosProx} pontos</b> para <b>${res.prox.nome}</b>` : 'Trilha completa — parabéns! 🎉'} · ${res.feitas.length} de ${res.ativas.length} etapas</div>
     </div>
     <div class="tr-hero-pts"><div class="v">${res.pontos}</div><div class="l">de ${res.total} pontos</div></div>
+  </div>`;
+}
+
+// Cartão "Seu próximo passo" (só pro próprio gestor).
+function trilhaProximoHtml(pessoaId) {
+  const e = trilhaProxima(pessoaId);
+  if (!e) return `<div class="tr-prox fim"><span class="tr-prox-ico"><i class="ti ti-trophy"></i></span>
+    <div class="tr-prox-txt"><div class="tr-prox-lbl">Trilha completa</div><div class="tr-prox-nome">Você concluiu todas as etapas da matriz 🎉</div></div></div>`;
+  return `<div class="tr-prox">
+    <span class="tr-prox-ico"><i class="ti ${TR_CAT_ICO[e.categoria] || 'ti-flag-3'}"></i></span>
+    <div class="tr-prox-txt">
+      <div class="tr-prox-lbl">Seu próximo passo</div>
+      <div class="tr-prox-nome">${escHtml(e.nome)}</div>
+      <div class="tr-prox-meta">${[e.categoria, e.carga_horaria ? e.carga_horaria + 'h' : null, e.modalidade, e.instrutor].filter(Boolean).map(escHtml).join(' · ')} · vale <b>${e.pontos} pontos</b></div>
+    </div>
+    <button class="btn btn-primary" onclick="abrirConcluirEtapa('${e.id}')"><i class="ti ti-check"></i> Já fiz — marcar como concluída</button>
   </div>`;
 }
 
@@ -5833,13 +5938,10 @@ async function renderTrilhaGestor() {
   const res = trilhaResumo(pid);
   const nivelEl = r$('trajNivelTrilha');
   if (nivelEl) nivelEl.textContent = '· ' + res.nivel.nome + ' na trilha';
-  if (!trilhaOpenCats.size) {
-    const primeira = trilhaEtapas.find(e => e.ativo && !trilhaProg.some(p => p.pessoa_id === pid && p.etapa_id === e.id));
-    if (primeira) trilhaOpenCats.add(primeira.categoria);
-  }
   el.innerHTML = `${trilhaHeroHtml(res, 'Minha trilha de conhecimento')}
     ${res.vencidas ? `<div class="mp-alert"><i class="ti ti-alert-triangle"></i> ${res.vencidas} curso${res.vencidas>1?'s':''} com validade vencida — fale com o RH sobre a reciclagem.</div>` : ''}
-    <div class="card tr-card"><div class="card-title">Etapas <span style="font-weight:400;color:var(--text2);font-size:12px">— clique numa etapa pra marcar como concluída (com foto, se quiser)</span></div>${trilhaCategoriasHtml(pid, true)}</div>`;
+    ${trilhaProximoHtml(pid)}
+    <div class="card tr-card"><div class="card-title">Etapas por categoria <small>— escolha uma categoria; clique numa etapa pra marcar como concluída (com foto, se quiser)</small></div>${trilhaCategoriasHtml(pid, true)}</div>`;
   renderAuxiliosGestor();
 }
 
