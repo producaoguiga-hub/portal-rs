@@ -111,6 +111,28 @@ drop policy if exists "Gestor gerencia a própria trilha" on public.trilha_progr
 create policy "Gestor gerencia a própria trilha" on public.trilha_progresso for all to authenticated
   using (pessoa_id = my_pessoa_id()) with check (pessoa_id = my_pessoa_id());
 
+-- 2b) Bancos que tinham a versão antiga (Direção Defensiva / NR 20 numa etapa
+--     só, "Presencial ou EAD"): passa as conclusões pra versão presencial e
+--     apaga a antiga, pra não aparecer três vezes.
+with pares (antigo, novo) as (values
+    ('DIREÇÃO DEFENSIVA', 'DIREÇÃO DEFENSIVA - PRESENCIAL (EXTERNO)'),
+    ('NR 20 - SEGURANÇA E SAÚDE NO TRABALHO COM INFLAMÁVEIS E COMBUSTÍVEIS', 'NR 20 - SEGURANÇA E SAÚDE NO TRABALHO COM INFLAMÁVEIS E COMBUSTÍVEIS - PRESENCIAL (EXTERNO)')
+),
+ids as (
+  select a.id as antigo_id, n.id as novo_id
+  from pares p
+  join public.trilha_etapas a on a.nome = p.antigo
+  join public.trilha_etapas n on n.nome = p.novo
+)
+insert into public.trilha_progresso (pessoa_id, etapa_id, concluido_em, foto_url, comentario)
+select tp.pessoa_id, ids.novo_id, tp.concluido_em, tp.foto_url, tp.comentario
+from public.trilha_progresso tp join ids on ids.antigo_id = tp.etapa_id
+on conflict (pessoa_id, etapa_id) do nothing;
+
+delete from public.trilha_etapas a
+where a.nome in ('DIREÇÃO DEFENSIVA', 'NR 20 - SEGURANÇA E SAÚDE NO TRABALHO COM INFLAMÁVEIS E COMBUSTÍVEIS')
+  and exists (select 1 from public.trilha_etapas n where n.nome = a.nome || ' - PRESENCIAL (EXTERNO)');
+
 -- 3) Auxílios e incentivos -------------------------------------------
 create table if not exists public.auxilios (
   id uuid primary key default gen_random_uuid(),
