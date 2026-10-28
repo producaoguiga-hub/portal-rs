@@ -643,6 +643,11 @@
   .login-card h1 { font-size: 28px; font-weight: 700; text-align: left; margin-bottom: 6px; }
   .login-sub { font-size: 13.5px; color: var(--text2); margin-bottom: 1.75rem; }
   .login-card .fg input { height: 44px; font-size: 14px; }
+  /* Olhinho pra mostrar/esconder a senha */
+  .senha-wrap { position: relative; display: block; width: 100%; }
+  .senha-wrap input { width: 100%; padding-right: 42px !important; }
+  .senha-olho { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border: none; background: none; border-radius: 8px; cursor: pointer; color: var(--text3); font-size: 18px; display: flex; align-items: center; justify-content: center; }
+  .senha-olho:hover { color: var(--text); background: var(--bg2); }
   .login-card .btn-primary { height: 46px; font-size: 14px; }
   @media (max-width: 800px) {
     body:not(.authed) #loginScreen { grid-template-columns: 1fr; grid-template-rows: auto 1fr; overflow-y: auto; }
@@ -6120,6 +6125,7 @@ async function definirSenha() {
 // alguém trocar a senha de outra pessoa.
 function abrirTrocarSenha() {
   ['tsAtual','tsNova1','tsNova2'].forEach(id => r$(id).value = '');
+  esconderSenhas();
   r$('tsErr').style.display = 'none';
   r$('mSenha').classList.add('open');
   r$('tsAtual').focus();
@@ -6858,6 +6864,29 @@ async function salvarEtapa() {
     fecharModal('mEtapa'); renderMatrizAdm(); renderTrilhaAdm(); toast('Etapa salva.');
   } catch(e) { toast('Erro: ' + e.message, true); }
 }
+
+// Olhinho em todo campo de senha: clica e mostra o que foi digitado, clica de novo e esconde.
+function olhinhoSenhas() {
+  document.querySelectorAll('input[type=password]:not([data-olho])').forEach(inp => {
+    inp.dataset.olho = '1';
+    const wrap = document.createElement('span');
+    wrap.className = 'senha-wrap';
+    inp.parentNode.insertBefore(wrap, inp);
+    wrap.appendChild(inp);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'senha-olho';
+    const pinta = () => { const vendo = inp.type === 'text'; b.innerHTML = `<i class="ti ti-eye${vendo ? '-off' : ''}"></i>`; b.title = vendo ? 'Esconder senha' : 'Mostrar senha'; b.setAttribute('aria-label', b.title); };
+    b.onclick = () => { inp.type = inp.type === 'password' ? 'text' : 'password'; pinta(); inp.focus(); };
+    pinta();
+    wrap.appendChild(b);
+  });
+}
+// Volta todos os campos de senha a ficarem escondidos (ao abrir um formulário de novo)
+function esconderSenhas() {
+  document.querySelectorAll('input[data-olho]').forEach(inp => { if (inp.type === 'text') inp.nextElementSibling.click(); });
+}
+olhinhoSenhas();
 
 tratarLinkDeEmail().then(pedeSenha => { if (!pedeSenha) bootstrap(); });
 </script>
