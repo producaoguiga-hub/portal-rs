@@ -150,6 +150,8 @@
     .tl-step.done .sd { color: #DAFF94; }
   }
   .obs-box { background: var(--bg2); border-radius: var(--radius); padding: 12px; font-size: 13px; line-height: 1.6; min-height: 44px; }
+  #pdiFichaDetalhe, #pdiFichaAcompLeitura, #pdiFichaConclusaoComentario { white-space: pre-line; }
+  .fg textarea.pdi-detalhe-input { min-height: 120px; line-height: 1.55; resize: vertical; }
   .pdi-link-block { display: flex; flex-direction: column; gap: 6px; }
   .pdi-link-line { word-break: break-word; }
   .pdi-link-line b { color: var(--text2); font-weight: 600; }
@@ -556,6 +558,13 @@
 
   /* Concluir ação de PDI (gestor) */
   .concluir-hero { text-align: center; padding: 0.5rem 0 1.25rem; }
+  .anexo-zona { display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin-bottom: 1rem; border: 2px dashed var(--border2); border-radius: var(--radius-lg); background: var(--bg2); cursor: pointer; transition: border-color .15s, background .15s; }
+  .anexo-zona:hover { border-color: var(--perbras-azul); background: var(--blue-bg); }
+  .anexo-zona > i { font-size: 30px; color: var(--perbras-azul); flex-shrink: 0; }
+  .anexo-zona b { display: block; font-size: 13.5px; color: var(--text); }
+  .anexo-zona span { display: block; font-size: 12px; color: var(--text2); margin-top: 2px; word-break: break-word; }
+  .anexo-zona.ok { border-style: solid; border-color: #6fb300; background: var(--green-bg); }
+  .anexo-zona.ok > i { color: #4a8a00; }
   .concluir-hero i { font-size: 40px; color: var(--green-text); display: block; margin-bottom: 10px; animation: popIn .5s cubic-bezier(.34,1.56,.64,1); }
   @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .concluir-hero .tt { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
@@ -1086,6 +1095,8 @@
   /* Pedido de +15 dias de prazo no PDI */
   .mpa-prazo-acao { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border); font-size: 11.5px; flex-wrap: wrap; cursor: default; }
   .mpa-prazo-acao .btn { font-size: 11.5px; padding: 4px 10px; }
+  .mpa-bts { display: inline-flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+  a.prazo-chip { text-decoration: none; }
   .prazo-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
   .prazo-chip.pend { background: var(--amber-bg); color: var(--amber-text); }
   .prazo-chip.ok { background: var(--green-bg); color: var(--green-text); }
@@ -1160,7 +1171,7 @@
   .mpa-acao { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--st-tx); }
   .mpa-canal { font-size: 11px; color: var(--text2); background: var(--bg2); border-radius: 4px; padding: 2px 7px; }
   .mpa-status { margin-left: auto; font-size: 11px; font-weight: 600; color: var(--st-tx); background: var(--st-bg); border-radius: 4px; padding: 3px 9px; }
-  .mpa-title { font-size: 15px; font-weight: 600; line-height: 1.45; color: var(--text); }
+  .mpa-title { font-size: 15px; font-weight: 600; line-height: 1.45; color: var(--text); white-space: pre-line; }
   .mpa-prazo { margin-top: auto; }
   .mpa-datas { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 6px; }
   .mpa-datas i { font-size: 13px; vertical-align: -2px; color: var(--text3); }
@@ -1797,8 +1808,11 @@
         <div class="card-title" style="margin:1rem 0 6px"><i class="ti ti-message-circle-2" style="color:var(--blue)"></i> Atualização de andamento</div>
         <div class="obs-box admin-only" id="pdiFichaAcompLeitura" style="margin-bottom:1rem"></div>
         <div class="gestor-only" id="pdiFichaAcompEditor" style="display:none;margin-bottom:1rem">
-          <textarea id="pdiAcompResumoInput" placeholder="Como está indo essa ação? Tem alguma dificuldade? Deixa um resumo rápido..." style="min-height:70px;width:100%"></textarea>
-          <button class="btn" style="margin-top:8px" onclick="salvarAcompanhamentoPDI()"><i class="ti ti-check"></i> Salvar atualização</button>
+          <div class="obs-box" id="pdiAcompBloqueio" style="display:none;color:var(--text2)"></div>
+          <div id="pdiAcompCampos">
+            <textarea id="pdiAcompResumoInput" placeholder="Como está indo essa ação? Tem alguma dificuldade? Deixa um resumo rápido..." style="min-height:70px;width:100%"></textarea>
+            <button class="btn" style="margin-top:8px" onclick="salvarAcompanhamentoPDI()"><i class="ti ti-check"></i> Salvar atualização</button>
+          </div>
         </div>
       </div>
       <div id="pdiFichaConclusaoWrap" style="display:none">
@@ -1845,7 +1859,7 @@
 
         <div class="section-label">Ação de desenvolvimento</div>
         <div class="fg"><label>Ação</label><select id="pAcao"></select></div>
-        <div class="fg span2"><label>Detalhe do desenvolvimento</label><input id="pDetalhe" type="text" placeholder="Ex: Curso Feedback 2.0"></div>
+        <div class="fg span2"><label>Detalhe do desenvolvimento <span style="font-weight:400;color:var(--text3)">(pode usar várias linhas)</span></label><textarea id="pDetalhe" class="pdi-detalhe-input" oninput="autoAltura(this)" placeholder="Ex:&#10;- Elaborar plano para aprendizado técnico de SPT&#10;- Pergunta guia: qual é a trilha necessária pra entender as rotinas de um gestor técnico?&#10;- Entrega: anexar o plano na conclusão da ação"></textarea></div>
         <div class="fg span3"><label>Link da ação PDI <span style="font-weight:400;color:var(--text3)">(link, ou cole várias linhas tipo "Curso / Link / Login / Senha")</span></label><textarea id="pAcaoLink" placeholder="https://... (ou texto com várias linhas)" style="min-height:44px"></textarea></div>
         <div class="fg"><label>Data de início</label><input id="pDtInicio" type="date"></div>
         <div class="fg"><label>Data de término programada</label><input id="pDtTermino" type="date"></div>
@@ -1868,23 +1882,23 @@
 <div class="modal-overlay" id="mConcluirPDI">
   <div class="modal" style="max-width:560px">
     <div class="concluir-hero">
-      <i class="ti ti-confetti"></i>
-      <div class="tt">Mandou bem! 🎉</div>
+      <i class="ti ti-confetti" id="concluirHeroIco"></i>
+      <div class="tt" id="concluirHeroTt">Mandou bem! 🎉</div>
       <div class="sub" id="concluirAcaoTitulo">Conta pra gente como foi — isso ajuda a melhorar o PDI de todo mundo.</div>
     </div>
-    <div class="fg">
+    <div class="anexo-zona" id="concluirAnexoZona" onclick="r$('concluirAnexoInput').click()">
+      <i class="ti ti-cloud-upload"></i>
+      <div><b>Anexar o arquivo da conclusão</b><span id="concluirAnexoNome">Certificado, comprovante ou o trabalho entregue — PDF, imagem, Word, Excel ou PowerPoint (até 20 MB)</span></div>
+      <input type="file" id="concluirAnexoInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" onchange="onConcluirAnexoSelecionado(this)" onclick="event.stopPropagation()" style="display:none">
+    </div>
+    <div class="fg" id="concluirNpsWrap">
       <label>De 0 a 10, o quanto essa ação te ajudou no seu desenvolvimento?</label>
       <div class="nps-pick" id="concluirNpsRow"></div>
       <div class="nps-pick-lbls"><span>Não ajudou nada</span><span>Ajudou muitíssimo</span></div>
     </div>
-    <div class="fg">
+    <div class="fg" id="concluirComentWrap">
       <label>Quer deixar um comentário? <span style="font-weight:400;color:var(--text3)">(opcional)</span></label>
       <textarea id="concluirComentario" placeholder="Como foi fazer essa ação? O que você aprendeu ou mudaria?"></textarea>
-    </div>
-    <div class="fg">
-      <label>Anexar certificado ou comprovante <span style="font-weight:400;color:var(--text3)">(opcional)</span></label>
-      <input type="file" id="concluirAnexoInput" accept="image/*,.pdf" onchange="onConcluirAnexoSelecionado(this)">
-      <div id="concluirAnexoNome" style="font-size:12px;color:var(--text2);margin-top:4px"></div>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="fecharModal('mConcluirPDI')">Cancelar</button>
@@ -3676,7 +3690,7 @@ function renderPDIDash() {
       + pdKpi('<i class="ti ti-hourglass"></i> Tempo médio', tm != null ? `${Math.round(tm)}d` : '—', tm != null ? 'do início até concluir' : 'sem datas suficientes')
       + pdKpi('<i class="ti ti-star"></i> Avaliação da ação', nm != null ? nm.toFixed(1).replace('.', ',') : '—', nm != null ? `média de ${notas.length} nota${notas.length!==1?'s':''} (0 a 10)` : 'nenhuma nota registrada');
   } else if (modo === 'Em andamento') {
-    const semAcomp = f.filter(p => !p.acompanhamento_resumo_em || pdDias(p.acompanhamento_resumo_em.slice(0,10), hoje) > 30);
+    const semAcomp = f.filter(p => (!pdiAcompLiberaEm(p) || hoje >= pdiAcompLiberaEm(p)) && (!p.acompanhamento_resumo_em || pdDias(p.acompanhamento_resumo_em.slice(0,10), hoje) > 30));
     const restante = pdMedia(f.filter(p => p.data_termino_programada).map(p => pdDias(hoje, p.data_termino_programada)));
     kpis = pdHero('Em andamento', total, `${pctBase(total)}% de todas as ações · ${plGest(gestores.length)}`)
       + pdKpi('<i class="ti ti-clock"></i> Vencem em 30 dias', vencendo.length, 'programe o acompanhamento')
@@ -3729,7 +3743,7 @@ function renderPDIDash() {
     const idsJs = JSON.stringify(ord.map(p => p.id)).replace(/"/g, "'");
     titulo = '<i class="ti ti-clock" style="color:var(--st-and)"></i> Próximas a vencer'; sub = `${vencendo.length} nos próximos 30 dias`;
     linhasHtml = ord.slice(0, 10).map(p => {
-      const sem = !p.acompanhamento_resumo_em || pdDias(p.acompanhamento_resumo_em.slice(0,10), hoje) > 30;
+      const sem = (!pdiAcompLiberaEm(p) || hoje >= pdiAcompLiberaEm(p)) && (!p.acompanhamento_resumo_em || pdDias(p.acompanhamento_resumo_em.slice(0,10), hoje) > 30);
       return pdLinhaAcao(p, idsJs, p.data_termino_programada ? `vence em ${dias(p.data_termino_programada)}d` : 'sem prazo', 'vence',
         sem ? '<em class="pd-at-tag">sem atualização há 30+ dias</em>' : '');
     }).join('') + (ord.length > 10 ? `<div class="pd-mais">+ ${ord.length-10} — veja em "Todas as ações"</div>` : '');
@@ -4067,7 +4081,13 @@ function prazoSeAprovar(prazoAtual, dias = 15) {
 // Rodapé do card da ação no "Meu PDI": botão de pedir ou a situação do pedido.
 function prazoRodapeHtml(p) {
   const st = pdiEffectiveStatus(p);
-  if (st === 'Concluído' || st === 'Descontinuado' || !p.data_termino_programada) return '';
+  if (st === 'Descontinuado') return '';
+  if (st === 'Concluído') return `<div class="mpa-prazo-acao" onclick="event.stopPropagation()">
+    ${p.conclusao_anexo_url ? `<a class="prazo-chip ok" href="${p.conclusao_anexo_url}" target="_blank" rel="noopener"><i class="ti ti-paperclip"></i> Comprovante enviado</a>` : '<span style="color:var(--text3)">Sem comprovante anexado</span>'}
+    <button class="btn" onclick="abrirAnexarPDI('${p.id}')"><i class="ti ti-paperclip"></i> ${p.conclusao_anexo_url ? 'Trocar anexo' : 'Anexar comprovante'}</button>
+  </div>`;
+  const concluir = `<button class="btn btn-primary" onclick="abrirConcluirPDI('${p.id}')"><i class="ti ti-circle-check"></i> Concluir e anexar</button>`;
+  if (!p.data_termino_programada) return `<div class="mpa-prazo-acao" onclick="event.stopPropagation()"><span></span>${concluir}</div>`;
   const pend = prazoPendente(p.id), ult = prazoUltimo(p.id);
   let info = '<span style="color:var(--text3)">Precisa de mais tempo?</span>';
   if (pend) info = '<span class="prazo-chip pend"><i class="ti ti-hourglass"></i> +15 dias pedidos — aguardando o RH</span>';
@@ -4075,7 +4095,7 @@ function prazoRodapeHtml(p) {
   else if (ult && ult.status === 'recusado') info = `<span class="prazo-chip nao" title="${escHtml(ult.resposta || '')}"><i class="ti ti-x"></i> Pedido de prazo não aprovado</span>`;
   return `<div class="mpa-prazo-acao" onclick="event.stopPropagation()">
     ${info}
-    ${pend ? '' : `<button class="btn" onclick="abrirPedirPrazo('${p.id}')"><i class="ti ti-clock-plus"></i> Pedir +15 dias</button>`}
+    <span class="mpa-bts">${pend ? '' : `<button class="btn" onclick="abrirPedirPrazo('${p.id}')"><i class="ti ti-clock-plus"></i> +15 dias</button>`}${concluir}</span>
   </div>`;
 }
 
@@ -4301,7 +4321,7 @@ function meuPdiRowHtml(p) {
   return `<tr style="cursor:pointer" onclick="verPDI('${p.id}', pdis.map(x=>x.id))">
     <td><div class="pdi-badges">${pdiSplit(p.canal_mapeamento).map(c=>`<span class="badge b-b">${c}</span>`).join('')||'—'}</div></td>
     <td>${p.acao||'—'}</td>
-    <td style="max-width:320px;white-space:normal">${p.detalhe_desenvolvimento||'—'}</td>
+    <td style="max-width:320px;white-space:pre-line">${escHtml(p.detalhe_desenvolvimento||'—')}</td>
     <td>${p.data_inicio?fmt(p.data_inicio):'—'}</td>
     <td>${p.data_termino_programada?fmt(p.data_termino_programada):'—'}</td>
     <td><span class="badge ${pdiStatusBadge(st)}">${st}</span></td>
@@ -4363,6 +4383,16 @@ async function onGestorFotoSelected(input) {
 
 let fichaNavList = [];
 
+// Caixa de texto que cresce conforme a pessoa escreve
+function autoAltura(el) { if (!el) return; el.style.height = 'auto'; el.style.height = Math.max(el.scrollHeight + 2, 120) + 'px'; }
+
+// Atualização de andamento só abre 15 dias depois do início da ação
+function pdiAcompLiberaEm(p) {
+  if (!p.data_inicio) return null;
+  const d = new Date(p.data_inicio + 'T00:00'); d.setDate(d.getDate() + 15);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 function verPDI(id, navList) {
   const p = pdis.find(x=>x.id===id); if(!p) return;
   fichaNavList = (navList && navList.includes(id)) ? navList : [id];
@@ -4423,6 +4453,10 @@ function verPDI(id, navList) {
     : 'Nenhuma atualização registrada ainda.';
   r$('pdiFichaAcompEditor').style.display = podeConcluir ? '' : 'none';
   r$('pdiAcompResumoInput').value = p.acompanhamento_resumo || '';
+  const libera = pdiAcompLiberaEm(p), liberado = !libera || hojeISO() >= libera;
+  r$('pdiAcompCampos').style.display = liberado ? '' : 'none';
+  r$('pdiAcompBloqueio').style.display = liberado ? 'none' : '';
+  if (!liberado) r$('pdiAcompBloqueio').innerHTML = `<i class="ti ti-lock"></i> A atualização de andamento abre em <b>${fmt(libera)}</b> — 15 dias depois do início da ação. Até lá, é só seguir com o plano :)`;
 
   r$('mPDI').classList.add('open');
 }
@@ -4442,21 +4476,48 @@ function pickConcluirNps(n) {
   r$('concluirNpsRow').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('sel', i===n));
 }
 
-function abrirConcluirPDI(idOverride) {
-  const p = pdis.find(x=>x.id===(idOverride||viewPDIId)); if(!p) return;
-  concluirPDIId = p.id; concluirPDINps = null; concluirAnexoFile = null;
-  r$('concluirAcaoTitulo').textContent = `“${p.detalhe_desenvolvimento || p.acao || 'Ação de PDI'}” — conta pra gente como foi.`;
+// modo 'concluir' (marca a ação como concluída) ou 'anexo' (só manda/troca o
+// comprovante de uma ação que já foi concluída)
+let concluirModo = 'concluir';
+const ANEXO_DICA = 'Certificado, comprovante ou o trabalho entregue — PDF, imagem, Word, Excel ou PowerPoint (até 20 MB)';
+
+function prepararJanelaConclusao(p, modo) {
+  concluirPDIId = p.id; concluirPDINps = null; concluirAnexoFile = null; concluirModo = modo;
+  const titulo = mpTruncate(p.detalhe_desenvolvimento || p.acao || 'Ação de PDI', 140);
+  const anexo = modo === 'anexo';
+  r$('concluirHeroIco').className = 'ti ' + (anexo ? 'ti-paperclip' : 'ti-confetti');
+  r$('concluirHeroTt').textContent = anexo ? 'Comprovante da ação' : 'Mandou bem! 🎉';
+  r$('concluirAcaoTitulo').textContent = anexo ? `“${titulo}” — anexe o arquivo da conclusão.` : `“${titulo}” — conta pra gente como foi.`;
+  r$('concluirNpsWrap').style.display = anexo ? 'none' : '';
+  r$('concluirComentWrap').style.display = anexo ? 'none' : '';
   r$('concluirComentario').value = '';
   r$('concluirAnexoInput').value = '';
-  r$('concluirAnexoNome').textContent = '';
+  r$('concluirAnexoNome').textContent = ANEXO_DICA;
+  r$('concluirAnexoZona').classList.remove('ok');
+  r$('concluirSalvarBtn').innerHTML = anexo ? '<i class="ti ti-upload"></i> Enviar anexo' : '<i class="ti ti-check"></i> Confirmar conclusão';
+}
+
+function abrirAnexarPDI(id) {
+  const p = pdis.find(x => x.id === id); if (!p) return;
+  prepararJanelaConclusao(p, 'anexo');
+  fecharModal('mPDI');
+  r$('mConcluirPDI').classList.add('open');
+}
+
+function abrirConcluirPDI(idOverride) {
+  const p = pdis.find(x=>x.id===(idOverride||viewPDIId)); if(!p) return;
+  prepararJanelaConclusao(p, 'concluir');
   renderConcluirNpsRow();
   fecharModal('mPDI');
   r$('mConcluirPDI').classList.add('open');
 }
 
 function onConcluirAnexoSelecionado(input) {
-  concluirAnexoFile = input.files[0] || null;
-  r$('concluirAnexoNome').textContent = concluirAnexoFile ? `Selecionado: ${concluirAnexoFile.name}` : '';
+  const f = input.files[0] || null;
+  if (f && f.size > 20 * 1024 * 1024) { toast('Arquivo grande demais (máximo 20 MB).', true); input.value = ''; return; }
+  concluirAnexoFile = f;
+  r$('concluirAnexoNome').textContent = f ? `${f.name} — pronto pra enviar (clique pra trocar)` : ANEXO_DICA;
+  r$('concluirAnexoZona').classList.toggle('ok', !!f);
 }
 
 async function uploadAnexoPDI(file) {
@@ -4491,6 +4552,7 @@ async function uploadAnexoPDI(file) {
 }
 
 async function salvarConclusaoPDI() {
+  if (concluirModo === 'anexo') return salvarSoAnexoPDI();
   if (concluirPDINps==null) { toast('Escolhe uma nota de 0 a 10 antes de confirmar :)', true); return; }
   const btn = r$('concluirSalvarBtn');
   btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Enviando...';
@@ -4512,6 +4574,23 @@ async function salvarConclusaoPDI() {
     toast('Não consegui registrar a conclusão: '+e.message, true);
   } finally {
     btn.disabled = false; btn.innerHTML = '<i class="ti ti-check"></i> Confirmar conclusão';
+  }
+}
+
+async function salvarSoAnexoPDI() {
+  if (!concluirAnexoFile) { toast('Escolha o arquivo da conclusão primeiro.', true); return; }
+  const btn = r$('concluirSalvarBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Enviando...';
+  try {
+    const url = await uploadAnexoPDI(concluirAnexoFile);
+    await dbUpdate('pdi', concluirPDIId, { conclusao_anexo_url: url });
+    fecharModal('mConcluirPDI');
+    toast('Comprovante enviado!');
+    pdis = await dbGet('pdi'); populatePDISels(); renderPDI();
+  } catch(e) {
+    toast('Não consegui enviar o anexo: ' + e.message, true);
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-upload"></i> Enviar anexo';
   }
 }
 
@@ -4568,7 +4647,7 @@ function editarPDI(id) {
   r$('pTipoNec').value=p.tipo_necessidade||'';
   r$('pDirecao').value=p.direcao_crescimento||'';
   r$('pAcao').value=p.acao||PDI_ACOES[0];
-  r$('pDetalhe').value=p.detalhe_desenvolvimento||'';
+  r$('pDetalhe').value=p.detalhe_desenvolvimento||''; setTimeout(()=>autoAltura(r$('pDetalhe')),0);
   r$('pAcaoLink').value=p.acao_pdi_link||'';
   r$('pDtInicio').value=p.data_inicio||''; r$('pDtTermino').value=p.data_termino_programada||'';
   r$('pFeedback').value=p.feedback_dre||'';
