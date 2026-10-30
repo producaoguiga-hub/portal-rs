@@ -5597,7 +5597,6 @@ async function renderMinhaMonitoria() {
       <div class="mc-box mc-dev">
         <div class="mc-box-head"><span class="mc-ico"><i class="ti ti-trending-up"></i></span>Pontos a desenvolver<span class="mc-count">${(c.pontos_desenvolver||[]).length}</span></div>
         <ul class="mc-list">${li(c.pontos_desenvolver, 'ti-arrow-up-right')}</ul>
-        <div class="mm-rodape"><i class="ti ti-message-circle"></i> Converse com o RH para transformar esses pontos em ações do seu PDI.</div>
       </div>
     </div>`;
   if (charts.mmRadar) { charts.mmRadar.destroy(); delete charts.mmRadar; }
