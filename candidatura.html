@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compartilhe sua história | Perbras</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #ffffff; --bg2: #f5f8fb; --bg3: #edf2f7;
+    --text: #091C28; --text2: #4a6577; --text3: #8a9fad;
+    --border: rgba(9,28,40,0.1); --border2: rgba(9,28,40,0.22);
+    --blue: #1A88FF; --blue-bg: #E3F0FF; --blue-text: #0a56b0;
+    --red: #c42828; --red-bg: #FCEBEB; --red-text: #791F1F;
+    --radius: 10px; --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; padding: 2rem 1rem 5rem; }
+  .wrap { max-width: 640px; margin: 0 auto; }
+
+  .hero { position: relative; overflow: hidden; border-radius: var(--radius-lg); padding: 2rem 1.75rem; margin-bottom: 1.25rem;
+    background: linear-gradient(120deg, #0E2A3D, #0B3A4D 45%, #0E4A52 75%, #0B3A2E); color: #fff; text-align: center; }
+  .hero::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 85% 15%, rgba(188,255,72,0.18), transparent 55%), radial-gradient(circle at 10% 90%, rgba(46,215,237,0.18), transparent 50%); pointer-events: none; }
+  .hero > * { position: relative; z-index: 1; }
+  .hero img { max-height: 40px; filter: brightness(0) invert(1); margin-bottom: 1rem; }
+  .hero h1 { font-size: 19px; font-weight: 700; margin-bottom: 6px; }
+  .hero p { font-size: 13px; color: rgba(255,255,255,0.72); line-height: 1.55; }
+
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 4px rgba(9,28,40,0.06); }
+  .sec-title { font-size: 15px; font-weight: 700; color: var(--blue-text); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .sec-sub { font-size: 12.5px; color: var(--text2); line-height: 1.5; margin-bottom: 1.1rem; }
+  .lgpd-txt { font-size: 12.5px; color: var(--text2); line-height: 1.6; margin-bottom: 1rem; }
+
+  .fg { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1rem; }
+  .fg:last-child { margin-bottom: 0; }
+  .fg label, .fg .lbl { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
+  .req { color: var(--red); margin-left: 2px; }
+  .hint { font-size: 11.5px; color: var(--text3); line-height: 1.45; }
+  .fg input, .fg select, .fg textarea { font-size: 14px; padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border2); background: var(--bg); color: var(--text); font-family: inherit; width: 100%; }
+  .fg input:focus, .fg select:focus, .fg textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,136,255,0.12); }
+  .fg textarea { min-height: 76px; resize: vertical; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row-uf { display: grid; grid-template-columns: 1fr 96px; gap: 12px; }
+
+  .opts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .opts label { flex: 1; min-width: 110px; }
+  .opts input { position: absolute; opacity: 0; pointer-events: none; }
+  .opts span { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 12px; border: 1px solid var(--border2); border-radius: var(--radius); cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--text2); transition: all .15s; text-align: center; }
+  .opts input:checked + span { border-color: var(--blue); background: var(--blue-bg); color: var(--blue-text); }
+  .opts input:focus-visible + span { box-shadow: 0 0 0 3px rgba(26,136,255,0.25); }
+
+  .file-box { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px dashed var(--border2); border-radius: var(--radius); cursor: pointer; color: var(--text2); font-size: 13px; }
+  .file-box:hover { border-color: var(--blue); color: var(--blue-text); }
+  .file-box i { font-size: 20px; }
+  .file-box.ok { border-style: solid; border-color: var(--blue); background: var(--blue-bg); color: var(--blue-text); }
+  .file-box input { display: none; }
+
+  .btn-submit { width: 100%; padding: 14px; font-size: 15px; font-weight: 700; border-radius: var(--radius); border: none; cursor: pointer; color: #06131c;
+    background: linear-gradient(120deg, #1A88FF, #2ED7ED 55%, #BCFF48); box-shadow: 0 6px 18px rgba(26,136,255,0.25); display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-submit:active { transform: scale(.98); }
+  .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+  .err-box { background: var(--red-bg); color: var(--red-text); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; display: none; line-height: 1.5; }
+  .err-box.show { display: block; }
+
+  #successScreen, #lgpdNoScreen { display: none; text-align: center; padding: 3rem 1.5rem; }
+  #successScreen .ico { font-size: 56px; color: #2a6200; margin-bottom: 1rem; }
+  #successScreen h2, #lgpdNoScreen h2 { font-size: 18px; margin-bottom: 8px; }
+  #successScreen p, #lgpdNoScreen p { color: var(--text2); font-size: 13.5px; line-height: 1.7; max-width: 440px; margin: 0 auto; }
+  #successScreen a { color: var(--blue-text); }
+
+  @media (max-width: 560px) { body { padding: 1rem .75rem 4rem; } .card { padding: 1.1rem; } .hero { padding: 1.5rem 1.25rem; } .row2 { grid-template-columns: 1fr; } .opts label { min-width: 90px; } .row2 > .fg:last-child { margin-bottom: 1rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <img src="perbraslogo.png" alt="Perbras">
+    <h1>Compartilhe sua história</h1>
+    <p>Este questionário mostra o nosso interesse em te conhecer melhor! Fique à vontade para responder as perguntas que fazem sentido pra você. O nosso objetivo, juntos, é que a partir dessas informações haja uma conexão entre você e a Perbras :)</p>
+  </div>
+
+  <div id="formScreen">
+    <div class="err-box" id="errBox"></div>
+    <form id="cForm" onsubmit="return false" novalidate>
+
+      <!-- LGPD -->
+      <div class="card">
+        <div class="sec-title"><i class="ti ti-shield-lock"></i> LGPD — Autorização para coleta de dados pessoais</div>
+        <p class="lgpd-txt">Para dar continuidade ao processo seletivo, precisamos coletar alguns dados e documentos essenciais para avaliar a sua candidatura, como diploma e carteira de motorista. Em conformidade com a Lei Geral de Proteção de Dados (LGPD), pedimos o seu consentimento para coletar, armazenar e usar esses dados durante o processo seletivo. Eles são tratados com confidencialidade, guardados de forma segura e acessados apenas pela equipe de RH, exclusivamente para esse fim.</p>
+        <div class="fg">
+          <div class="lbl">Autorização para coleta de dados pessoais<span class="req">*</span></div>
+          <div class="opts">
+            <label><input type="radio" name="lgpd" value="sim"><span>Autorizo</span></label>
+            <label><input type="radio" name="lgpd" value="nao"><span>Não autorizo</span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIDA PESSOAL -->
+      <div class="card">
+        <div class="sec-title"><i class="ti ti-user"></i> Vida pessoal</div>
+        <p class="sec-sub">Queremos conhecer melhor quem você é, um pouco da sua história e da sua rotina.</p>
+        <div class="fg"><label for="nome">Nome completo<span class="req">*</span></label><input id="nome" autocomplete="name"></div>
+        <div class="row2">
+          <div class="fg"><label for="nasc">Data de nascimento<span class="req">*</span></label><input id="nasc" type="date"></div>
+          <div class="fg"><label for="tel">Telefone com DDD<span class="req">*</span></label><input id="tel" type="tel" inputmode="tel" placeholder="(84) 99999-9999" autocomplete="tel"></div>
+        </div>
+        <div class="fg"><label for="email">E-mail<span class="req">*</span></label><input id="email" type="email" autocomplete="email"></div>
+        <div class="fg"><label for="natural">Naturalidade (cidade em que nasceu)<span class="req">*</span></label><input id="natural"></div>
+        <div class="fg">
+          <div class="lbl">Cidade e estado onde mora hoje<span class="req">*</span></div>
+          <div class="row-uf">
+            <input id="cidade" placeholder="Cidade" aria-label="Cidade">
+            <select id="uf" aria-label="Estado"></select>
+          </div>
+        </div>
+        <div class="fg"><label for="civil">Qual seu estado civil? Mora junto atualmente?</label><textarea id="civil"></textarea></div>
+        <div class="fg"><label for="filhos">Você tem filhos? Quantos? Mora com eles atualmente?</label><textarea id="filhos"></textarea></div>
+      </div>
+
+      <!-- HOBBIES -->
+      <div class="card">
+        <div class="sec-title"><i class="ti ti-mood-smile"></i> Hobbies e life style</div>
+        <p class="sec-sub">Seus gostos pessoais e seu jeito de viver. Seja você!</p>
+        <div class="fg"><label for="livres">O que costuma fazer nos seus dias livres?</label><textarea id="livres"></textarea></div>
+        <div class="fg"><label for="canais">Que informações busca e em quais canais?</label><textarea id="canais"></textarea></div>
+        <div class="fg"><label for="metas">Quais são suas metas / propósito de vida?</label><textarea id="metas"></textarea></div>
+        <div class="fg"><label for="ativ">Pratica alguma atividade física, esporte ou arte marcial? Conta pra gente qual :)</label><textarea id="ativ"></textarea></div>
+      </div>
+
+      <!-- VIDA PROFISSIONAL -->
+      <div class="card">
+        <div class="sec-title"><i class="ti ti-briefcase"></i> Vida profissional</div>
+        <p class="sec-sub">Sua trajetória acadêmica e profissional. Fique à vontade para trazer o que considerar relevante.</p>
+        <div class="fg">
+          <label for="curso">Curso de graduação<span class="req">*</span></label>
+          <select id="curso" onchange="onCurso()">
+            <option value="">— Selecione —</option>
+            <option>Administração</option>
+            <option>Ciências Contábeis</option>
+            <option>Engenharia Mecânica</option>
+            <option>Engenharia de Petróleo</option>
+            <option value="__outro">Outro curso</option>
+          </select>
+          <input id="cursoOutro" placeholder="Qual curso?" style="display:none">
+        </div>
+        <div class="fg"><label for="univ">Universidade / faculdade<span class="req">*</span></label><input id="univ" placeholder="Ex.: UFRN"></div>
+        <div class="fg">
+          <div class="lbl">A instituição é<span class="req">*</span></div>
+          <div class="opts">
+            <label><input type="radio" name="tuniv" value="Federal"><span>Federal</span></label>
+            <label><input type="radio" name="tuniv" value="Estadual"><span>Estadual</span></label>
+            <label><input type="radio" name="tuniv" value="Particular"><span>Particular</span></label>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="fg">
+            <div class="lbl">A graduação está<span class="req">*</span></div>
+            <div class="opts">
+              <label><input type="radio" name="grad" value="Concluída"><span>Concluída</span></label>
+              <label><input type="radio" name="grad" value="Em andamento"><span>Em andamento</span></label>
+            </div>
+          </div>
+          <div class="fg"><label for="anoConc">Ano de conclusão</label><input id="anoConc" type="number" inputmode="numeric" min="1970" max="2040" placeholder="Ex.: 2019"></div>
+        </div>
+        <div class="fg"><label for="empresa">Está trabalhando atualmente? Em qual empresa?</label><textarea id="empresa"></textarea></div>
+        <div class="fg"><label for="gostou">O que você mais gostou (ou gosta) no seu trabalho anterior/atual, e o que é mais importante pra você no próximo?</label><textarea id="gostou"></textarea></div>
+        <div class="fg"><label for="exper">Qual experiência profissional você considera a mais importante? Conta pra gente suas principais atribuições nessa função :)</label><textarea id="exper"></textarea></div>
+        <div class="fg"><label for="salario">Qual seu salário atual (ou o último)? Pode contar também sobre os benefícios.</label><textarea id="salario"></textarea></div>
+        <div class="fg"><label for="pretensao">Pretensão salarial<span class="req">*</span></label><input id="pretensao" placeholder="Ex.: R$ 8.000"></div>
+        <div class="fg"><label for="idioma">Fala outro idioma? Em qual nível?<span class="req">*</span></label><input id="idioma" placeholder="Ex.: Inglês intermediário"></div>
+        <div class="fg"><label for="interc">Fez intercâmbio ou teve experiência profissional fora do país?<span class="req">*</span></label><input id="interc"></div>
+      </div>
+
+      <!-- REQUISITOS -->
+      <div class="card">
+        <div class="sec-title"><i class="ti ti-checklist"></i> Requisitos básicos para a vaga</div>
+        <p class="sec-sub">Para avançar no processo seletivo, a vaga pede: disponibilidade para mudança de cidade/estado, diploma de graduação e CNH B.</p>
+        <div class="fg">
+          <div class="lbl">Tem interesse e disponibilidade para mudança de cidade/estado, caso a nossa parceria dê certo?<span class="req">*</span></div>
+          <div class="opts">
+            <label><input type="radio" name="mob" value="sim"><span>Sim</span></label>
+            <label><input type="radio" name="mob" value="nao"><span>Não</span></label>
+          </div>
+        </div>
+        <div class="fg"><label for="mobObs">O que na sua vida facilita essa mudança?</label><textarea id="mobObs"></textarea></div>
+        <div class="fg">
+          <div class="lbl">Possui diploma de graduação ou certificado de conclusão de curso?<span class="req">*</span></div>
+          <div class="opts">
+            <label><input type="radio" name="dipl" value="sim"><span>Sim</span></label>
+            <label><input type="radio" name="dipl" value="nao"><span>Não</span></label>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="fg">
+            <div class="lbl">Possui CNH categoria B?<span class="req">*</span></div>
+            <div class="opts">
+              <label><input type="radio" name="cnh" value="sim"><span>Sim</span></label>
+              <label><input type="radio" name="cnh" value="nao"><span>Não</span></label>
+            </div>
+          </div>
+          <div class="fg"><label for="cnhVal">Validade da CNH</label><input id="cnhVal" type="date"></div>
+        </div>
+        <div class="fg">
+          <label for="fonte">Como ficou sabendo da vaga?</label>
+          <select id="fonte">
+            <option value="">— Selecione —</option>
+            <option>Linkedin</option><option>Ello Vagas</option><option>Gupy</option><option>Indicação</option><option>Outro</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- DOCUMENTOS -->
+      <div class="card">
+        <div class="sec-title"><i class="ti ti-paperclip"></i> Documentos</div>
+        <p class="sec-sub">Envie por aqui mesmo (PDF ou foto, até 10 MB cada). Se não tiver algum agora, tudo bem: o RH pede depois.</p>
+        <div class="fg">
+          <div class="lbl">Currículo<span class="req">*</span></div>
+          <label class="file-box" id="boxCv"><i class="ti ti-file-cv"></i><span>Escolher arquivo</span><input type="file" id="fileCv" accept=".pdf,.doc,.docx,image/*" onchange="onFile('Cv')"></label>
+        </div>
+        <div class="fg">
+          <div class="lbl">Diploma ou certificado de conclusão</div>
+          <label class="file-box" id="boxDip"><i class="ti ti-certificate"></i><span>Escolher arquivo</span><input type="file" id="fileDip" accept=".pdf,image/*" onchange="onFile('Dip')"></label>
+        </div>
+        <div class="fg">
+          <div class="lbl">CNH</div>
+          <label class="file-box" id="boxCnh"><i class="ti ti-id"></i><span>Escolher arquivo</span><input type="file" id="fileCnh" accept=".pdf,image/*" onchange="onFile('Cnh')"></label>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="btnSubmit" onclick="enviar()"><i class="ti ti-send"></i> Enviar minha candidatura</button>
+      <div style="text-align:center;font-size:11px;color:var(--text3);margin-top:1rem">Perbras · Recrutamento de Gestores</div>
+    </form>
+  </div>
+
+  <div id="lgpdNoScreen">
+    <h2>Tudo bem!</h2>
+    <p>Sem a autorização não conseguimos seguir com a sua candidatura, porque precisamos guardar os seus dados para avaliar o perfil. Se mudar de ideia, é só voltar e marcar "Autorizo".</p>
+    <p style="margin-top:1rem"><button class="btn-submit" style="max-width:240px;margin:0 auto" onclick="voltarLgpd()"><i class="ti ti-arrow-left"></i> Voltar</button></p>
+  </div>
+
+  <div id="successScreen">
+    <div class="ico"><i class="ti ti-circle-check"></i></div>
+    <h2>Obrigado por compartilhar sua história. Boa sorte! :D</h2>
+    <p>Recebemos a sua candidatura. Se o seu perfil seguir no processo, a equipe de RH entra em contato pelo telefone ou e-mail informados.</p>
+    <p style="margin-top:1rem">Conheça a Perbras: <a href="https://www.perbras.com.br" target="_blank" rel="noopener">www.perbras.com.br</a></p>
+  </div>
+
+</div>
+
+<script>
+const SUPA_URL = 'https://gahrfavjcdgwjmlsajeo.supabase.co/rest/v1';
+const SUPA_STORAGE = 'https://gahrfavjcdgwjmlsajeo.supabase.co/storage/v1';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaHJmYXZqY2Rnd2ptbHNhamVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTQzNzYsImV4cCI6MjA5NzM3MDM3Nn0.I5ozH_hPb4DT-PerlWwtpMKwBMXZnCQeNLu5rDs3tKY';
+const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+const MAX_MB = 10;
+
+const $ = id => document.getElementById(id);
+$('uf').innerHTML = '<option value="">UF</option>' + UFS.map(u => `<option>${u}</option>`).join('');
+
+function onCurso() {
+  const outro = $('curso').value === '__outro';
+  $('cursoOutro').style.display = outro ? '' : 'none';
+  if (outro) $('cursoOutro').focus();
+}
+function onFile(k) {
+  const f = $('file' + k).files[0], box = $('box' + k);
+  if (!f) { box.classList.remove('ok'); box.querySelector('span').textContent = 'Escolher arquivo'; return; }
+  if (f.size > MAX_MB * 1048576) { showErr(`"${f.name}" tem mais de ${MAX_MB} MB. Envie um arquivo menor.`); $('file' + k).value = ''; onFile(k); return; }
+  box.classList.add('ok');
+  box.querySelector('span').textContent = f.name;
+}
+document.querySelectorAll('input[name=lgpd]').forEach(r => r.addEventListener('change', () => {
+  if (r.checked && r.value === 'nao') { $('formScreen').style.display = 'none'; $('lgpdNoScreen').style.display = 'block'; window.scrollTo(0, 0); }
+}));
+function voltarLgpd() {
+  document.querySelectorAll('input[name=lgpd]').forEach(r => r.checked = false);
+  $('lgpdNoScreen').style.display = 'none'; $('formScreen').style.display = 'block';
+}
+
+function showErr(msg, focoEl) {
+  const el = $('errBox'); el.textContent = msg; el.classList.add('show');
+  (focoEl || el).scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (focoEl && focoEl.focus) setTimeout(() => focoEl.focus({ preventScroll: true }), 300);
+}
+const radio = n => { const el = document.querySelector(`input[name="${n}"]:checked`); return el ? el.value : null; };
+const val = id => $(id).value.trim();
+const simNao = v => v === 'sim' ? true : v === 'nao' ? false : null;
+
+async function subir(k, nomeBase, pasta) {
+  const f = $('file' + k).files[0]; if (!f) return null;
+  const ext = (f.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '') || 'bin';
+  const path = `${pasta}/${nomeBase}.${ext}`;
+  const r = await fetch(`${SUPA_STORAGE}/object/recrutamento/${path}`, {
+    method: 'POST',
+    headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY, 'Content-Type': f.type || 'application/octet-stream' },
+    body: f
+  });
+  if (!r.ok) throw new Error('falha ao enviar o arquivo "' + f.name + '"');
+  return path;
+}
+
+async function enviar() {
+  $('errBox').classList.remove('show');
+  if (radio('lgpd') !== 'sim') return showErr('Marque a autorização da LGPD para continuar.', document.querySelector('input[name=lgpd]').closest('.card'));
+
+  const curso = $('curso').value === '__outro' ? (val('cursoOutro') ? 'Outro: ' + val('cursoOutro') : '') : $('curso').value;
+  const obrig = [
+    [val('nome'), 'nome', 'Informe o seu nome completo.'],
+    [val('nasc'), 'nasc', 'Informe a sua data de nascimento.'],
+    [val('tel').replace(/\D/g, '').length >= 10 ? 'ok' : '', 'tel', 'Informe um telefone com DDD.'],
+    [/^\S+@\S+\.\S+$/.test(val('email')) ? 'ok' : '', 'email', 'Informe um e-mail válido.'],
+    [val('natural'), 'natural', 'Informe a sua naturalidade.'],
+    [val('cidade'), 'cidade', 'Informe a cidade onde mora.'],
+    [$('uf').value, 'uf', 'Escolha o estado onde mora.'],
+    [curso, $('curso').value === '__outro' ? 'cursoOutro' : 'curso', 'Informe o seu curso de graduação.'],
+    [val('univ'), 'univ', 'Informe a universidade.'],
+    [radio('tuniv'), 'univ', 'Marque se a instituição é federal, estadual ou particular.'],
+    [radio('grad'), 'anoConc', 'Marque se a graduação está concluída ou em andamento.'],
+    [val('pretensao'), 'pretensao', 'Informe a sua pretensão salarial.'],
+    [val('idioma'), 'idioma', 'Conte se fala outro idioma (pode responder "não").'],
+    [val('interc'), 'interc', 'Conte se fez intercâmbio ou trabalhou fora (pode responder "não").'],
+    [radio('mob'), 'mobObs', 'Responda sobre a disponibilidade para mudança.'],
+    [radio('dipl'), 'cnhVal', 'Responda se possui diploma ou certificado.'],
+    [radio('cnh'), 'cnhVal', 'Responda se possui CNH B.'],
+    [$('fileCv').files[0] ? 'ok' : '', 'boxCv', 'Anexe o seu currículo.'],
+  ];
+  for (const [v, id, msg] of obrig) if (!v) return showErr(msg, $(id));
+
+  const btn = $('btnSubmit');
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Enviando...';
+  try {
+    const pasta = Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+    const [cv, dip, cnh] = await Promise.all([subir('Cv', 'curriculo', pasta), subir('Dip', 'diploma', pasta), subir('Cnh', 'cnh', pasta)]);
+    const payload = {
+      lgpd_autoriza: true,
+      nome: val('nome'), data_nascimento: val('nasc') || null, telefone: val('tel'), email: val('email').toLowerCase(),
+      naturalidade: val('natural'), cidade: val('cidade'), uf: $('uf').value,
+      estado_civil: val('civil'), filhos: val('filhos'),
+      dias_livres: val('livres'), canais_info: val('canais'), metas: val('metas'), atividade_fisica: val('ativ'),
+      curso, universidade: val('univ'), tipo_univ: radio('tuniv'), graduacao: radio('grad'),
+      ano_conclusao: parseInt(val('anoConc'), 10) || null,
+      empresa_atual: val('empresa'), gostou_trabalho: val('gostou'), experiencia: val('exper'),
+      salario_atual: val('salario'), pretensao: val('pretensao'), idioma: val('idioma'), intercambio: val('interc'),
+      mobilidade: simNao(radio('mob')), mobilidade_obs: val('mobObs'),
+      diploma: simNao(radio('dipl')), cnh_b: simNao(radio('cnh')), cnh_validade: val('cnhVal') || null,
+      fonte: $('fonte').value || null,
+      curriculo_path: cv, diploma_path: dip, cnh_path: cnh,
+    };
+    const r = await fetch(`${SUPA_URL}/recrutamento`, {
+      method: 'POST',
+      headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    $('formScreen').style.display = 'none';
+    $('successScreen').style.display = 'block';
+    window.scrollTo(0, 0);
+  } catch (e) {
+    showErr('Não deu pra enviar agora (' + e.message + '). Tente de novo em alguns instantes.');
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-send"></i> Enviar minha candidatura';
+  }
+}
+</script>
+</body>
+</html>

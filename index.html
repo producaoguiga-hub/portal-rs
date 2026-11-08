@@ -324,6 +324,42 @@
 
   /* PDI */
   .b-n { background: var(--bg3); color: var(--text2); }
+  /* Central de Recrutamento */
+  .tab-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 10.5px; font-weight: 700; margin-left: 2px; }
+  .rec-link { display: flex; align-items: center; gap: 14px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 1rem; box-shadow: var(--shadow); flex-wrap: wrap; }
+  .rec-link-ico { width: 40px; height: 40px; border-radius: 10px; background: var(--blue-bg); color: var(--blue-text); display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0; }
+  .rec-link-txt { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 2px; }
+  .rec-link-txt strong { font-size: 13.5px; }
+  .rec-link-txt span { font-size: 12px; color: var(--text2); line-height: 1.45; }
+  .rec-link-btns { display: flex; gap: 8px; }
+  .rec-link-btns a.btn { text-decoration: none; }
+  .rec-chk { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text2); cursor: pointer; }
+  .rec-row { cursor: pointer; }
+  .rec-nome { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .rec-novo { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+  .rec-meta { font-size: 11.5px; color: var(--text3); margin-top: 2px; }
+  .rec-reqs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .rq { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .rq i { font-size: 12px; }
+  .rq.ok { background: var(--green-bg); color: var(--green-text); }
+  .rq.no { background: var(--red-bg); color: var(--red-text); }
+  .rq.na { background: var(--bg2); color: var(--text3); }
+  .rq.pref.ok { background: var(--blue-bg); color: var(--blue-text); }
+  .rec-st-sel { font-size: 12px; padding: 4px 6px; border-radius: 6px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); cursor: pointer; }
+  .b-n { background: var(--bg2); color: var(--text2); }
+  .rec-sub { font-size: 12.5px; color: var(--text2); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .rec-acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .rec-acoes a.btn { text-decoration: none; }
+  .rec-req-box { background: var(--bg2); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 1rem; }
+  .rec-req-box .lbl { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .rec-andamento { border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 1rem; }
+  .rec-sec { margin-top: 1rem; }
+  .rec-sec h4 { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; padding-bottom: 6px; border-bottom: 0.5px solid var(--border); margin-bottom: 8px; }
+  .rec-qa { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+  .rec-qa .q { font-size: 11.5px; color: var(--text3); }
+  .rec-qa .a { font-size: 13px; color: var(--text); margin-top: 2px; white-space: pre-wrap; line-height: 1.5; }
+  .rec-qa .wide { grid-column: span 2; }
+  @media (max-width: 700px) { .rec-qa { grid-template-columns: 1fr; } .rec-qa .wide { grid-column: auto; } .rec-link-btns { width: 100%; } }
   .qf-row { display: flex; gap: 6px; flex-wrap: wrap; }
   .qf-btn { position: relative; overflow: hidden; padding: 6px 12px; font-size: 12px; border-radius: 999px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text2); cursor: pointer; font-weight: 500; transition: all .2s; white-space: nowrap; }
   .qf-btn:hover { background: var(--bg2); }
@@ -1255,6 +1291,7 @@
     <div class="page-title">R&amp;S Gestão</div>
     <div class="tl-tabs" style="margin-bottom:1.25rem">
       <button class="tl-tab active" onclick="switchRSTab('visao',this)"><i class="ti ti-layout-dashboard"></i> Visão geral</button>
+      <button class="tl-tab" onclick="switchRSTab('recrutamento',this)"><i class="ti ti-user-search"></i> Recrutamento <span class="tab-count" id="recTabCount" style="display:none"></span></button>
       <button class="tl-tab" onclick="switchRSTab('candidatos',this)"><i class="ti ti-users"></i> Admitidos</button>
       <button class="tl-tab" onclick="switchRSTab('custos',this)"><i class="ti ti-currency-dollar"></i> Custos</button>
       <button class="tl-tab" onclick="switchRSTab('turmas',this)"><i class="ti ti-school"></i> Turmas</button>
@@ -1296,6 +1333,45 @@
       <div class="card-title">Motivos de desligamento</div>
       <div style="position:relative;height:280px"><canvas id="cMotivos"></canvas></div>
     </div>
+  </div>
+
+  <!-- RECRUTAMENTO -->
+  <div class="page-sub" id="page-recrutamento">
+    <div class="rec-link">
+      <div class="rec-link-ico"><i class="ti ti-forms"></i></div>
+      <div class="rec-link-txt">
+        <strong>Questionário "Compartilhe sua história"</strong>
+        <span>Mande este link para os potenciais candidatos. As respostas, o currículo, o diploma e a CNH caem direto aqui.</span>
+      </div>
+      <div class="rec-link-btns">
+        <button class="btn btn-primary" onclick="copiarLinkPublico('candidatura.html', this)"><i class="ti ti-link"></i> Copiar link</button>
+        <a class="btn" href="candidatura.html" target="_blank" rel="noopener" title="Abre o questionário. Serve também para cadastrar alguém que mandou o currículo por fora."><i class="ti ti-external-link"></i> Abrir</a>
+      </div>
+    </div>
+
+    <div class="metric-grid" id="recKpis"></div>
+
+    <div class="toolbar">
+      <input type="text" id="recBusca" class="cand-busca" placeholder="Buscar por nome, cidade, curso..." oninput="renderRecrutamento()">
+      <select id="recPerfil" onchange="renderRecrutamento()">
+        <option value="">Todos os perfis</option>
+        <option value="adm">Gestor Administrativo</option>
+        <option value="tec">Gestor Técnico</option>
+        <option value="fora">Fora do perfil</option>
+      </select>
+      <select id="recUniv" onchange="renderRecrutamento()">
+        <option value="">Todas as universidades</option>
+        <option value="pub">Federal ou estadual</option>
+        <option value="part">Particular</option>
+      </select>
+      <select id="recOrdem" onchange="renderRecrutamento()">
+        <option value="encaixe">Melhor encaixe primeiro</option>
+        <option value="recente">Mais recentes primeiro</option>
+      </select>
+      <label class="rec-chk"><input type="checkbox" id="recSoReq" onchange="renderRecrutamento()"> Só quem atende os requisitos</label>
+    </div>
+    <div class="toolbar"><div class="qf-row" id="recStChips"></div></div>
+    <div id="recLista"><div class="loading">Carregando...</div></div>
   </div>
 
   <!-- CANDIDATOS -->
@@ -1628,6 +1704,41 @@
 </main>
 
 <!-- MODAL CANDIDATO -->
+<!-- MODAL: CANDIDATO DO RECRUTAMENTO -->
+<div class="modal-overlay" id="mRec">
+  <div class="modal" style="max-width:760px">
+    <div class="ficha-header">
+      <div class="avatar" id="recAvatar"></div>
+      <div style="flex:1;min-width:0">
+        <div class="modal-title" style="margin-bottom:2px" id="recNome"></div>
+        <div class="rec-sub" id="recSubtitulo"></div>
+      </div>
+      <button class="icon-btn" onclick="fecharModal('mRec')" title="Fechar"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="rec-acoes" id="recAcoes"></div>
+    <div class="rec-req-box" id="recReqBox"></div>
+
+    <div class="rec-andamento">
+      <div class="form-grid">
+        <div class="fg"><label for="recStatus">Etapa</label><select id="recStatus"></select></div>
+        <div class="fg"><label for="recEntrevista">Entrevista marcada para</label><input id="recEntrevista" type="datetime-local"></div>
+        <div class="fg" style="justify-content:flex-end"><button class="btn btn-primary" onclick="recSalvar()"><i class="ti ti-device-floppy"></i> Salvar</button></div>
+        <div class="fg span3"><label for="recNotas">Anotações do RH (o candidato não vê)</label><textarea id="recNotas" placeholder="Impressões da triagem, da entrevista, próximos passos..."></textarea></div>
+      </div>
+    </div>
+
+    <div id="recRespostas"></div>
+
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn btn-danger" onclick="recExcluir()"><i class="ti ti-trash"></i> Excluir</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="recBtnAdmitido" onclick="recVirarAdmitido()"><i class="ti ti-user-check"></i> Cadastrar como admitido</button>
+        <button class="btn" onclick="fecharModal('mRec')">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="mCand">
   <div class="modal">
     <div class="modal-title" id="mCandTitulo">Novo admitido</div>
@@ -2371,6 +2482,7 @@ async function init() {
       toast('Erro ao carregar dados: ' + e.message, true);
     }
     await loadGestorProfiles();
+    carregarRecrutamento();
   }
   // PDI carrega separadamente: se a tabela "pdi" ainda não existir no Supabase,
   // o resto do portal continua funcionando normalmente.
@@ -3045,7 +3157,7 @@ async function salvarCandidato() {
   TL_FIELDS.forEach((f,i)=>{ data[f]=r$('tl'+i).value||null; });
   try {
     if(editId) { await dbUpdate('candidatos',editId,data); toast('Candidato atualizado!'); }
-    else { await dbInsert('candidatos',data); toast('Candidato cadastrado!'); }
+    else { await dbInsert('candidatos',data); await recMarcarContratado(); toast('Candidato cadastrado!'); }
     fecharModal('mCand'); editId=null;
     candidatos=await dbGet('candidatos'); populateSels(); renderAll();
   } catch(e){ toast('Erro: '+e.message,true); }
@@ -3055,6 +3167,278 @@ async function excluirCandidato(id,nome) {
   if(!confirm(`Excluir ${nome}?`)) return;
   try { await dbDelete('candidatos',id); toast('Excluído.'); candidatos=await dbGet('candidatos'); populateSels(); renderAll(); }
   catch(e){toast('Erro: '+e.message,true);}
+}
+
+// ============================================================
+// CENTRAL DE RECRUTAMENTO (R&S > Recrutamento)
+// ============================================================
+// Candidaturas chegam pelo questionário público candidatura.html (tabela
+// "recrutamento"). A triagem é automática: perfil pelo curso, faixa de idade,
+// diploma, CNH B e mudança são requisitos; universidade pública é preferência.
+let recs = [], recFiltroSt = 'andamento', viewRecId = null, recPendenteContratado = null, recTabelaOk = true;
+const REC_IDADE_MIN = 27, REC_IDADE_MAX = 44;
+const REC_ST = [
+  ['novo', 'Novo', 'b-b'], ['triagem', 'Em triagem', 'b-p'], ['entrevista', 'Entrevista', 'b-a'],
+  ['aprovado', 'Aprovado', 'b-g'], ['contratado', 'Contratado', 'b-g'],
+  ['banco', 'Banco de talentos', 'b-n'], ['reprovado', 'Não seguiu', 'b-r'],
+];
+const REC_ANDAMENTO = ['novo', 'triagem', 'entrevista', 'aprovado'];
+const recStInfo = k => REC_ST.find(s => s[0] === k) || REC_ST[0];
+
+async function carregarRecrutamento() {
+  try { recs = await dbGet('recrutamento'); recTabelaOk = true; }
+  catch (e) { recs = []; recTabelaOk = false; console.warn('Recrutamento: tabela "recrutamento" ainda não existe no Supabase.', e.message); }
+  renderRecrutamento();
+}
+
+function recIdade(r) {
+  if (!r.data_nascimento) return null;
+  const n = new Date(r.data_nascimento + 'T00:00:00'), h = new Date();
+  let i = h.getFullYear() - n.getFullYear();
+  if (h.getMonth() < n.getMonth() || (h.getMonth() === n.getMonth() && h.getDate() < n.getDate())) i--;
+  return i;
+}
+function recPerfil(r) {
+  const c = semAcento(r.curso);
+  if (/administra|contab/.test(c)) return 'adm';
+  if (/engenharia/.test(c) && /mecanica|petroleo/.test(c)) return 'tec';
+  return 'fora';
+}
+const REC_PERFIL_LBL = { adm: 'Gestor Administrativo', tec: 'Gestor Técnico', fora: 'Fora do perfil' };
+const recPublica = r => r.tipo_univ === 'Federal' || r.tipo_univ === 'Estadual';
+
+// Requisitos: ok = true/false, ou null quando a pessoa não respondeu.
+function recCriterios(r) {
+  const idade = recIdade(r), perfil = recPerfil(r);
+  const cnhVencida = r.cnh_validade && r.cnh_validade < hojeISO();
+  return [
+    { k: 'perfil', lbl: perfil === 'fora' ? 'Curso' : (perfil === 'adm' ? 'Adm/Contábeis' : 'Eng. Mec/Petróleo'), ok: perfil !== 'fora', dica: r.curso || 'Curso não informado' },
+    { k: 'idade', lbl: idade != null ? idade + ' anos' : 'Idade', ok: idade == null ? null : (idade >= REC_IDADE_MIN && idade <= REC_IDADE_MAX), dica: `Faixa buscada: ${REC_IDADE_MIN} a ${REC_IDADE_MAX} anos` },
+    { k: 'diploma', lbl: 'Diploma', ok: r.diploma == null ? null : (r.diploma && r.graduacao !== 'Em andamento'), dica: r.graduacao === 'Em andamento' ? 'Graduação em andamento' : (r.diploma ? 'Tem diploma ou certificado' : 'Sem diploma') },
+    { k: 'cnh', lbl: 'CNH B', ok: r.cnh_b == null ? null : (r.cnh_b && !cnhVencida), dica: cnhVencida ? 'CNH vencida em ' + fmt(r.cnh_validade) : (r.cnh_b ? 'Tem CNH B' + (r.cnh_validade ? ' (validade ' + fmt(r.cnh_validade) + ')' : '') : 'Sem CNH B') },
+    { k: 'mob', lbl: 'Mudança', ok: r.mobilidade, dica: r.mobilidade ? 'Topa mudar de cidade/estado' : (r.mobilidade === false ? 'Não topa mudar' : 'Não respondeu') },
+    { k: 'pub', lbl: r.tipo_univ ? (recPublica(r) ? 'Univ. ' + r.tipo_univ.toLowerCase() : 'Particular') : 'Universidade', ok: r.tipo_univ ? recPublica(r) : null, pref: true, dica: 'Preferência (não elimina): universidade federal ou estadual' },
+  ];
+}
+const recAtende = r => recCriterios(r).filter(c => !c.pref).every(c => c.ok === true);
+function recEncaixe(r) { const cs = recCriterios(r); return cs.filter(c => !c.pref && c.ok === true).length * 10 + (cs.find(c => c.pref).ok ? 5 : 0); }
+
+function recChip(c) {
+  const cls = c.ok === true ? 'ok' : (c.ok === false ? (c.pref ? 'na' : 'no') : 'na');
+  const ico = c.ok === true ? 'ti-check' : (c.ok === false ? (c.pref ? 'ti-minus' : 'ti-x') : 'ti-help');
+  return `<span class="rq ${cls}${c.pref ? ' pref' : ''}" title="${escHtml(c.dica)}"><i class="ti ${ico}"></i>${escHtml(c.lbl)}</span>`;
+}
+function recBadge(st) { const s = recStInfo(st); return `<span class="badge ${s[2]}">${s[1]}</span>`; }
+const recLocal = r => [r.cidade, r.uf].filter(Boolean).join('/');
+function recDataHora(iso) { if (!iso) return '—'; const d = new Date(iso); return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
+
+function renderRecrutamento() {
+  const lista = r$('recLista'); if (!lista) return;
+  const nNovos = recs.filter(r => r.status === 'novo').length;
+  const tc = r$('recTabCount'); if (tc) { tc.textContent = nNovos; tc.style.display = nNovos ? '' : 'none'; }
+
+  if (!recTabelaOk) {
+    r$('recKpis').innerHTML = '';
+    r$('recStChips').innerHTML = '';
+    lista.innerHTML = `<div class="card empty"><i class="ti ti-database-off" style="font-size:28px;display:block;margin-bottom:8px"></i>A Central ainda não foi ligada no banco. Rode o arquivo <strong>recrutamento_schema.sql</strong> no SQL Editor do Supabase e recarregue a página.</div>`;
+    return;
+  }
+
+  // KPIs
+  const andamento = recs.filter(r => REC_ANDAMENTO.includes(r.status));
+  const semana = recs.filter(r => (Date.now() - new Date(r.created_at)) < 7 * 864e5).length;
+  const agora = new Date().toISOString();
+  const proximas = recs.filter(r => r.status === 'entrevista' && r.entrevista_em && r.entrevista_em >= agora).sort((a, b) => a.entrevista_em.localeCompare(b.entrevista_em));
+  const nEntrev = recs.filter(r => r.status === 'entrevista').length;
+  const nAprov = recs.filter(r => r.status === 'aprovado' || r.status === 'contratado').length;
+  r$('recKpis').innerHTML = `
+    <div class="metric m-b"><div class="lbl">Aguardando triagem</div><div class="val">${nNovos}</div><div class="sub">${semana} recebida${semana === 1 ? '' : 's'} nos últimos 7 dias</div></div>
+    <div class="metric m-g"><div class="lbl">Em andamento que atendem os requisitos</div><div class="val">${andamento.filter(recAtende).length}</div><div class="sub">de ${andamento.length} em andamento</div></div>
+    <div class="metric"><div class="lbl">Em entrevista</div><div class="val">${nEntrev}</div><div class="sub">${proximas.length ? 'Próxima: ' + escHtml(proximas[0].nome.split(' ')[0]) + ', ' + recDataHora(proximas[0].entrevista_em) : 'Nenhuma marcada'}</div></div>
+    <div class="metric"><div class="lbl">Aprovados / contratados</div><div class="val">${nAprov}</div><div class="sub">${recs.length} candidatura${recs.length === 1 ? '' : 's'} no total</div></div>`;
+
+  // Filtros (menos o de etapa, que vem dos chips)
+  const q = semAcento(r$('recBusca').value.trim());
+  const fPerfil = r$('recPerfil').value, fUniv = r$('recUniv').value, soReq = r$('recSoReq').checked;
+  const base = recs.filter(r => {
+    if (q && !semAcento([r.nome, r.cidade, r.uf, r.curso, r.universidade, r.email].join(' ')).includes(q)) return false;
+    if (fPerfil && recPerfil(r) !== fPerfil) return false;
+    if (fUniv === 'pub' && !recPublica(r)) return false;
+    if (fUniv === 'part' && r.tipo_univ !== 'Particular') return false;
+    if (soReq && !recAtende(r)) return false;
+    return true;
+  });
+
+  const chips = [['andamento', 'Em andamento', base.filter(r => REC_ANDAMENTO.includes(r.status)).length]]
+    .concat(REC_ST.map(s => [s[0], s[1], base.filter(r => r.status === s[0]).length]))
+    .concat([['todos', 'Todos', base.length]]);
+  r$('recStChips').innerHTML = chips.map(([k, l, n]) =>
+    `<button class="qf-btn${recFiltroSt === k ? ' active' : ''}" onclick="recFiltroSt='${k}';renderRecrutamento()">${l} · ${n}</button>`).join('');
+
+  let rows = base.filter(r => recFiltroSt === 'todos' ? true : recFiltroSt === 'andamento' ? REC_ANDAMENTO.includes(r.status) : r.status === recFiltroSt);
+  if (r$('recOrdem').value === 'encaixe') rows.sort((a, b) => recEncaixe(b) - recEncaixe(a) || String(b.created_at).localeCompare(String(a.created_at)));
+  else rows.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+
+  if (!rows.length) {
+    lista.innerHTML = `<div class="card empty">${recs.length ? 'Nenhuma candidatura com esses filtros.' : 'Nenhuma candidatura ainda. Copie o link do questionário acima e mande para os candidatos.'}</div>`;
+    return;
+  }
+  lista.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Candidato</th><th>Perfil</th><th>Formação</th><th>Requisitos</th><th>Pretensão</th><th>Recebido</th><th>Etapa</th></tr></thead>
+    <tbody>${rows.map(r => {
+      const p = recPerfil(r);
+      return `<tr class="rec-row" onclick="abrirRec('${r.id}')">
+        <td><div class="rec-nome">${r.status === 'novo' ? '<span class="rec-novo" title="Ainda não triado"></span>' : ''}${escHtml(r.nome)}</div><div class="rec-meta">${escHtml(recLocal(r) || '—')}</div></td>
+        <td><span class="badge ${p === 'adm' ? 'b-p' : p === 'tec' ? 'b-b' : 'b-n'}">${p === 'fora' ? 'Fora do perfil' : (p === 'adm' ? 'Administrativo' : 'Técnico')}</span></td>
+        <td><div>${escHtml(r.curso || '—')}</div><div class="rec-meta">${escHtml(r.universidade || '')}${r.tipo_univ ? ' · ' + escHtml(r.tipo_univ) : ''}</div></td>
+        <td><div class="rec-reqs">${recCriterios(r).map(recChip).join('')}</div></td>
+        <td style="white-space:nowrap">${escHtml(r.pretensao || '—')}</td>
+        <td style="white-space:nowrap">${fmt(String(r.created_at || '').slice(0, 10))}</td>
+        <td onclick="event.stopPropagation()"><select class="rec-st-sel" onchange="recMudarEtapa('${r.id}', this.value)" aria-label="Etapa de ${escHtml(r.nome)}">${REC_ST.map(s => `<option value="${s[0]}"${s[0] === r.status ? ' selected' : ''}>${s[1]}</option>`).join('')}</select></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+async function recMudarEtapa(id, status) {
+  try {
+    await dbUpdate('recrutamento', id, { status, atualizado_em: new Date().toISOString() });
+    const r = recs.find(x => x.id === id); if (r) r.status = status;
+    toast('Etapa: ' + recStInfo(status)[1]);
+    renderRecrutamento();
+  } catch (e) { toast('Erro: ' + e.message, true); renderRecrutamento(); }
+}
+
+function recQA(pares) {
+  const itens = pares.filter(([, v]) => v != null && String(v).trim() !== '');
+  if (!itens.length) return '<div class="rec-meta">Sem respostas nesta parte.</div>';
+  return `<div class="rec-qa">${itens.map(([q, v, wide]) => `<div${wide ? ' class="wide"' : ''}><div class="q">${q}</div><div class="a">${escHtml(v)}</div></div>`).join('')}</div>`;
+}
+const simNaoTxt = v => v === true ? 'Sim' : v === false ? 'Não' : null;
+
+function abrirRec(id) {
+  const r = recs.find(x => x.id === id); if (!r) return;
+  viewRecId = id;
+  const idade = recIdade(r), p = recPerfil(r);
+  r$('recAvatar').textContent = initials(r.nome || '?');
+  r$('recNome').textContent = r.nome;
+  r$('recSubtitulo').innerHTML = [
+    escHtml(REC_PERFIL_LBL[p]), idade != null ? idade + ' anos' : null, escHtml(recLocal(r)) || null,
+    'recebido em ' + fmt(String(r.created_at || '').slice(0, 10)),
+  ].filter(Boolean).join(' · ') + ' ' + recBadge(r.status);
+
+  const tel = String(r.telefone || '').replace(/\D/g, '');
+  const wa = tel ? 'https://wa.me/' + (tel.length <= 11 ? '55' + tel : tel) : null;
+  const docs = [['curriculo_path', 'Currículo', 'ti-file-cv'], ['diploma_path', 'Diploma', 'ti-certificate'], ['cnh_path', 'CNH', 'ti-id']];
+  r$('recAcoes').innerHTML = [
+    wa ? `<a class="btn btn-sm" href="${wa}" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i> ${escHtml(r.telefone)}</a>` : '',
+    r.email ? `<a class="btn btn-sm" href="mailto:${escHtml(r.email)}"><i class="ti ti-mail"></i> ${escHtml(r.email)}</a>` : '',
+    ...docs.map(([k, l, ico]) => r[k]
+      ? `<button class="btn btn-sm" onclick="recAbrirDoc('${escHtml(r[k])}')"><i class="ti ${ico}"></i> ${l}</button>`
+      : `<span class="btn btn-sm" style="opacity:.45;cursor:default" title="Não enviado"><i class="ti ${ico}"></i> Sem ${l === 'CNH' ? l : l.toLowerCase()}</span>`),
+  ].join('');
+
+  const cs = recCriterios(r);
+  r$('recReqBox').innerHTML = `<div class="lbl">${recAtende(r) ? 'Atende os requisitos' : 'Requisitos'}</div><div class="rec-reqs">${cs.map(c => recChip(c).replace(/>([^<]*)<\/span>$/, '>$1 <span style="font-weight:400;opacity:.8">· ' + escHtml(c.dica) + '</span></span>')).join('')}</div>`;
+
+  r$('recStatus').innerHTML = REC_ST.map(s => `<option value="${s[0]}"${s[0] === r.status ? ' selected' : ''}>${s[1]}</option>`).join('');
+  r$('recEntrevista').value = r.entrevista_em ? (() => { const d = new Date(r.entrevista_em); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); })() : '';
+  r$('recNotas').value = r.notas_rh || '';
+  r$('recBtnAdmitido').style.display = (r.status === 'aprovado' || r.status === 'contratado') ? '' : 'none';
+
+  r$('recRespostas').innerHTML = `
+    <div class="rec-sec"><h4>Vida pessoal</h4>${recQA([
+      ['Data de nascimento', r.data_nascimento ? fmt(r.data_nascimento) : null], ['Naturalidade', r.naturalidade],
+      ['Mora em', recLocal(r)], ['Como soube da vaga', r.fonte],
+      ['Estado civil / mora junto?', r.estado_civil, true], ['Filhos', r.filhos, true]])}</div>
+    <div class="rec-sec"><h4>Vida profissional</h4>${recQA([
+      ['Curso', r.curso], ['Universidade', [r.universidade, r.tipo_univ].filter(Boolean).join(' · ')],
+      ['Graduação', [r.graduacao, r.ano_conclusao].filter(Boolean).join(' · ')], ['Pretensão salarial', r.pretensao],
+      ['Idioma', r.idioma], ['Intercâmbio / experiência fora', r.intercambio],
+      ['Trabalho atual', r.empresa_atual, true], ['Salário atual e benefícios', r.salario_atual, true],
+      ['O que mais gostou / o que importa no próximo trabalho', r.gostou_trabalho, true],
+      ['Experiência mais importante', r.experiencia, true]])}</div>
+    <div class="rec-sec"><h4>Requisitos</h4>${recQA([
+      ['Topa mudança de cidade/estado', simNaoTxt(r.mobilidade)], ['Diploma ou certificado', simNaoTxt(r.diploma)],
+      ['CNH B', simNaoTxt(r.cnh_b)], ['Validade da CNH', r.cnh_validade ? fmt(r.cnh_validade) : null],
+      ['O que facilita a mudança', r.mobilidade_obs, true]])}</div>
+    <div class="rec-sec"><h4>Hobbies e life style</h4>${recQA([
+      ['Dias livres', r.dias_livres, true], ['Informações e canais que acompanha', r.canais_info, true],
+      ['Metas / propósito de vida', r.metas, true], ['Atividade física / esporte', r.atividade_fisica, true]])}</div>`;
+  r$('mRec').classList.add('open');
+}
+
+async function recSalvar() {
+  const r = recs.find(x => x.id === viewRecId); if (!r) return;
+  const ent = r$('recEntrevista').value;
+  const dados = {
+    status: r$('recStatus').value,
+    entrevista_em: ent ? new Date(ent).toISOString() : null,
+    notas_rh: r$('recNotas').value.trim() || null,
+    atualizado_em: new Date().toISOString(),
+  };
+  if (dados.entrevista_em && (dados.status === 'novo' || dados.status === 'triagem')) dados.status = 'entrevista';
+  try {
+    await dbUpdate('recrutamento', r.id, dados);
+    Object.assign(r, dados);
+    toast('Candidatura atualizada!');
+    renderRecrutamento();
+    abrirRec(r.id);
+  } catch (e) { toast('Erro: ' + e.message, true); }
+}
+
+// Os documentos ficam num bucket privado: gera um link temporário (10 min) na hora de abrir.
+async function recAbrirDoc(path) {
+  const w = window.open('', '_blank');
+  try {
+    const res = await authFetch(`${SUPA_STORAGE}/object/sign/recrutamento/${path}`, { method: 'POST', body: JSON.stringify({ expiresIn: 600 }) });
+    if (!res.ok) throw new Error(await res.text());
+    const j = await res.json();
+    const url = SUPA_STORAGE + (j.signedURL || j.signedUrl);
+    if (w) w.location = url; else location.href = url;
+  } catch (e) { if (w) w.close(); toast('Não abriu o documento: ' + e.message, true); }
+}
+
+async function recExcluir() {
+  const r = recs.find(x => x.id === viewRecId); if (!r) return;
+  if (!confirm(`Excluir a candidatura de ${r.nome}? Os documentos enviados também serão apagados.`)) return;
+  try {
+    const arquivos = [r.curriculo_path, r.diploma_path, r.cnh_path].filter(Boolean);
+    if (arquivos.length) await authFetch(`${SUPA_STORAGE}/object/recrutamento`, { method: 'DELETE', body: JSON.stringify({ prefixes: arquivos }) }).catch(() => {});
+    await dbDelete('recrutamento', r.id);
+    recs = recs.filter(x => x.id !== r.id);
+    fecharModal('mRec');
+    toast('Candidatura excluída.');
+    renderRecrutamento();
+  } catch (e) { toast('Erro: ' + e.message, true); }
+}
+
+// Aprovado → abre o "Novo admitido" já preenchido. Ao salvar, a candidatura vira "Contratado".
+function recVirarAdmitido() {
+  const r = recs.find(x => x.id === viewRecId); if (!r) return;
+  fecharModal('mRec');
+  abrirModal('candidato');
+  recPendenteContratado = r.id;
+  r$('fNome').value = r.nome || '';
+  r$('fCargo').value = recPerfil(r) === 'tec' ? 'Gestor Técnico' : 'Gestor Administrativo';
+  r$('fEstado').value = r.uf || '';
+  r$('fUniv').value = r.universidade || '';
+  if (r.tipo_univ) r$('fTUniv').value = r.tipo_univ;
+  if (r.fonte && [...r$('fFonte').options].some(o => o.value === r.fonte)) r$('fFonte').value = r.fonte;
+  r$('fRecr').value = 'Perbras';
+  const ano = r.data_nascimento ? Number(r.data_nascimento.slice(0, 4)) : null;
+  if (ano) r$('fGer').value = ano >= 1997 ? 'Z' : ano >= 1981 ? 'Y' : 'X';
+  r$('fObs').value = 'Veio da Central de Recrutamento.' + (r.notas_rh ? '\n' + r.notas_rh : '');
+  r$('fFotoInitials').textContent = initials(r.nome || '?');
+  toast('Confira os dados e complete o resto (turma, gênero, DISC, datas).');
+}
+async function recMarcarContratado() {
+  const id = recPendenteContratado; recPendenteContratado = null;
+  if (!id) return;
+  try {
+    await dbUpdate('recrutamento', id, { status: 'contratado', atualizado_em: new Date().toISOString() });
+    const r = recs.find(x => x.id === id); if (r) r.status = 'contratado';
+    renderRecrutamento();
+  } catch (e) { console.warn('Não marcou a candidatura como contratada:', e.message); }
 }
 
 // ============================================================
@@ -3299,6 +3683,7 @@ function abrirModal(tipo) {
 
 function fecharModal(id) {
   r$(id).classList.remove('open'); editId=null; viewId=null; editCustoId=null; editPDIId=null; viewPDIId=null; viewMonitoriaId=null;
+  if(id==='mCand') recPendenteContratado=null;
 }
 
 // Fechar ao clicar fora
