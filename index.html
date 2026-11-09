@@ -338,6 +338,7 @@
   .rec-nome { font-weight: 600; display: flex; align-items: center; gap: 6px; }
   .rec-novo { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
   .rec-meta { font-size: 11.5px; color: var(--text3); margin-top: 2px; }
+  .rec-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .rec-reqs { display: flex; gap: 4px; flex-wrap: wrap; }
   .rq { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 500; white-space: nowrap; }
   .rq i { font-size: 12px; }
@@ -3175,7 +3176,7 @@ async function excluirCandidato(id,nome) {
 // Candidaturas chegam pelo questionário público candidatura.html (tabela
 // "recrutamento"). A triagem é automática: perfil pelo curso, faixa de idade,
 // diploma, CNH B e mudança são requisitos; universidade pública é preferência.
-let recs = [], recFiltroSt = 'andamento', viewRecId = null, recPendenteContratado = null, recTabelaOk = true;
+let recs = [], recFiltroSt = 'andamento', viewRecId = null, recPendenteContratado = null, recTabelaOk = true, recLimite = 200;
 const REC_IDADE_MIN = 27, REC_IDADE_MAX = 44;
 const REC_ST = [
   ['novo', 'Novo', 'b-b'], ['triagem', 'Em triagem', 'b-p'], ['entrevista', 'Entrevista', 'b-a'],
@@ -3186,13 +3187,22 @@ const REC_ANDAMENTO = ['novo', 'triagem', 'entrevista', 'aprovado'];
 const recStInfo = k => REC_ST.find(s => s[0] === k) || REC_ST[0];
 
 async function carregarRecrutamento() {
-  try { recs = await dbGet('recrutamento'); recTabelaOk = true; }
+  try {
+    const todos = [];
+    for (let de = 0; ; de += 1000) {
+      const resp = await authFetch(`${SUPA_URL}/recrutamento?order=created_at.desc&limit=1000&offset=${de}`);
+      if (!resp.ok) throw new Error(await resp.text());
+      const lote = await resp.json(); todos.push(...lote);
+      if (lote.length < 1000) break;
+    }
+    recs = todos; recTabelaOk = true;
+  }
   catch (e) { recs = []; recTabelaOk = false; console.warn('Recrutamento: tabela "recrutamento" ainda não existe no Supabase.', e.message); }
   renderRecrutamento();
 }
 
 function recIdade(r) {
-  if (!r.data_nascimento) return null;
+  if (!r.data_nascimento) return r.idade_informada ?? null;
   const n = new Date(r.data_nascimento + 'T00:00:00'), h = new Date();
   let i = h.getFullYear() - n.getFullYear();
   if (h.getMonth() < n.getMonth() || (h.getMonth() === n.getMonth() && h.getDate() < n.getDate())) i--;
@@ -3213,7 +3223,7 @@ function recCriterios(r) {
   const cnhVencida = r.cnh_validade && r.cnh_validade < hojeISO();
   return [
     { k: 'perfil', lbl: perfil === 'fora' ? 'Curso' : (perfil === 'adm' ? 'Adm/Contábeis' : 'Eng. Mec/Petróleo'), ok: perfil !== 'fora', dica: r.curso || 'Curso não informado' },
-    { k: 'idade', lbl: idade != null ? idade + ' anos' : 'Idade', ok: idade == null ? null : (idade >= REC_IDADE_MIN && idade <= REC_IDADE_MAX), dica: `Faixa buscada: ${REC_IDADE_MIN} a ${REC_IDADE_MAX} anos` },
+    { k: 'idade', lbl: idade != null ? idade + ' anos' : 'Idade', ok: idade == null ? null : (idade >= REC_IDADE_MIN && idade <= REC_IDADE_MAX), dica: `Faixa buscada: ${REC_IDADE_MIN} a ${REC_IDADE_MAX} anos` + (!r.data_nascimento && r.idade_informada ? ' (idade informada na época da resposta)' : '') },
     { k: 'diploma', lbl: 'Diploma', ok: r.diploma == null ? null : (r.diploma && r.graduacao !== 'Em andamento'), dica: r.graduacao === 'Em andamento' ? 'Graduação em andamento' : (r.diploma ? 'Tem diploma ou certificado' : 'Sem diploma') },
     { k: 'cnh', lbl: 'CNH B', ok: r.cnh_b == null ? null : (r.cnh_b && !cnhVencida), dica: cnhVencida ? 'CNH vencida em ' + fmt(r.cnh_validade) : (r.cnh_b ? 'Tem CNH B' + (r.cnh_validade ? ' (validade ' + fmt(r.cnh_validade) + ')' : '') : 'Sem CNH B') },
     { k: 'mob', lbl: 'Mudança', ok: r.mobilidade, dica: r.mobilidade ? 'Topa mudar de cidade/estado' : (r.mobilidade === false ? 'Não topa mudar' : 'Não respondeu') },
@@ -3230,6 +3240,7 @@ function recChip(c) {
 }
 function recBadge(st) { const s = recStInfo(st); return `<span class="badge ${s[2]}">${s[1]}</span>`; }
 const recLocal = r => [r.cidade, r.uf].filter(Boolean).join('/');
+const recDaPlanilha = r => String(r.origem || '').startsWith('planilha');
 function recDataHora(iso) { if (!iso) return '—'; const d = new Date(iso); return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
 
 function renderRecrutamento() {
@@ -3273,7 +3284,7 @@ function renderRecrutamento() {
     .concat(REC_ST.map(s => [s[0], s[1], base.filter(r => r.status === s[0]).length]))
     .concat([['todos', 'Todos', base.length]]);
   r$('recStChips').innerHTML = chips.map(([k, l, n]) =>
-    `<button class="qf-btn${recFiltroSt === k ? ' active' : ''}" onclick="recFiltroSt='${k}';renderRecrutamento()">${l} · ${n}</button>`).join('');
+    `<button class="qf-btn${recFiltroSt === k ? ' active' : ''}" onclick="recFiltroSt='${k}';recLimite=200;renderRecrutamento()">${l} · ${n}</button>`).join('');
 
   let rows = base.filter(r => recFiltroSt === 'todos' ? true : recFiltroSt === 'andamento' ? REC_ANDAMENTO.includes(r.status) : r.status === recFiltroSt);
   if (r$('recOrdem').value === 'encaixe') rows.sort((a, b) => recEncaixe(b) - recEncaixe(a) || String(b.created_at).localeCompare(String(a.created_at)));
@@ -3283,6 +3294,7 @@ function renderRecrutamento() {
     lista.innerHTML = `<div class="card empty">${recs.length ? 'Nenhuma candidatura com esses filtros.' : 'Nenhuma candidatura ainda. Copie o link do questionário acima e mande para os candidatos.'}</div>`;
     return;
   }
+  const total = rows.length; rows = rows.slice(0, recLimite);
   lista.innerHTML = `<div class="table-wrap"><table>
     <thead><tr><th>Candidato</th><th>Perfil</th><th>Formação</th><th>Requisitos</th><th>Pretensão</th><th>Recebido</th><th>Etapa</th></tr></thead>
     <tbody>${rows.map(r => {
@@ -3290,13 +3302,14 @@ function renderRecrutamento() {
       return `<tr class="rec-row" onclick="abrirRec('${r.id}')">
         <td><div class="rec-nome">${r.status === 'novo' ? '<span class="rec-novo" title="Ainda não triado"></span>' : ''}${escHtml(r.nome)}</div><div class="rec-meta">${escHtml(recLocal(r) || '—')}</div></td>
         <td><span class="badge ${p === 'adm' ? 'b-p' : p === 'tec' ? 'b-b' : 'b-n'}">${p === 'fora' ? 'Fora do perfil' : (p === 'adm' ? 'Administrativo' : 'Técnico')}</span></td>
-        <td><div>${escHtml(r.curso || '—')}</div><div class="rec-meta">${escHtml(r.universidade || '')}${r.tipo_univ ? ' · ' + escHtml(r.tipo_univ) : ''}</div></td>
+        <td style="min-width:180px;max-width:260px"><div>${escHtml(r.curso || '—')}</div><div class="rec-meta rec-clamp" title="${escHtml(r.universidade || '')}">${escHtml(r.universidade || '')}${r.tipo_univ ? ' · ' + escHtml(r.tipo_univ) : ''}</div></td>
         <td><div class="rec-reqs">${recCriterios(r).map(recChip).join('')}</div></td>
-        <td style="white-space:nowrap">${escHtml(r.pretensao || '—')}</td>
-        <td style="white-space:nowrap">${fmt(String(r.created_at || '').slice(0, 10))}</td>
+        <td style="min-width:90px;max-width:170px"><div class="rec-clamp" title="${escHtml(r.pretensao || '')}">${escHtml(r.pretensao || '—')}</div></td>
+        <td style="white-space:nowrap">${recDaPlanilha(r) ? '<span class="rec-meta" title="Importado da planilha do Forms">Planilha</span>' : fmt(String(r.created_at || '').slice(0, 10))}</td>
         <td onclick="event.stopPropagation()"><select class="rec-st-sel" onchange="recMudarEtapa('${r.id}', this.value)" aria-label="Etapa de ${escHtml(r.nome)}">${REC_ST.map(s => `<option value="${s[0]}"${s[0] === r.status ? ' selected' : ''}>${s[1]}</option>`).join('')}</select></td>
       </tr>`;
-    }).join('')}</tbody></table></div>`;
+    }).join('')}</tbody></table></div>`
+    + (total > rows.length ? `<div style="text-align:center;margin-top:12px"><button class="btn" onclick="recLimite+=200;renderRecrutamento()">Mostrar mais (${rows.length} de ${total})</button></div>` : '');
 }
 
 async function recMudarEtapa(id, status) {
@@ -3323,7 +3336,7 @@ function abrirRec(id) {
   r$('recNome').textContent = r.nome;
   r$('recSubtitulo').innerHTML = [
     escHtml(REC_PERFIL_LBL[p]), idade != null ? idade + ' anos' : null, escHtml(recLocal(r)) || null,
-    'recebido em ' + fmt(String(r.created_at || '').slice(0, 10)),
+    recDaPlanilha(r) ? 'veio da planilha do Forms' : 'recebido em ' + fmt(String(r.created_at || '').slice(0, 10)),
   ].filter(Boolean).join(' · ') + ' ' + recBadge(r.status);
 
   const tel = String(r.telefone || '').replace(/\D/g, '');
@@ -3347,7 +3360,7 @@ function abrirRec(id) {
 
   r$('recRespostas').innerHTML = `
     <div class="rec-sec"><h4>Vida pessoal</h4>${recQA([
-      ['Data de nascimento', r.data_nascimento ? fmt(r.data_nascimento) : null], ['Naturalidade', r.naturalidade],
+      ['Data de nascimento', r.data_nascimento ? fmt(r.data_nascimento) : null], ['Idade informada (planilha)', r.data_nascimento ? null : r.idade_informada], ['Naturalidade', r.naturalidade],
       ['Mora em', recLocal(r)], ['Como soube da vaga', r.fonte],
       ['Estado civil / mora junto?', r.estado_civil, true], ['Filhos', r.filhos, true]])}</div>
     <div class="rec-sec"><h4>Vida profissional</h4>${recQA([

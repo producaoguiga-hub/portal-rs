@@ -24,3 +24,9 @@ auxilios_import*.sql
 
 # Cargos e salários reais dos gestores. Fica só local.
 pessoas_rh_import*.sql
+
+# Planilha de candidatos e SQLs de importação do Recrutamento (dados pessoais). Fica só local.
+.claude/portal-rs/
+importar/
+candidatos*.csv
+recrutamento_import*.sql
