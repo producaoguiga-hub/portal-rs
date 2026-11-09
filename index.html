@@ -338,6 +338,8 @@
   .rec-nome { font-weight: 600; display: flex; align-items: center; gap: 6px; }
   .rec-novo { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
   .rec-meta { font-size: 11.5px; color: var(--text3); margin-top: 2px; }
+  .rec-wa { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #25d366; color: #fff; font-size: 16px; text-decoration: none; margin-left: auto; }
+  .rec-wa:hover { background: #1da851; }
   .rec-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .rec-reqs { display: flex; gap: 4px; flex-wrap: wrap; }
   .rq { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 500; white-space: nowrap; }
@@ -3273,6 +3275,13 @@ function recChip(c) {
   return `<span class="rq ${cls}${c.pref ? ' pref' : ''}" title="${escHtml(c.dica)}"><i class="ti ${ico}"></i>${escHtml(c.lbl)}</span>`;
 }
 function recBadge(st) { const s = recStInfo(st); return `<span class="badge ${s[2]}">${s[1]}</span>`; }
+// Link do WhatsApp a partir do telefone. Se a pessoa escreveu dois números, usa o primeiro.
+function recWa(r) {
+  const primeiro = String(r.telefone || '').split(/\s*(?:\/|,|;|\bou\b|\be\b)\s*/i).find(t => /\d{8}/.test(t.replace(/\D/g, ''))) || '';
+  let d = primeiro.replace(/\D/g, '').replace(/^0+/, '');
+  if (d.length === 10 || d.length === 11) d = '55' + d;
+  return (d.length === 12 || d.length === 13) && d.startsWith('55') ? 'https://wa.me/' + d : null;
+}
 const recLocal = r => [r.cidade, r.uf].filter(Boolean).join('/');
 const recDaPlanilha = r => String(r.origem || '').startsWith('planilha');
 function recDataHora(iso) { if (!iso) return '—'; const d = new Date(iso); return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
@@ -3334,7 +3343,7 @@ function renderRecrutamento() {
     <tbody>${rows.map(r => {
       const p = recPerfil(r);
       return `<tr class="rec-row" onclick="abrirRec('${r.id}')">
-        <td><div class="rec-nome">${r.status === 'novo' ? '<span class="rec-novo" title="Ainda não triado"></span>' : ''}${escHtml(r.nome)}</div><div class="rec-meta">${escHtml(recLocal(r) || '—')}</div></td>
+        <td><div class="rec-nome">${r.status === 'novo' ? '<span class="rec-novo" title="Ainda não triado"></span>' : ''}${escHtml(r.nome)}${recWa(r) ? `<a class="rec-wa" href="${recWa(r)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Chamar no WhatsApp: ${escHtml(r.telefone)}" aria-label="Chamar ${escHtml(r.nome)} no WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>` : ''}</div><div class="rec-meta">${escHtml(recLocal(r) || '—')}</div></td>
         <td><span class="badge ${p === 'adm' ? 'b-p' : p === 'tec' ? 'b-b' : 'b-n'}">${p === 'fora' ? 'Fora do perfil' : (p === 'adm' ? 'Administrativo' : 'Técnico')}</span></td>
         <td style="min-width:180px;max-width:260px"><div>${escHtml(r.curso || '—')}</div><div class="rec-meta rec-clamp" title="${escHtml(r.universidade || '')}">${escHtml(r.universidade || '')}${r.tipo_univ ? ' · ' + escHtml(r.tipo_univ) : ''}</div></td>
         <td><div class="rec-reqs">${recCriterios(r).map(recChip).join('')}</div></td>
@@ -3373,8 +3382,7 @@ function abrirRec(id) {
     recDaPlanilha(r) ? 'veio da planilha do Forms' : 'recebido em ' + fmt(String(r.created_at || '').slice(0, 10)),
   ].filter(Boolean).join(' · ') + ' ' + recBadge(r.status);
 
-  const tel = String(r.telefone || '').replace(/\D/g, '');
-  const wa = tel ? 'https://wa.me/' + (tel.length <= 11 ? '55' + tel : tel) : null;
+  const wa = recWa(r);
   const docs = [['curriculo_path', 'Currículo', 'ti-file-cv'], ['diploma_path', 'Diploma', 'ti-certificate'], ['cnh_path', 'CNH', 'ti-id']];
   r$('recAcoes').innerHTML = [
     wa ? `<a class="btn btn-sm" href="${wa}" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i> ${escHtml(r.telefone)}</a>` : '',
