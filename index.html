@@ -1384,8 +1384,8 @@
         <option value="part">Particular</option>
       </select>
       <select id="recOrdem" onchange="renderRecrutamento()">
-        <option value="encaixe">Melhor encaixe primeiro</option>
         <option value="recente">Mais recentes primeiro</option>
+        <option value="encaixe">Melhor encaixe primeiro</option>
       </select>
       <label class="rec-chk"><input type="checkbox" id="recSoReq" onchange="renderRecrutamento()"> Só quem atende os requisitos</label>
     </div>
@@ -3341,7 +3341,7 @@ function renderRecrutamento() {
   }
   const total = rows.length; rows = rows.slice(0, recLimite);
   lista.innerHTML = `<div class="table-wrap"><table>
-    <thead><tr><th>Candidato</th><th>Perfil</th><th>Formação</th><th>Requisitos</th><th>Pretensão</th><th>Recebido</th><th>Etapa</th></tr></thead>
+    <thead><tr><th>Candidato</th><th>Perfil</th><th>Formação</th><th>Requisitos</th><th>Pretensão</th><th>Preenchido em</th><th>Etapa</th></tr></thead>
     <tbody>${rows.map(r => {
       const p = recPerfil(r);
       return `<tr class="rec-row" onclick="abrirRec('${r.id}')">
@@ -3350,7 +3350,7 @@ function renderRecrutamento() {
         <td style="min-width:180px;max-width:260px"><div>${escHtml(r.curso || '—')}</div><div class="rec-meta rec-clamp" title="${escHtml(r.universidade || '')}">${escHtml(r.universidade || '')}${r.tipo_univ ? ' · ' + escHtml(r.tipo_univ) : ''}</div></td>
         <td><div class="rec-reqs">${recCriterios(r).map(recChip).join('')}</div></td>
         <td style="min-width:90px;max-width:170px"><div class="rec-clamp" title="${escHtml(r.pretensao || '')}">${escHtml(r.pretensao || '—')}</div></td>
-        <td style="white-space:nowrap">${recDaPlanilha(r) ? '<span class="rec-meta" title="Importado da planilha do Forms">Planilha</span>' : fmt(String(r.created_at || '').slice(0, 10))}</td>
+        <td style="white-space:nowrap">${recDaPlanilha(r) ? '<span class="rec-meta" title="Importado da planilha do Forms">Planilha</span>' : (() => { const d = new Date(r.created_at); return `<div title="Preenchido em ${recDataHora(r.created_at)}">${d.toLocaleDateString('pt-BR')}</div><div class="rec-meta">às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>`; })()}</td>
         <td onclick="event.stopPropagation()"><select class="rec-st-sel" onchange="recMudarEtapa('${r.id}', this.value)" aria-label="Etapa de ${escHtml(r.nome)}">${REC_ST.map(s => `<option value="${s[0]}"${s[0] === r.status ? ' selected' : ''}>${s[1]}</option>`).join('')}</select></td>
       </tr>`;
     }).join('')}</tbody></table></div>`
