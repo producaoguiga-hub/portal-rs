@@ -1645,7 +1645,8 @@
     <p style="font-size:12.5px;color:var(--text2);margin:-1rem 0 1.25rem;max-width:620px;line-height:1.6">Avaliações feitas pelos monitores sobre gestores novos, ao fim do período de monitoria/rotação.</p>
     <div class="toolbar">
       <input type="text" id="monFiltro" placeholder="Buscar por gestor ou monitor..." oninput="renderMonitorias()" style="min-width:240px">
-      <button class="btn" onclick="r$('monFiltro').value='';renderMonitorias()"><i class="ti ti-x"></i> Limpar</button>
+      <select id="monAno" onchange="renderMonitorias()" aria-label="Ano"><option value="">Todos os anos</option></select>
+      <button class="btn" onclick="r$('monFiltro').value='';r$('monAno').value='';renderMonitorias()"><i class="ti ti-x"></i> Limpar</button>
       <button class="btn admin-only" onclick="copiarLinkPublico('monitoria_form.html', this)"><i class="ti ti-link"></i> Copiar link da Monitoria</button>
       <button class="btn admin-only" onclick="r$('monPdfInput').click()"><i class="ti ti-file-upload"></i> Importar de PDF</button>
       <input type="file" id="monPdfInput" accept="application/pdf" style="display:none" onchange="onMonitoriaPdfSelected(this)">
@@ -2340,6 +2341,7 @@
         <input id="mfGestorEmail" type="email" placeholder="nome@perbras.com.br">
       </div>
       <div class="fg"><label>Unidade</label><input id="mfUnidade" type="text" list="dlMonUnidades"><datalist id="dlMonUnidades"></datalist></div>
+      <div class="fg"><label>Ano</label><input id="mfAno" type="number" min="2015" max="2100" placeholder="Ex: 2026"></div>
       <div class="fg"><label>Duração</label><input id="mfDuracao" type="text" placeholder="Ex: 2 meses"></div>
       <div class="fg"><label>NPS — recomendaria o gestor (0 a 10)</label><input id="mfNps" type="number" min="0" max="10"></div>
     </div>
@@ -5219,10 +5221,28 @@ function monNotas(m) { return MON_PERGUNTAS.map(p=>m['nota_'+p.campo]).filter(n=
 function monMedia(m) { const ns=monNotas(m); return ns.length? ns.reduce((a,b)=>a+b,0)/ns.length : null; }
 function monNotaClass(media) { if(media==null) return ''; return media>=4?'n-alta':media>=3?'n-media':'n-baixa'; }
 
+// Ano da monitoria: o campo "ano"; se ainda não existir, tenta a data escrita na duração.
+function monAno(m) {
+  if (m.ano) return Number(m.ano);
+  const anos = String(m.duracao || '').match(/20\d{2}/g);
+  return anos ? Number(anos[anos.length - 1]) : null;
+}
+const monAnoTxt = m => monAno(m) || 'Sem ano';
+
 function renderMonitorias() {
   const elGrid=r$('monGroups'); if(!elGrid) return;
   const termo=(r$('monFiltro')?.value||'').toLowerCase().trim();
-  const f = monitorias.filter(m => !termo || (m.gestor_nome||'').toLowerCase().includes(termo) || (m.monitor_nome||'').toLowerCase().includes(termo));
+  const selAno = r$('monAno');
+  if (selAno) {
+    const atual = selAno.value;
+    const anos = [...new Set(monitorias.map(monAno).filter(Boolean))].sort((a,b)=>b-a);
+    const temSem = monitorias.some(m => !monAno(m));
+    selAno.innerHTML = '<option value="">Todos os anos</option>' + anos.map(a=>`<option value="${a}">${a}</option>`).join('') + (temSem ? '<option value="sem">Sem ano</option>' : '');
+    selAno.value = [...selAno.options].some(o => o.value === atual) ? atual : '';
+  }
+  const fAno = selAno ? selAno.value : '';
+  const f = monitorias.filter(m => (!termo || (m.gestor_nome||'').toLowerCase().includes(termo) || (m.monitor_nome||'').toLowerCase().includes(termo))
+    && (!fAno || (fAno === 'sem' ? !monAno(m) : String(monAno(m)) === fAno)));
 
   renderAvaliacoesMonitor();
   const gestoresSet=new Set(f.map(m=>m.gestor_nome).filter(Boolean));
@@ -5246,15 +5266,15 @@ function renderMonitorias() {
     return `<div class="pdi-card" onclick="abrirGestorMonitorias('${gEsc}')">
       <div class="pdi-card-head">
         <div class="avatar" style="cursor:pointer" title="Clique para trocar a foto" onclick="event.stopPropagation();abrirUploadGestorFoto('${gEsc}')">${avatarHtml}</div>
-        <div><div class="nm">${g}</div><div class="un">${unidade}</div></div>
+        <div><div class="nm">${g}</div><div class="un">${unidade} · ${[...new Set(items.map(monAnoTxt))].join(', ')}</div></div>
       </div>
       <div class="pdi-card-stats">
         <span>${items.length} ${items.length!==1?'avaliações':'avaliação'} de monitoria</span>
         ${mediaGeral!=null?`<span class="mon-nota ${monNotaClass(mediaGeral)}">${mediaGeral.toFixed(1)}</span>`:''}
       </div>
       ${npsMedia!=null?`<div style="font-size:11.5px;color:var(--text2);margin-top:6px">Recomendaria o gestor (NPS 0–10): <b style="color:var(--text)">${npsMedia}</b></div>`:''}
-      ${(st => `<div style="margin-top:8px"><span class="mc-status ${st.cls}">${st.txt}</span></div>`)(consolidadoStatus(g, items.length))}
-      <div class="pdi-mini-list">${items.slice(0,3).map(m=>`<div class="pdi-mini-item"><span class="pdi-dot" style="background:${monDotColor(monMedia(m))}"></span><span class="txt">Monitor: ${m.monitor_nome||'—'} · ${m.duracao||'—'}</span></div>`).join('')}${items.length>3?`<div style="font-size:11px;color:var(--text3)">+${items.length-3} outra${items.length-3!==1?'s':''} ${items.length-3!==1?'avaliações':'avaliação'}</div>`:''}</div>
+      ${(st => `<div style="margin-top:8px"><span class="mc-status ${st.cls}">${st.txt}</span></div>`)(consolidadoStatus(g, monitorias.filter(m=>m.gestor_nome===g).length))}
+      <div class="pdi-mini-list">${items.slice(0,3).map(m=>`<div class="pdi-mini-item"><span class="pdi-dot" style="background:${monDotColor(monMedia(m))}"></span><span class="txt">${monAnoTxt(m)} · Monitor: ${m.monitor_nome||'—'} · ${m.duracao||'—'}</span></div>`).join('')}${items.length>3?`<div style="font-size:11px;color:var(--text3)">+${items.length-3} outra${items.length-3!==1?'s':''} ${items.length-3!==1?'avaliações':'avaliação'}</div>`:''}</div>
     </div>`;
   }).join('') + `</div>`;
 }
@@ -5341,7 +5361,7 @@ function abrirGestorMonitorias(nome) {
   r$('mcIndividuais').innerHTML = navIds.map(id => {
     const m = items.find(x=>x.id===id), md = monMedia(m);
     return `<div class="mc-ind">
-      <div style="flex:1"><b>Monitor: ${escHtml(m.monitor_nome||'—')}</b><span>${escHtml([m.unidade, m.duracao].filter(Boolean).join(' · '))}</span></div>
+      <div style="flex:1"><b>Monitor: ${escHtml(m.monitor_nome||'—')}</b><span>${escHtml([monAnoTxt(m), m.unidade, m.duracao].filter(Boolean).join(' · '))}</span></div>
       ${md!=null?`<span class="mon-nota ${monNotaClass(md)}">${md.toFixed(1)}</span>`:''}
       <button class="btn" onclick="r$('mConsolidado').classList.remove('open');abrirMonitoriaFicha('${id}', ${JSON.stringify(navIds).replace(/"/g,"'")})"><i class="ti ti-eye"></i> Ver</button>
       <button class="btn btn-primary" onclick="exportarMonitoriaPDF('${id}')"><i class="ti ti-file-type-pdf"></i> Exportar PDF</button>
@@ -5478,7 +5498,7 @@ function abrirMonitoriaFicha(id, navList) {
   const gp = gestorProfiles[m.gestor_nome];
   r$('monFichaAvatar').innerHTML = gp && gp.foto_url ? `<img src="${gp.foto_url}" loading="lazy" decoding="async">` : initials(m.gestor_nome||'?');
   r$('monFichaNome').textContent = m.gestor_nome||'—';
-  r$('monFichaSub').textContent = [m.unidade, 'Monitor: '+(m.monitor_nome||'—'), m.duracao].filter(Boolean).join(' · ');
+  r$('monFichaSub').textContent = [monAnoTxt(m), m.unidade, 'Monitor: '+(m.monitor_nome||'—'), m.duracao].filter(Boolean).join(' · ');
   r$('monFichaNota').innerHTML = media!=null ? `<span class="mon-nota ${monNotaClass(media)}" style="font-size:18px;padding:6px 14px">${media.toFixed(1)}</span>` : '';
   const navEl = r$('monFichaNav');
   if (navEl) {
@@ -5615,7 +5635,7 @@ function renderMonFormPerguntas() {
 
 function limparMonitoriaForm() {
   renderMonFormPerguntas();
-  r$('mfMonitor').value = ''; r$('mfUnidade').value = ''; r$('mfDuracao').value = ''; r$('mfNps').value = ''; r$('mfMelhoria').value = ''; r$('mfGestorEmail').value = '';
+  r$('mfMonitor').value = ''; r$('mfUnidade').value = ''; r$('mfDuracao').value = ''; r$('mfAno').value = new Date().getFullYear(); r$('mfNps').value = ''; r$('mfMelhoria').value = ''; r$('mfGestorEmail').value = '';
   MON_PERGUNTAS.forEach(p => { r$('mf_nota_'+p.campo).value = ''; r$('mf_coment_'+p.campo).value = ''; });
   populateMonitoriaFormSels(null);
   r$('monFormPdfNote').style.display = 'none';
@@ -5626,6 +5646,7 @@ function preencherMonitoriaForm(m) {
   r$('mfMonitor').value = m.monitor_nome || '';
   r$('mfUnidade').value = m.unidade || '';
   r$('mfDuracao').value = m.duracao || '';
+  r$('mfAno').value = monAno(m) || '';
   r$('mfNps').value = m.nps!=null ? m.nps : '';
   r$('mfMelhoria').value = m.pontos_melhoria || '';
   r$('mfGestorEmail').value = '';
@@ -5663,6 +5684,7 @@ async function salvarMonitoriaForm() {
     monitor_nome, gestor_nome,
     unidade: r$('mfUnidade').value.trim() || null,
     duracao: r$('mfDuracao').value.trim() || null,
+    ano: r$('mfAno').value ? parseInt(r$('mfAno').value, 10) : null,
     pontos_melhoria: r$('mfMelhoria').value.trim() || null,
     nps: r$('mfNps').value!=='' ? parseInt(r$('mfNps').value,10) : null,
   };
@@ -5682,8 +5704,11 @@ async function salvarMonitoriaForm() {
       const resultado = await criarLoginGestor(emailNovoLogin, gestor_nome);
       toast(resultado.msg, !resultado.ok);
     }
-    if (monFormEditId) { await dbUpdate('monitorias', monFormEditId, data); toast('Monitoria atualizada!'); }
-    else { await dbInsert('monitorias', data); toast('Monitoria cadastrada!'); }
+    // Enquanto o monitoria_ano.sql não roda, a coluna "ano" não existe: salva sem ela.
+    const gravar = d => monFormEditId ? dbUpdate('monitorias', monFormEditId, d) : dbInsert('monitorias', d);
+    try { await gravar(data); }
+    catch (e) { if (!/\bano\b/.test(e.message)) throw e; delete data.ano; await gravar(data); }
+    toast(monFormEditId ? 'Monitoria atualizada!' : 'Monitoria cadastrada!');
     fecharModal('mMonitoriaForm'); monFormEditId = null;
     monitorias = await dbGet('monitorias'); renderMonitorias();
     loadGestorProfiles();
