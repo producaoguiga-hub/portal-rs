@@ -883,6 +883,22 @@
   .pd-at-prazo { font-size: 11.5px; font-weight: 600; white-space: nowrap; padding: 3px 8px; border-radius: 4px; background: var(--amber-bg); color: var(--amber-text); }
   .pd-at.vence .pd-at-prazo { background: var(--blue-bg); color: var(--blue-text); }
   .pd-mais { font-size: 12px; color: var(--text2); padding: 10px 6px 0; }
+  .pd-mes { display: grid; grid-template-columns: minmax(220px, 280px) 1fr; gap: 12px 28px; margin-bottom: 1rem; }
+  .pd-mes-esq select { font-size: 13px; padding: 6px 8px; border-radius: 6px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); margin-top: 4px; }
+  .pd-mes-num { font-size: 44px; font-weight: 700; line-height: 1.05; margin-top: 10px; color: var(--text); }
+  .pd-mes-sub { font-size: 12px; color: var(--text2); margin-top: 4px; line-height: 1.45; }
+  .pd-mes-btns { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .pd-mes-barras { display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 150px; padding-top: 8px; }
+  .pd-mes-b { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; cursor: pointer; border-radius: 6px; padding: 2px 0; background: none; border: none; font: inherit; color: inherit; }
+  .pd-mes-b:hover { background: var(--bg2); }
+  .pd-mes-b .n { font-size: 11.5px; font-weight: 600; color: var(--text2); margin-bottom: 3px; }
+  .pd-mes-b .bar { width: 70%; max-width: 34px; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--border2); }
+  .pd-mes-b .m { font-size: 11px; color: var(--text3); margin-top: 5px; text-transform: capitalize; }
+  .pd-mes-b.sel .bar { background: var(--blue); }
+  .pd-mes-b.sel .n, .pd-mes-b.sel .m { color: var(--text); font-weight: 700; }
+  .pd-mes-regra { font-size: 11.5px; color: var(--text3); margin-top: 10px; line-height: 1.5; }
+  .pd-mes-lista { grid-column: 1 / -1; border-top: 0.5px solid var(--border); padding-top: 6px; }
+  @media (max-width: 760px) { .pd-mes { grid-template-columns: 1fr; } .pd-mes-barras { height: 120px; gap: 3px; } .pd-mes-b .m { font-size: 10px; } }
   .pd-at.concl .pd-at-dot { background: var(--st-concl); }
   .pd-at.concl .pd-at-prazo { background: var(--green-bg); color: var(--green-text); }
   .pd-at.desc .pd-at-dot { background: var(--st-desc); }
@@ -1539,6 +1555,24 @@
     <div id="pdiDashView">
       <!-- 1. Indicadores -->
       <div class="pd-kpis" id="pdKpis"></div>
+      <!-- 1b. Ativos no mês (o número que vai pro painel de indicadores da unidade) -->
+      <div class="card pd-mes admin-only" id="pdMesCard">
+        <div class="pd-mes-esq">
+          <div class="pd-card-head" style="margin-bottom:6px"><div class="card-title" style="margin:0"><i class="ti ti-calendar-stats"></i> PDIs ativos no mês</div></div>
+          <select id="pdMesSel" onchange="pdMesEscolhido=this.value;pdMesLista=false;renderPDIMes()" aria-label="Mês"></select>
+          <div class="pd-mes-num" id="pdMesNum">—</div>
+          <div class="pd-mes-sub" id="pdMesSub"></div>
+          <div class="pd-mes-btns">
+            <button class="btn btn-sm" onclick="pdMesLista=!pdMesLista;renderPDIMes()" id="pdMesBtnLista"><i class="ti ti-list"></i> Ver quais</button>
+            <button class="btn btn-sm" onclick="pdMesCopiar(this)"><i class="ti ti-copy"></i> Copiar</button>
+          </div>
+        </div>
+        <div class="pd-mes-dir">
+          <div class="pd-mes-barras" id="pdMesBarras" role="list" aria-label="PDIs ativos nos últimos 12 meses"></div>
+          <div class="pd-mes-regra">Conta todo PDI que estava vivo em algum momento do mês: já tinha começado e não estava concluído antes do mês começar, mesmo atrasado. Descontinuados não entram (o sistema não guarda a data em que foram descontinuados). Respeita os filtros de gestor e unidade.</div>
+        </div>
+        <div class="pd-mes-lista" id="pdMesLista" style="display:none"></div>
+      </div>
       <!-- 2. Status de todas as ações (uma barra, sem repetir em rosca) -->
       <div class="card psp" id="pdStatusCard">
         <div class="card-title" style="margin-bottom:12px">Status das ações</div>
@@ -4054,6 +4088,75 @@ function pdLinhaAcao(p, idsJs, prazoTxt, prazoCls, extra='') {
   </div>`;
 }
 
+// ---------- PDIs ativos no mês ----------
+// Vivo no mês = já tinha começado até o último dia do mês e não estava
+// concluído antes do primeiro dia (atrasado conta). Descontinuado fica de fora.
+let pdMesEscolhido = null, pdMesLista = false;
+const PD_MES_NOME = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const pdMesIni = ym => ym + '-01';
+const pdMesFim = ym => { const [a, m] = ym.split('-').map(Number); return new Date(Date.UTC(a, m, 0)).toISOString().slice(0, 10); };
+const pdMesNome = ym => { const [a, m] = ym.split('-').map(Number); return PD_MES_NOME[m - 1] + ' de ' + a; };
+const pdMesSoma = (ym, n) => { const [a, m] = ym.split('-').map(Number); const d = new Date(Date.UTC(a, m - 1 + n, 1)); return d.toISOString().slice(0, 7); };
+function pdVivoNoMes(p, ym) {
+  const ini = pdMesIni(ym), fim = pdMesFim(ym);
+  const comeco = p.data_inicio || String(p.created_at || '').slice(0, 10);
+  if (!comeco || comeco > fim) return false;
+  if (p.status_acao === 'Descontinuado') return false;
+  if (p.status_acao === 'Concluído') {
+    const terminou = String(p.concluido_em || '').slice(0, 10) || p.data_termino_programada;
+    if (terminou && terminou < ini) return false;
+  }
+  return true;
+}
+function pdMesBase() {
+  const gf = (r$('pfGestor')||{}).value||'', uf = (r$('pfUnidade')||{}).value||'';
+  return pdis.filter(p => (!gf || p.gestor_nome === gf) && (!uf || p.unidade === uf));
+}
+function renderPDIMes() {
+  const card = r$('pdMesCard'); if (!card) return;
+  const base = pdMesBase();
+  const atual = new Date().toISOString().slice(0, 7);
+  const inicios = base.map(p => (p.data_inicio || String(p.created_at || '').slice(0, 10)).slice(0, 7)).filter(Boolean).sort();
+  const primeiro = inicios[0] && inicios[0] < atual ? inicios[0] : pdMesSoma(atual, -11);
+  const meses = []; for (let m = atual; m >= primeiro; m = pdMesSoma(m, -1)) meses.push(m);
+  if (!pdMesEscolhido || !meses.includes(pdMesEscolhido)) pdMesEscolhido = pdMesSoma(atual, -1);
+  if (!meses.includes(pdMesEscolhido)) meses.push(pdMesEscolhido);
+  const sel = pdMesEscolhido;
+  r$('pdMesSel').innerHTML = meses.map(m => `<option value="${m}"${m === sel ? ' selected' : ''}>${pdMesNome(m)}${m === atual ? ' (até hoje)' : ''}</option>`).join('');
+
+  const vivos = base.filter(p => pdVivoNoMes(p, sel));
+  const gest = new Set(vivos.map(p => p.gestor_nome).filter(Boolean)).size;
+  const concNoMes = vivos.filter(p => p.status_acao === 'Concluído' && String(p.concluido_em || '').slice(0, 7) === sel).length;
+  const novos = vivos.filter(p => (p.data_inicio || String(p.created_at || '').slice(0, 10)).slice(0, 7) === sel).length;
+  r$('pdMesNum').textContent = vivos.length;
+  r$('pdMesSub').innerHTML = `em <b>${pdMesNome(sel)}</b> · ${gest} gestor${gest !== 1 ? 'es' : ''}<br>${novos} começa${novos !== 1 ? 'ram' : 'ou'} no mês · ${concNoMes} concluíd${concNoMes !== 1 ? 'as' : 'a'} no mês`;
+
+  // últimos 12 meses terminando no mês escolhido (ou no atual, se o escolhido for recente)
+  const fimJanela = sel < pdMesSoma(atual, -6) ? pdMesSoma(sel, 5) : atual;
+  const janela = []; for (let i = 11; i >= 0; i--) janela.push(pdMesSoma(fimJanela, -i));
+  const cont = janela.map(m => base.filter(p => pdVivoNoMes(p, m)).length);
+  const mx = Math.max(1, ...cont);
+  r$('pdMesBarras').innerHTML = janela.map((m, i) => `<button class="pd-mes-b${m === sel ? ' sel' : ''}" role="listitem" onclick="pdMesEscolhido='${m}';pdMesLista=false;renderPDIMes()" title="${pdMesNome(m)}: ${cont[i]} PDI${cont[i] !== 1 ? 's' : ''} ativo${cont[i] !== 1 ? 's' : ''}${m === atual ? ' (mês em curso)' : ''}">
+      <span class="n">${cont[i]}</span><span class="bar" style="height:${cont[i] / mx * 100}px"></span><span class="m">${PD_MES_NOME[Number(m.slice(5)) - 1].slice(0, 3)}${m.slice(5) === '01' || i === 0 ? '/' + m.slice(2, 4) : ''}</span>
+    </button>`).join('');
+
+  const lista = r$('pdMesLista');
+  r$('pdMesBtnLista').innerHTML = pdMesLista ? '<i class="ti ti-chevron-up"></i> Esconder' : '<i class="ti ti-list"></i> Ver quais';
+  lista.style.display = pdMesLista ? '' : 'none';
+  if (pdMesLista) {
+    const ord = vivos.slice().sort((a, b) => (a.gestor_nome || '').localeCompare(b.gestor_nome || ''));
+    const idsJs = JSON.stringify(ord.map(p => p.id)).replace(/"/g, "'");
+    lista.innerHTML = ord.length ? ord.map(p => {
+      const st = pdiEffectiveStatus(p);
+      return pdLinhaAcao(p, idsJs, 'hoje: ' + st.toLowerCase(), st === 'Concluído' ? 'concl' : st === 'Atrasado' ? '' : 'vence');
+    }).join('') : '<div class="pd-vazio">Nenhum PDI ativo nesse mês.</div>';
+  }
+}
+function pdMesCopiar(btn) {
+  const n = r$('pdMesNum').textContent, txt = `PDIs ativos em ${pdMesNome(pdMesEscolhido)}: ${n}`;
+  navigator.clipboard.writeText(txt).then(() => toast('Copiado: ' + txt)).catch(() => toast(txt));
+}
+
 function renderPDIDash() {
   const f = pdiFiltered();
   const total = f.length;
@@ -4113,6 +4216,7 @@ function renderPDIDash() {
       + pdKpi('<i class="ti ti-clock"></i> Vencem em 30 dias', vencendo.length, 'ainda em aberto');
   }
   r$('pdKpis').innerHTML = kpis;
+  renderPDIMes();
   r$('pdKpis').style.gridTemplateColumns = modo && !['Concluído','Em andamento','Atrasado'].includes(modo) ? '1.3fr 1fr 1fr' : '';
 
   // ---------- 2. Status (só na visão geral) ----------
