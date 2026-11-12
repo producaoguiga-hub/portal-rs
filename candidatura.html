@@ -106,6 +106,13 @@
   .disc-grid .c.menos input:checked + span { background: #4a6577; border-color: #4a6577; color: #fff; }
   .disc-grid .c input:focus-visible + span { box-shadow: 0 0 0 3px rgba(26,136,255,0.3); }
 
+  .etapa2-head { text-align: center; padding: .5rem .5rem 1.25rem; }
+  .etapa2-ok { display: inline-flex; align-items: center; gap: 6px; color: #2a6200; font-weight: 700; font-size: 14px; margin-bottom: 10px; }
+  .etapa2-ok i { font-size: 20px; }
+  .etapa2-tag { display: inline-flex; align-items: center; gap: 6px; margin: 0 auto 10px; padding: 6px 14px; border-radius: 999px; background: #0E2A3D; color: #BCFF48; font-size: 12.5px; font-weight: 700; letter-spacing: .02em; }
+  .etapa2-head h2 { font-size: 19px; margin-bottom: 6px; }
+  .etapa2-head p { font-size: 13px; color: var(--text2); line-height: 1.6; max-width: 520px; margin: 0 auto; }
+  .link-depois { background: none; border: none; color: var(--text3); font-size: 12.5px; text-decoration: underline; cursor: pointer; font-family: inherit; }
   #vagaNoScreen { display: none; text-align: center; padding: 3rem 1.5rem; }
   #vagaNoScreen h2 { font-size: 18px; margin-bottom: 8px; }
   #vagaNoScreen p { color: var(--text2); font-size: 13.5px; line-height: 1.7; max-width: 440px; margin: 0 auto; }
@@ -192,16 +199,8 @@
       </div>
 
       <div id="aposVaga" style="display:none">
-      <!-- TESTE DE PERFIL (DISC) -->
-      <div class="card" id="cardDisc">
-        <div class="sec-title"><i class="ti ti-puzzle"></i> Teste rápido de perfil</div>
-        <p class="sec-sub">Leva uns 3 minutos. Em cada bloco, marque a palavra que <b>mais</b> parece com você e a que <b>menos</b> parece. Não existe resposta certa ou errada: responda pensando em como você é no trabalho, não em como acha que deveria ser.</p>
-        <div class="disc-prog"><span id="discProgTxt">0 de 12</span><div class="bar"><span id="discProgBar" style="width:0"></span></div></div>
-        <div id="discBlocos"></div>
-      </div>
-
       <!-- VIDA PESSOAL -->
-      <div class="card">
+      <div class="card" id="cardPessoal">
         <div class="sec-title"><i class="ti ti-user"></i> Vida pessoal</div>
         <p class="sec-sub">Queremos conhecer melhor quem você é, um pouco da sua história e da sua rotina.</p>
         <div class="fg"><label for="nome">Nome completo<span class="req">*</span></label><input id="nome" autocomplete="name"></div>
@@ -350,10 +349,31 @@
     <p style="margin-top:1rem"><button class="btn-submit" style="max-width:240px;margin:0 auto" onclick="voltarVaga()"><i class="ti ti-arrow-left"></i> Voltar</button></p>
   </div>
 
+  <div id="etapa2Screen" style="display:none">
+    <div class="etapa2-head">
+      <div class="etapa2-ok" id="etapa2Ok"><i class="ti ti-circle-check"></i> <span id="etapa2OkTxt">Candidatura recebida!</span></div>
+      <div class="etapa2-tag"><i class="ti ti-lock-open"></i> Etapa 2 liberada</div>
+      <h2 id="etapa2Titulo">Teste rápido de perfil</h2>
+      <p>Leva uns 3 minutos. Em cada bloco, marque a palavra que <b>mais</b> parece com você e a que <b>menos</b> parece. Não existe resposta certa ou errada: responda pensando em como você é no trabalho, não em como acha que deveria ser.</p>
+    </div>
+    <div class="err-box" id="errBox2"></div>
+    <div class="card" id="cardDisc">
+      <div class="disc-prog"><span id="discProgTxt">0 de 12</span><div class="bar"><span id="discProgBar" style="width:0"></span></div></div>
+      <div id="discBlocos"></div>
+    </div>
+    <button class="btn-submit" id="btnTeste" onclick="enviarTeste()"><i class="ti ti-send"></i> Enviar meu teste</button>
+    <div style="text-align:center;margin-top:1rem"><button class="link-depois" onclick="fazerDepois()">Prefiro fazer depois</button></div>
+  </div>
+
+  <div id="testeFeitoScreen" style="display:none;text-align:center;padding:3rem 1.5rem">
+    <h2 style="font-size:18px;margin-bottom:8px">Esse teste já foi respondido 👍</h2>
+    <p style="color:var(--text2);font-size:13.5px;line-height:1.7;max-width:440px;margin:0 auto">Já recebemos o seu teste de perfil. Agora é com a gente: se o seu perfil seguir no processo, o RH entra em contato.</p>
+  </div>
+
   <div id="successScreen">
     <div class="ico"><i class="ti ti-circle-check"></i></div>
-    <h2>Obrigado por compartilhar sua história. Boa sorte! :D</h2>
-    <p>Recebemos a sua candidatura. Se o seu perfil seguir no processo, a equipe de RH entra em contato pelo telefone ou e-mail informados.</p>
+    <h2 id="successTitulo">Obrigado por compartilhar sua história. Boa sorte! :D</h2>
+    <p id="successTxt">Recebemos a sua candidatura e o seu teste de perfil. Se o seu perfil seguir no processo, a equipe de RH entra em contato pelo telefone ou e-mail informados.</p>
     <p style="margin-top:1rem">Conheça a Perbras: <a href="https://www.perbras.com.br" target="_blank" rel="noopener">www.perbras.com.br</a></p>
   </div>
 
@@ -394,7 +414,7 @@ document.querySelectorAll('input[name=vaga]').forEach(r => r.addEventListener('c
   if (!r.checked) return;
   if (r.value === 'nao') { $('formScreen').style.display = 'none'; $('vagaNoScreen').style.display = 'block'; window.scrollTo(0, 0); return; }
   $('aposVaga').style.display = '';
-  setTimeout(() => $('cardDisc').scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  setTimeout(() => $('cardPessoal').scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
 }));
 function voltarVaga() {
   document.querySelectorAll('input[name=vaga]').forEach(r => r.checked = false);
@@ -476,8 +496,6 @@ async function enviar() {
   $('errBox').classList.remove('show');
   if (radio('lgpd') !== 'sim') return showErr('Marque a autorização da LGPD para continuar.', document.querySelector('input[name=lgpd]').closest('.card'));
   if (radio('vaga') !== 'sim') return showErr('Confirme que leu e entendeu a vaga para continuar.', $('cardVaga'));
-  const faltaDisc = DISC_BLOCOS.findIndex((_, i) => !discBlocoOk(i));
-  if (faltaDisc >= 0) { $('discB' + faltaDisc).classList.add('falta'); return showErr(`Complete o teste de perfil: no bloco ${faltaDisc + 1}, marque uma palavra em "Mais" e outra em "Menos".`, $('discB' + faltaDisc)); }
 
   const curso = $('curso').value === '__outro' ? (val('cursoOutro') ? 'Outro: ' + val('cursoOutro') : '') : $('curso').value;
   const obrig = [
@@ -507,7 +525,9 @@ async function enviar() {
   try {
     const pasta = Date.now() + '_' + Math.random().toString(36).slice(2, 10);
     const [cv, dip, cnh] = await Promise.all([subir('Cv', 'curriculo', pasta), subir('Dip', 'diploma', pasta), subir('Cnh', 'cnh', pasta)]);
+    const recId = crypto.randomUUID ? crypto.randomUUID() : ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
     const payload = {
+      id: recId,
       lgpd_autoriza: true,
       nome: val('nome'), data_nascimento: val('nasc') || null, telefone: val('tel'), email: val('email').toLowerCase(),
       naturalidade: val('natural'), cidade: val('cidade'), uf: $('uf').value,
@@ -521,7 +541,7 @@ async function enviar() {
       diploma: simNao(radio('dipl')), cnh_b: simNao(radio('cnh')), cnh_validade: val('cnhVal') || null,
       fonte: $('fonte').value || null,
       curriculo_path: cv, diploma_path: dip, cnh_path: cnh,
-      vaga_ciente: true, disc: discResultado().letra, disc_pontos: discResultado().pontos,
+      vaga_ciente: true,
     };
     const post = body => fetch(`${SUPA_URL}/recrutamento`, {
       method: 'POST',
@@ -531,22 +551,82 @@ async function enviar() {
     let r = await post(payload);
     if (!r.ok) {
       const txt = await r.text();
-      // Se as colunas do teste ainda não existem no banco, envia o resto mesmo assim.
-      if (!/disc|vaga_ciente/.test(txt)) throw new Error(txt);
-      const resumo = `Teste de perfil: ${payload.disc} (D ${payload.disc_pontos.D} · I ${payload.disc_pontos.I} · S ${payload.disc_pontos.S} · C ${payload.disc_pontos.C})`;
-      delete payload.vaga_ciente; delete payload.disc; delete payload.disc_pontos;
-      payload.mobilidade_obs = [payload.mobilidade_obs, resumo].filter(Boolean).join('\n\n');
+      // Se a coluna nova ainda não existe no banco, envia o resto mesmo assim.
+      if (!/vaga_ciente/.test(txt)) throw new Error(txt);
+      delete payload.vaga_ciente;
       r = await post(payload);
       if (!r.ok) throw new Error(await r.text());
     }
-    $('formScreen').style.display = 'none';
-    $('successScreen').style.display = 'block';
-    window.scrollTo(0, 0);
+    abrirEtapa2(recId, null);
   } catch (e) {
     showErr('Não deu pra enviar agora (' + e.message + '). Tente de novo em alguns instantes.');
     btn.disabled = false; btn.innerHTML = '<i class="ti ti-send"></i> Enviar minha candidatura';
   }
 }
+
+// ---------- Etapa 2: teste de perfil ----------
+let testeId = null;
+function abrirEtapa2(id, primeiroNome) {
+  testeId = id;
+  $('formScreen').style.display = 'none';
+  $('etapa2Screen').style.display = 'block';
+  if (primeiroNome !== null) {           // veio pelo link do RH, não acabou de enviar
+    $('etapa2OkTxt').textContent = primeiroNome ? `Olá, ${primeiroNome}! Sua candidatura já está com a gente.` : 'Sua candidatura já está com a gente.';
+  }
+  window.scrollTo(0, 0);
+}
+function fazerDepois() {
+  $('etapa2Screen').style.display = 'none';
+  $('successTitulo').textContent = 'Candidatura recebida!';
+  $('successTxt').textContent = 'Tudo certo, a sua candidatura já está com a gente. O teste de perfil fica para depois: o RH pode te mandar o link dele por WhatsApp ou e-mail.';
+  $('successScreen').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+async function enviarTeste() {
+  const errBox = $('errBox2'); errBox.classList.remove('show');
+  const falta = DISC_BLOCOS.findIndex((_, i) => !discBlocoOk(i));
+  if (falta >= 0) {
+    $('discB' + falta).classList.add('falta');
+    errBox.textContent = `Falta o bloco ${falta + 1}: marque uma palavra em "Mais" e outra em "Menos".`; errBox.classList.add('show');
+    $('discB' + falta).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  const btn = $('btnTeste');
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Enviando...';
+  try {
+    const res = discResultado();
+    const r = await fetch(`${SUPA_URL}/rpc/rec_salvar_disc`, {
+      method: 'POST',
+      headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_id: testeId, p_disc: res.letra, p_pontos: res.pontos })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const gravou = await r.json();
+    $('etapa2Screen').style.display = 'none';
+    $(gravou ? 'successScreen' : 'testeFeitoScreen').style.display = 'block';
+    window.scrollTo(0, 0);
+  } catch (e) {
+    errBox.textContent = 'Não deu pra enviar o teste agora. Tente de novo em alguns instantes.'; errBox.classList.add('show');
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-send"></i> Enviar meu teste';
+  }
+}
+// Link do RH: candidatura.html?teste=<id> abre direto na etapa 2
+(async () => {
+  const id = new URLSearchParams(location.search).get('teste');
+  if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return;
+  $('formScreen').style.display = 'none';
+  try {
+    const r = await fetch(`${SUPA_URL}/rpc/rec_teste_info`, {
+      method: 'POST',
+      headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_id: id })
+    });
+    const info = r.ok ? (await r.json())[0] : null;
+    if (!info) { $('formScreen').style.display = 'block'; return; }   // link inválido: mostra o formulário normal
+    if (info.feito) { $('testeFeitoScreen').style.display = 'block'; return; }
+    abrirEtapa2(id, info.primeiro_nome || '');
+  } catch (e) { $('formScreen').style.display = 'block'; }
+})();
 </script>
 </body>
 </html>

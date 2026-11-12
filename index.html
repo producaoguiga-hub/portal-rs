@@ -348,6 +348,11 @@
   .rec-disc-bar { height: 8px; border-radius: 999px; background: var(--bg); overflow: hidden; }
   .rec-disc-bar span { display: block; height: 100%; border-radius: 999px; }
   .rec-disc-l b { text-align: right; font-size: 12px; }
+  .rec-teste-pend { font-size: 11px; color: var(--amber-text); margin-top: 4px; display: flex; align-items: center; gap: 3px; white-space: nowrap; }
+  .rec-disc-pend { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .rec-disc-pend b { font-size: 13px; display: flex; align-items: center; gap: 5px; }
+  .rec-disc-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .rec-disc-btns a.btn { text-decoration: none; }
   .rec-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .rec-reqs { display: flex; gap: 4px; flex-wrap: wrap; }
   .rq { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 500; white-space: nowrap; }
@@ -3354,7 +3359,7 @@ function renderRecrutamento() {
       const p = recPerfil(r);
       return `<tr class="rec-row" onclick="abrirRec('${r.id}')">
         <td><div class="rec-nome">${r.status === 'novo' ? '<span class="rec-novo" title="Ainda não triado"></span>' : ''}${escHtml(r.nome)}${recWa(r) ? `<a class="rec-wa" href="${recWa(r)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Chamar no WhatsApp: ${escHtml(r.telefone)}" aria-label="Chamar ${escHtml(r.nome)} no WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>` : ''}</div><div class="rec-meta">${escHtml(recLocal(r) || '—')}</div></td>
-        <td><div style="display:flex;align-items:center;gap:6px"><span class="badge ${p === 'adm' ? 'b-p' : p === 'tec' ? 'b-b' : 'b-n'}">${p === 'fora' ? 'Fora do perfil' : (p === 'adm' ? 'Administrativo' : 'Técnico')}</span>${r.disc ? `<span class="disc disc-${r.disc}" title="Teste de perfil: ${DISC_NOME[r.disc] || r.disc}">${r.disc}</span>` : ''}</div></td>
+        <td><div style="display:flex;align-items:center;gap:6px"><span class="badge ${p === 'adm' ? 'b-p' : p === 'tec' ? 'b-b' : 'b-n'}">${p === 'fora' ? 'Fora do perfil' : (p === 'adm' ? 'Administrativo' : 'Técnico')}</span>${r.disc ? `<span class="disc disc-${r.disc}" title="Teste de perfil: ${DISC_NOME[r.disc] || r.disc}">${r.disc}</span>` : ''}</div>${recTestePendente(r) ? '<div class="rec-teste-pend" title="Ainda não fez o teste de perfil (etapa 2)"><i class="ti ti-hourglass"></i> teste pendente</div>' : ''}</td>
         <td style="min-width:180px;max-width:260px"><div>${escHtml(r.curso || '—')}</div><div class="rec-meta rec-clamp" title="${escHtml(r.universidade || '')}">${escHtml(r.universidade || '')}${r.tipo_univ ? ' · ' + escHtml(r.tipo_univ) : ''}</div></td>
         <td><div class="rec-reqs">${recCriterios(r).map(recChip).join('')}</div></td>
         <td style="min-width:90px;max-width:170px"><div class="rec-clamp" title="${escHtml(r.pretensao || '')}">${escHtml(r.pretensao || '—')}</div></td>
@@ -3381,7 +3386,30 @@ const REC_DISC_DICA = {
   S: 'Estável, paciente, cooperativo, bom ouvinte. Na entrevista: como reage a mudanças rápidas, conflitos e decisões duras (ex.: desligamentos).',
   C: 'Analítico, criterioso, segue processos. Na entrevista: como decide com pouca informação e sob pressão, e como se comunica com o cliente.',
 };
+// Teste pendente: candidatura do formulário novo (com "Entendendo a vaga") sem o teste.
+const recTestePendente = r => !r.disc && r.vaga_ciente === true;
+const recLinkTeste = r => location.origin + '/candidatura.html?teste=' + r.id;
+function recCopiarLinkTeste(id, btn) {
+  const r = recs.find(x => x.id === id); if (!r) return;
+  const url = recLinkTeste(r);
+  navigator.clipboard.writeText(url).then(() => {
+    toast('Link do teste copiado');
+    const o = btn.innerHTML; btn.innerHTML = '<i class="ti ti-check"></i> Copiado!'; setTimeout(() => btn.innerHTML = o, 1800);
+  }).catch(() => prompt('Copie o link do teste:', url));
+}
 function recDiscHtml(r) {
+  if (!r.disc && recTestePendente(r)) {
+    const wa = recWa(r);
+    const msg = `Olá, ${(r.nome || '').split(' ')[0]}! Aqui é do RH da Perbras. Recebemos a sua candidatura, obrigado! A próxima etapa é um teste rápido de perfil, leva uns 3 minutos: ${recLinkTeste(r)}`;
+    return `<div class="rec-sec"><h4>Teste de perfil (DISC)</h4>
+      <div class="rec-disc rec-disc-pend">
+        <div><b><i class="ti ti-hourglass"></i> Etapa 2 ainda não feita</b><div class="rec-meta">O candidato enviou a candidatura mas não fez o teste. Mande o link para ele fazer.</div></div>
+        <div class="rec-disc-btns">
+          ${wa ? `<a class="btn btn-sm" href="${wa}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener"><i class="ti ti-brand-whatsapp"></i> Enviar pelo WhatsApp</a>` : ''}
+          <button class="btn btn-sm" onclick="recCopiarLinkTeste('${r.id}', this)"><i class="ti ti-link"></i> Copiar link do teste</button>
+        </div>
+      </div></div>`;
+  }
   if (!r.disc) return '';
   const p = r.disc_pontos || {};
   const barras = ['D', 'I', 'S', 'C'].map(k => `<div class="rec-disc-l"><span class="disc disc-${k}" style="cursor:default">${k}</span><span class="rec-disc-nome">${DISC_NOME[k]}</span><div class="rec-disc-bar"><span class="disc-${k}" style="width:${p[k] ?? 0}%"></span></div><b>${p[k] ?? '—'}</b></div>`).join('');
