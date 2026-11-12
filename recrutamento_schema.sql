@@ -59,7 +59,7 @@ create table if not exists public.recrutamento (
   cnh_path          text,
 
   -- Uso do RH
-  status            text not null default 'novo',  -- novo / triagem / entrevista / aprovado / contratado / banco / reprovado
+  status            text not null default 'novo',  -- novo / triagem / entrevista / individual / aprovado / contratado / banco / reprovado
   entrevista_em     timestamptz,
   notas_rh          text,
   atualizado_em     timestamptz

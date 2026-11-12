@@ -3282,11 +3282,11 @@ let recs = [], recFiltroSt = 'andamento', viewRecId = null, recPendenteContratad
 let recSel = new Set(), recTurma = '', recEntPendente = null, recUltimaEnt = '';
 const REC_IDADE_MIN = 27, REC_IDADE_MAX = 44;
 const REC_ST = [
-  ['novo', 'Novo', 'b-b'], ['triagem', 'Em triagem', 'b-p'], ['entrevista', 'Entrevista', 'b-a'],
+  ['novo', 'Novo', 'b-b'], ['triagem', 'Em triagem', 'b-p'], ['entrevista', 'Entrevista', 'b-a'], ['individual', 'Conversa individual', 'b-p'],
   ['aprovado', 'Aprovado', 'b-g'], ['contratado', 'Contratado', 'b-g'],
   ['banco', 'Banco de talentos', 'b-n'], ['reprovado', 'Não seguiu', 'b-r'],
 ];
-const REC_ANDAMENTO = ['novo', 'triagem', 'entrevista', 'aprovado'];
+const REC_ANDAMENTO = ['novo', 'triagem', 'entrevista', 'individual', 'aprovado'];
 const recStInfo = k => REC_ST.find(s => s[0] === k) || REC_ST[0];
 
 async function carregarRecrutamento() {
