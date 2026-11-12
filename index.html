@@ -335,6 +335,24 @@
   .rec-link-btns a.btn { text-decoration: none; }
   .rec-chk { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text2); cursor: pointer; }
   .rec-row { cursor: pointer; }
+  .rec-row.rec-sel td { background: var(--blue-bg, #E6F1FB); }
+  th.rec-ck, td.rec-ck { width: 34px; padding-right: 0 !important; }
+  .rec-ck input { width: 16px; height: 16px; cursor: pointer; accent-color: #1A88FF; }
+  .rec-ent-data { font-size: 11px; color: var(--text2); margin-top: 4px; display: flex; align-items: center; gap: 3px; cursor: pointer; white-space: nowrap; }
+  .rec-ent-data:hover { color: var(--text); text-decoration: underline; }
+  .rec-ent-data.sem { color: var(--amber-text); }
+  .rec-turma-filtro { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; color: var(--text2); }
+  .rec-turma-filtro label { display: flex; align-items: center; gap: 4px; }
+  .rec-turma { margin-bottom: 18px; }
+  .rec-turma-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px; background: var(--bg2); border-radius: var(--radius) var(--radius) 0 0; border: 0.5px solid var(--border); border-bottom: none; }
+  .rec-turma-tit { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+  .rec-turma-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .rec-turma .table-wrap { border-top-left-radius: 0; border-top-right-radius: 0; }
+  .rec-selbar { position: sticky; bottom: 12px; z-index: 50; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px; border-radius: var(--radius-lg); background: #0E2A3D; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+  .rec-selbar-txt { display: flex; flex-direction: column; font-size: 13px; min-width: 0; }
+  .rec-selbar-txt span { font-size: 11.5px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
+  .rec-selbar-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .rec-desc-txt { width: 100%; min-height: 380px; font-family: inherit; font-size: 13px; line-height: 1.55; padding: 12px; border-radius: var(--radius); border: 0.5px solid var(--border2, var(--border)); background: var(--bg); color: var(--text); resize: vertical; }
   .rec-nome { font-weight: 600; display: flex; align-items: center; gap: 6px; }
   .rec-novo { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
   .rec-meta { font-size: 11.5px; color: var(--text3); margin-top: 2px; }
@@ -1404,6 +1422,7 @@
     </div>
     <div class="toolbar"><div class="qf-row" id="recStChips"></div></div>
     <div id="recLista"><div class="loading">Carregando...</div></div>
+    <div class="rec-selbar" id="recSelBar" style="display:none"></div>
   </div>
 
   <!-- CANDIDATOS -->
@@ -1785,6 +1804,38 @@
       <div style="display:flex;gap:8px">
         <button class="btn" id="recBtnAdmitido" onclick="recVirarAdmitido()"><i class="ti ti-user-check"></i> Cadastrar como admitido</button>
         <button class="btn" onclick="fecharModal('mRec')">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="mRecEnt">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">Entrevista com a gestão</div>
+    <p class="rec-meta" style="margin:-4px 0 14px">Quando <b id="recEntNome"></b> vai ser apresentado(a) para a gestão?</p>
+    <div class="fg"><label for="recEntData">Data e hora</label><input id="recEntData" type="datetime-local"></div>
+    <div id="recEntTurmas" class="qf-row" style="margin-top:10px;flex-wrap:wrap"></div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn" onclick="recConfirmarEnt(true)" title="Move para Entrevista e deixa a data para depois">Mover sem data</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="fecharModal('mRecEnt')">Cancelar</button>
+        <button class="btn btn-primary" onclick="recConfirmarEnt(false)"><i class="ti ti-calendar-check"></i> Mover para Entrevista</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="mRecDesc">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-title">Descritivo para a gestão</div>
+    <p class="rec-meta" style="margin:-4px 0 12px"><span id="recDescQtd"></span>. O texto sai das respostas do questionário e das suas anotações; revise e ajuste à vontade antes de mandar. Os asteriscos viram <b>negrito</b> no WhatsApp.</p>
+    <textarea id="recDescTxt" class="rec-desc-txt" spellcheck="true"></textarea>
+    <div class="modal-footer" style="justify-content:space-between;flex-wrap:wrap">
+      <button class="btn" onclick="recBaixarCurriculos(recDescIds, this)"><i class="ti ti-download"></i> Baixar currículos</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="recDescTxtDownload()"><i class="ti ti-file-download"></i> .txt</button>
+        <button class="btn" onclick="recDescCopiar(this)"><i class="ti ti-copy"></i> Copiar</button>
+        <button class="btn btn-primary" style="background:#25d366;border-color:#25d366" onclick="recDescWhats()"><i class="ti ti-brand-whatsapp"></i> Enviar no WhatsApp</button>
       </div>
     </div>
   </div>
@@ -3228,6 +3279,7 @@ async function excluirCandidato(id,nome) {
 // "recrutamento"). A triagem é automática: perfil pelo curso, faixa de idade,
 // diploma, CNH B e mudança são requisitos; universidade pública é preferência.
 let recs = [], recFiltroSt = 'andamento', viewRecId = null, recPendenteContratado = null, recTabelaOk = true, recLimite = 200;
+let recSel = new Set(), recTurma = '', recEntPendente = null, recUltimaEnt = '';
 const REC_IDADE_MIN = 27, REC_IDADE_MAX = 44;
 const REC_ST = [
   ['novo', 'Novo', 'b-b'], ['triagem', 'Em triagem', 'b-p'], ['entrevista', 'Entrevista', 'b-a'],
@@ -3347,30 +3399,233 @@ function renderRecrutamento() {
   let rows = base.filter(r => recFiltroSt === 'todos' ? true : recFiltroSt === 'andamento' ? REC_ANDAMENTO.includes(r.status) : r.status === recFiltroSt);
   if (r$('recOrdem').value === 'encaixe') rows.sort((a, b) => recEncaixe(b) - recEncaixe(a) || String(b.created_at).localeCompare(String(a.created_at)));
   else rows.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+  renderRecSelBar();
 
   if (!rows.length) {
     lista.innerHTML = `<div class="card empty">${recs.length ? 'Nenhuma candidatura com esses filtros.' : 'Nenhuma candidatura ainda. Copie o link do questionário acima e mande para os candidatos.'}</div>`;
     return;
   }
+  // Etapa Entrevista: separa por turma (dia da entrevista com a gestão)
+  if (recFiltroSt === 'entrevista') { lista.innerHTML = recHtmlTurmas(rows); return; }
   const total = rows.length; rows = rows.slice(0, recLimite);
-  lista.innerHTML = `<div class="table-wrap"><table>
-    <thead><tr><th>Candidato</th><th>Perfil</th><th>Formação</th><th>Requisitos</th><th>Pretensão</th><th>Preenchido em</th><th>Etapa</th></tr></thead>
+  lista.innerHTML = recTabelaHtml(rows)
+    + (total > rows.length ? `<div style="text-align:center;margin-top:12px"><button class="btn" onclick="recLimite+=200;renderRecrutamento()">Mostrar mais (${rows.length} de ${total})</button></div>` : '');
+}
+
+function recTabelaHtml(rows) {
+  const ids = rows.map(r => r.id), todos = ids.every(id => recSel.has(id));
+  return `<div class="table-wrap"><table>
+    <thead><tr><th class="rec-ck"><input type="checkbox" ${todos ? 'checked' : ''} data-ids="${ids.join(',')}" onchange="recMarcarVarios(this.dataset.ids.split(','), this.checked)" title="Selecionar todos desta lista" aria-label="Selecionar todos"></th><th>Candidato</th><th>Perfil</th><th>Formação</th><th>Requisitos</th><th>Pretensão</th><th>Preenchido em</th><th>Etapa</th></tr></thead>
     <tbody>${rows.map(r => {
       const p = recPerfil(r);
-      return `<tr class="rec-row" onclick="abrirRec('${r.id}')">
+      return `<tr class="rec-row${recSel.has(r.id) ? ' rec-sel' : ''}" onclick="abrirRec('${r.id}')">
+        <td class="rec-ck" onclick="event.stopPropagation()"><input type="checkbox" ${recSel.has(r.id) ? 'checked' : ''} onchange="recMarcarVarios(['${r.id}'], this.checked)" aria-label="Selecionar ${escHtml(r.nome)}"></td>
         <td><div class="rec-nome">${r.status === 'novo' ? '<span class="rec-novo" title="Ainda não triado"></span>' : ''}${escHtml(r.nome)}${recWa(r) ? `<a class="rec-wa" href="${recWa(r)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Chamar no WhatsApp: ${escHtml(r.telefone)}" aria-label="Chamar ${escHtml(r.nome)} no WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>` : ''}</div><div class="rec-meta">${escHtml(recLocal(r) || '—')}</div></td>
         <td><div style="display:flex;align-items:center;gap:6px"><span class="badge ${p === 'adm' ? 'b-p' : p === 'tec' ? 'b-b' : 'b-n'}">${p === 'fora' ? 'Fora do perfil' : (p === 'adm' ? 'Administrativo' : 'Técnico')}</span>${r.disc ? `<span class="disc disc-${r.disc}" title="Teste de perfil: ${DISC_NOME[r.disc] || r.disc}">${r.disc}</span>` : ''}</div>${recTestePendente(r) ? '<div class="rec-teste-pend" title="Ainda não fez o teste de perfil (etapa 2)"><i class="ti ti-hourglass"></i> teste pendente</div>' : ''}</td>
         <td style="min-width:180px;max-width:260px"><div>${escHtml(r.curso || '—')}</div><div class="rec-meta rec-clamp" title="${escHtml(r.universidade || '')}">${escHtml(r.universidade || '')}${r.tipo_univ ? ' · ' + escHtml(r.tipo_univ) : ''}</div></td>
         <td><div class="rec-reqs">${recCriterios(r).map(recChip).join('')}</div></td>
         <td style="min-width:90px;max-width:170px"><div class="rec-clamp" title="${escHtml(r.pretensao || '')}">${escHtml(r.pretensao || '—')}</div></td>
         <td style="white-space:nowrap">${recDaPlanilha(r) ? '<span class="rec-meta" title="Importado da planilha do Forms">Planilha</span>' : (() => { const d = new Date(r.created_at); return `<div title="Preenchido em ${recDataHora(r.created_at)}">${d.toLocaleDateString('pt-BR')}</div><div class="rec-meta">às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>`; })()}</td>
-        <td onclick="event.stopPropagation()"><select class="rec-st-sel" onchange="recMudarEtapa('${r.id}', this.value)" aria-label="Etapa de ${escHtml(r.nome)}">${REC_ST.map(s => `<option value="${s[0]}"${s[0] === r.status ? ' selected' : ''}>${s[1]}</option>`).join('')}</select></td>
+        <td onclick="event.stopPropagation()"><select class="rec-st-sel" onchange="recMudarEtapa('${r.id}', this.value)" aria-label="Etapa de ${escHtml(r.nome)}">${REC_ST.map(s => `<option value="${s[0]}"${s[0] === r.status ? ' selected' : ''}>${s[1]}</option>`).join('')}</select>${r.status === 'entrevista' ? `<div class="rec-ent-data${r.entrevista_em ? '' : ' sem'}" onclick="recPedirDataEnt('${r.id}')" title="Mudar a data da entrevista"><i class="ti ti-calendar-event"></i> ${r.entrevista_em ? recDiaHora(r.entrevista_em) : 'sem data'}</div>` : ''}</td>
       </tr>`;
-    }).join('')}</tbody></table></div>`
-    + (total > rows.length ? `<div style="text-align:center;margin-top:12px"><button class="btn" onclick="recLimite+=200;renderRecrutamento()">Mostrar mais (${rows.length} de ${total})</button></div>` : '');
+    }).join('')}</tbody></table></div>`;
+}
+
+// ---------- Turmas de entrevista com a gestão ----------
+const recPad = n => String(n).padStart(2, '0');
+const recDiaKey = iso => { const d = new Date(iso); return d.getFullYear() + '-' + recPad(d.getMonth() + 1) + '-' + recPad(d.getDate()); };
+const recDiaTxt = key => { const t = new Date(key + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); };
+const recHora = iso => new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+function recDiaHora(iso) { const d = new Date(iso); return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' às ' + recHora(iso); }
+function recIsoParaLocal(iso) { const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); }
+
+function recHtmlTurmas(rows) {
+  const hoje = recDiaKey(new Date().toISOString());
+  const grupos = {};
+  rows.forEach(r => { const k = r.entrevista_em ? recDiaKey(r.entrevista_em) : 'sem'; (grupos[k] = grupos[k] || []).push(r); });
+  const futuras = Object.keys(grupos).filter(k => k !== 'sem' && k >= hoje).sort();
+  const passadas = Object.keys(grupos).filter(k => k !== 'sem' && k < hoje).sort().reverse();
+  const chaves = [...futuras, ...passadas, ...(grupos.sem ? ['sem'] : [])];
+  if (recTurma && !grupos[recTurma]) recTurma = '';
+  const filtro = `<div class="rec-turma-filtro"><label for="recTurmaSel"><i class="ti ti-calendar-event"></i> Turma</label>
+    <select id="recTurmaSel" class="rec-st-sel" style="width:auto" onchange="recTurma=this.value;renderRecrutamento()">
+      <option value="">Todas as turmas (${chaves.length})</option>
+      ${chaves.map(k => `<option value="${k}"${recTurma === k ? ' selected' : ''}>${k === 'sem' ? 'Sem data marcada' : recDiaTxt(k)} · ${grupos[k].length}</option>`).join('')}
+    </select></div>`;
+  return filtro + chaves.filter(k => !recTurma || k === recTurma).map(k => {
+    const g = grupos[k].sort((a, b) => String(a.entrevista_em).localeCompare(String(b.entrevista_em)) || a.nome.localeCompare(b.nome));
+    const ids = g.map(r => r.id).join(',');
+    const horas = [...new Set(g.filter(r => r.entrevista_em).map(r => recHora(r.entrevista_em)))];
+    const titulo = k === 'sem' ? 'Sem data marcada' : recDiaTxt(k);
+    const tag = k === 'sem' ? '' : (k === hoje ? '<span class="badge b-a">Hoje</span>' : k > hoje ? '<span class="badge b-b">Próxima</span>' : '<span class="badge b-n">Já aconteceu</span>');
+    return `<div class="rec-turma">
+      <div class="rec-turma-head">
+        <div><div class="rec-turma-tit"><i class="ti ti-users-group"></i> ${titulo} ${tag}</div>
+          <div class="rec-meta">${g.length} candidato${g.length === 1 ? '' : 's'}${horas.length ? ' · ' + horas.join(', ') : ''}</div></div>
+        <div class="rec-turma-btns">
+          <button class="btn btn-sm" data-ids="${ids}" onclick="recMarcarVarios(this.dataset.ids.split(','), true)"><i class="ti ti-checkbox"></i> Selecionar turma</button>
+          <button class="btn btn-sm btn-primary" data-ids="${ids}" onclick="recAbrirDescritivo(this.dataset.ids.split(','))"><i class="ti ti-file-text"></i> Descritivo</button>
+          <button class="btn btn-sm" data-ids="${ids}" onclick="recBaixarCurriculos(this.dataset.ids.split(','), this)"><i class="ti ti-download"></i> Currículos</button>
+        </div>
+      </div>
+      ${recTabelaHtml(g)}
+    </div>`;
+  }).join('');
+}
+
+// ---------- Seleção ----------
+function recMarcarVarios(ids, marcar) {
+  ids.forEach(id => marcar ? recSel.add(id) : recSel.delete(id));
+  renderRecrutamento();
+}
+function renderRecSelBar() {
+  const bar = r$('recSelBar'); if (!bar) return;
+  [...recSel].forEach(id => { if (!recs.some(r => r.id === id)) recSel.delete(id); });
+  if (!recSel.size) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  const nomes = recs.filter(r => recSel.has(r.id)).map(r => r.nome.split(' ')[0]);
+  bar.style.display = 'flex';
+  bar.innerHTML = `<div class="rec-selbar-txt"><b>${recSel.size} selecionado${recSel.size === 1 ? '' : 's'}</b><span>${escHtml(nomes.slice(0, 6).join(', '))}${nomes.length > 6 ? '…' : ''}</span></div>
+    <div class="rec-selbar-btns">
+      <button class="btn btn-sm btn-primary" onclick="recAbrirDescritivo([...recSel])"><i class="ti ti-file-text"></i> Gerar descritivo</button>
+      <button class="btn btn-sm" onclick="recBaixarCurriculos([...recSel], this)"><i class="ti ti-download"></i> Baixar currículos</button>
+      <button class="btn btn-sm" onclick="recSel.clear();renderRecrutamento()"><i class="ti ti-x"></i> Limpar</button>
+    </div>`;
+}
+
+// ---------- Mover para Entrevista pede a data ----------
+function recPedirDataEnt(id) {
+  const r = recs.find(x => x.id === id); if (!r) return;
+  recEntPendente = id;
+  r$('recEntNome').textContent = r.nome;
+  r$('recEntData').value = r.entrevista_em ? recIsoParaLocal(r.entrevista_em) : recUltimaEnt;
+  const agora = new Date().toISOString(), cont = {};
+  recs.filter(x => x.status === 'entrevista' && x.entrevista_em && x.entrevista_em >= agora && x.id !== id)
+    .forEach(x => { const k = recIsoParaLocal(x.entrevista_em); cont[k] = (cont[k] || 0) + 1; });
+  const ks = Object.keys(cont).sort();
+  r$('recEntTurmas').innerHTML = ks.length
+    ? '<div class="rec-meta" style="margin-bottom:6px">Juntar a uma turma já marcada:</div>' + ks.map(k => `<button class="qf-btn" onclick="r$('recEntData').value='${k}'">${recDiaHora(new Date(k).toISOString())} · ${cont[k]} pessoa${cont[k] === 1 ? '' : 's'}</button>`).join('')
+    : '';
+  r$('mRecEnt').classList.add('open');
+  setTimeout(() => r$('recEntData').focus(), 50);
+}
+async function recConfirmarEnt(semData) {
+  const id = recEntPendente; if (!id) return;
+  const v = r$('recEntData').value;
+  if (!semData && !v) { toast('Escolha a data e a hora, ou clique em "Mover sem data".', true); return; }
+  const dados = { status: 'entrevista', entrevista_em: semData ? null : new Date(v).toISOString(), atualizado_em: new Date().toISOString() };
+  try {
+    await dbUpdate('recrutamento', id, dados);
+    const r = recs.find(x => x.id === id); if (r) Object.assign(r, dados);
+    if (!semData) recUltimaEnt = v;
+    recEntPendente = null;
+    fecharModal('mRecEnt');
+    toast(semData ? 'Movido para Entrevista (sem data)' : 'Entrevista: ' + recDiaHora(dados.entrevista_em));
+  } catch (e) { toast('Erro: ' + e.message, true); }
+}
+
+// ---------- Descritivo para a gestão ----------
+const recLimpa = t => String(t || '').replace(/\s+/g, ' ').trim();
+const recPonto = t => { t = recLimpa(t); return t && !/[.!?…]$/.test(t) ? t + '.' : t; };
+function recDescritivoTxt(lista) {
+  lista = lista.slice().sort((a, b) => String(a.entrevista_em || '9').localeCompare(String(b.entrevista_em || '9')) || a.nome.localeCompare(b.nome));
+  const dias = [...new Set(lista.filter(r => r.entrevista_em).map(r => recDiaKey(r.entrevista_em)))];
+  const titulo = dias.length === 1 && lista.every(r => r.entrevista_em)
+    ? `*Candidatos para a entrevista de ${new Date(dias[0] + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' })}*`
+    : '*Candidatos para a entrevista*';
+  const blocos = lista.map((r, i) => {
+    const idade = recIdade(r), linhas = [];
+    linhas.push(`*${i + 1}. ${recLimpa(r.nome)}*` + [idade != null ? idade + ' anos' : '', recLocal(r)].filter(Boolean).map(x => ' · ' + x).join('')
+      + (r.entrevista_em && dias.length > 1 ? ' · entrevista ' + recDiaHora(r.entrevista_em) : (r.entrevista_em && lista.length > 1 && new Set(lista.map(x => x.entrevista_em)).size > 1 ? ' · ' + recHora(r.entrevista_em) : '')));
+    const form = [recLimpa(r.curso), r.universidade ? 'pela ' + recLimpa(r.universidade) : ''].filter(Boolean).join(' ');
+    if (form) linhas.push('Formação: ' + recPonto(form + (r.graduacao === 'Em andamento' ? ' (em andamento)' : '')));
+    if (r.empresa_atual) linhas.push('Hoje: ' + recPonto(r.empresa_atual));
+    if (r.experiencia) linhas.push('Experiência: ' + recPonto(r.experiencia));
+    const sal = [r.salario_atual ? 'atual ' + recLimpa(r.salario_atual) : '', r.pretensao ? 'pretensão ' + recLimpa(r.pretensao) : ''].filter(Boolean);
+    if (sal.length) linhas.push('Salário: ' + recPonto(sal.join('; ')));
+    if (r.disc) linhas.push(`Perfil (teste DISC): ${r.disc}, ${DISC_NOME[r.disc]}. ${(REC_DISC_DICA[r.disc] || '').split('.')[0]}.`);
+    const pess = [r.estado_civil ? recLimpa(r.estado_civil) : '', r.filhos ? 'Filhos: ' + recLimpa(r.filhos) : '', r.idioma ? 'Idioma: ' + recLimpa(r.idioma) : ''].filter(Boolean);
+    if (pess.length) linhas.push('Pessoal: ' + recPonto(pess.map(recPonto).join(' ').replace(/\.$/, '')));
+    const fora = recCriterios(r).filter(c => !c.pref && c.ok === false).map(c => c.k === 'idade' ? `fora da faixa de idade (${idade})` : c.dica.charAt(0).toLowerCase() + c.dica.slice(1));
+    if (fora.length) linhas.push('Atenção: ' + recPonto(fora.join('; ')));
+    if (r.notas_rh) linhas.push('Para a entrevista: ' + recPonto(r.notas_rh));
+    return linhas.join('\n');
+  });
+  return titulo + '\n\n' + blocos.join('\n\n');
+}
+let recDescIds = [];
+function recAbrirDescritivo(ids) {
+  const lista = recs.filter(r => ids.includes(r.id));
+  if (!lista.length) { toast('Selecione pelo menos um candidato.', true); return; }
+  recDescIds = lista.map(r => r.id);
+  r$('recDescQtd').textContent = lista.length + ' candidato' + (lista.length === 1 ? '' : 's');
+  r$('recDescTxt').value = recDescritivoTxt(lista);
+  r$('mRecDesc').classList.add('open');
+}
+function recDescCopiar(btn) {
+  const t = r$('recDescTxt').value;
+  navigator.clipboard.writeText(t).then(() => {
+    toast('Descritivo copiado');
+    const o = btn.innerHTML; btn.innerHTML = '<i class="ti ti-check"></i> Copiado!'; setTimeout(() => btn.innerHTML = o, 1800);
+  }).catch(() => { r$('recDescTxt').select(); document.execCommand('copy'); toast('Descritivo copiado'); });
+}
+function recDescWhats() { window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(r$('recDescTxt').value), '_blank', 'noopener'); }
+function recBaixarBlob(blob, nome) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function recDescTxtDownload() {
+  recBaixarBlob(new Blob([r$('recDescTxt').value.replace(/\*/g, '')], { type: 'text/plain;charset=utf-8' }), 'Descritivo candidatos ' + new Date().toLocaleDateString('pt-BR').replace(/\//g, '-') + '.txt');
+}
+
+// ---------- Currículos dos selecionados ----------
+let recZipPromise = null;
+function recCarregarZip() {
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  return recZipPromise = recZipPromise || new Promise((ok, erro) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    sc.onload = () => ok(window.JSZip); sc.onerror = () => { recZipPromise = null; erro(new Error('zip')); };
+    document.head.appendChild(sc);
+  });
+}
+const recNomeArq = t => recLimpa(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w .-]/g, '').trim() || 'candidato';
+async function recBaixarCurriculos(ids, btn) {
+  const lista = recs.filter(r => ids.includes(r.id));
+  const com = lista.filter(r => r.curriculo_path), sem = lista.filter(r => !r.curriculo_path);
+  if (!com.length) { toast(lista.length === 1 ? 'Esse candidato não enviou currículo.' : 'Nenhum dos selecionados enviou currículo.', true); return; }
+  const o = btn ? btn.innerHTML : ''; if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Baixando...'; }
+  try {
+    const arquivos = [], falhas = [];
+    for (const r of com) {
+      try {
+        const res = await authFetch(`${SUPA_STORAGE}/object/sign/recrutamento/${r.curriculo_path}`, { method: 'POST', body: JSON.stringify({ expiresIn: 600 }) });
+        if (!res.ok) throw new Error(await res.text());
+        const j = await res.json();
+        const blob = await (await fetch(SUPA_STORAGE + (j.signedURL || j.signedUrl))).blob();
+        const ext = (r.curriculo_path.split('.').pop() || 'pdf').toLowerCase().slice(0, 5);
+        arquivos.push({ nome: `${recNomeArq(r.nome)} - Curriculo.${ext}`, blob });
+      } catch (e) { falhas.push(r.nome); }
+    }
+    if (arquivos.length === 1) recBaixarBlob(arquivos[0].blob, arquivos[0].nome);
+    else if (arquivos.length > 1) {
+      try {
+        const JSZip = await recCarregarZip(), zip = new JSZip();
+        arquivos.forEach(a => zip.file(a.nome, a.blob));
+        recBaixarBlob(await zip.generateAsync({ type: 'blob' }), `Curriculos ${arquivos.length} candidatos ${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.zip`);
+      } catch (e) {   // sem o zip: baixa um por um
+        for (const a of arquivos) { recBaixarBlob(a.blob, a.nome); await new Promise(ok => setTimeout(ok, 400)); }
+      }
+    }
+    const avisos = [];
+    if (sem.length) avisos.push('sem currículo: ' + sem.map(r => r.nome.split(' ')[0]).join(', '));
+    if (falhas.length) avisos.push('não baixou: ' + falhas.map(n => n.split(' ')[0]).join(', '));
+    toast(`${arquivos.length} currículo${arquivos.length === 1 ? '' : 's'} baixado${arquivos.length === 1 ? '' : 's'}` + (avisos.length ? ' · ' + avisos.join(' · ') : ''), !arquivos.length);
+  } finally { if (btn) { btn.disabled = false; btn.innerHTML = o; } }
 }
 
 async function recMudarEtapa(id, status) {
+  const atual = recs.find(x => x.id === id);
+  if (status === 'entrevista' && atual && atual.status !== 'entrevista') { recPedirDataEnt(id); return; }
   try {
     await dbUpdate('recrutamento', id, { status, atualizado_em: new Date().toISOString() });
     const r = recs.find(x => x.id === id); if (r) r.status = status;
@@ -3798,6 +4053,7 @@ function abrirModal(tipo) {
 function fecharModal(id) {
   r$(id).classList.remove('open'); editId=null; viewId=null; editCustoId=null; editPDIId=null; viewPDIId=null; viewMonitoriaId=null;
   if(id==='mCand') recPendenteContratado=null;
+  if(id==='mRecEnt') { recEntPendente=null; renderRecrutamento(); }
 }
 
 // Fechar ao clicar fora
