@@ -16,7 +16,13 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; padding: 2rem 1rem 5rem; }
-  .wrap { max-width: 640px; margin: 0 auto; }
+  .wrap { max-width: 640px; margin: 0 auto; position: relative; z-index: 1; }
+  /* Grafismo Perbras no fundo: um em cada lateral (o da direita girado), fixo enquanto rola */
+  body::before, body::after { content: ''; position: fixed; top: 0; bottom: 0; width: calc(100vh * 0.5625); max-width: 42vw;
+    background: url('grafismo_fundo.svg') no-repeat; background-size: auto 100%; pointer-events: none; z-index: 0; }
+  body::before { left: 0; background-position: left center; }
+  body::after { right: 0; background-position: left center; transform: rotate(180deg); }
+  @media (max-width: 900px) { body::before, body::after { opacity: .12; max-width: 60vw; } }
 
   .hero { position: relative; overflow: hidden; border-radius: var(--radius-lg); padding: 2rem 1.75rem; margin-bottom: 1.25rem;
     background: linear-gradient(120deg, #0E2A3D, #0B3A4D 45%, #0E4A52 75%, #0B3A2E); color: #fff; text-align: center; }
