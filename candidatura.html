@@ -109,13 +109,15 @@
   .disc-grid .c.menos input:checked + span { background: #4a6577; border-color: #4a6577; color: #fff; }
   .disc-grid .c input:focus-visible + span { box-shadow: 0 0 0 3px rgba(26,136,255,0.3); }
 
-  .etapa2-head { text-align: center; padding: .5rem .5rem 1.25rem; }
+  .etapa2-head { text-align: center; padding: 1.5rem 1.25rem; margin-bottom: 1rem; }
+  /* Telas fora do questionário: viram cartão branco para o texto não ficar sobre o grafismo */
+  .etapa2-head, #successScreen, #lgpdNoScreen, #vagaNoScreen, #testeFeitoScreen { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 1px 4px rgba(9,28,40,0.06); }
   .etapa2-ok { display: inline-flex; align-items: center; gap: 6px; color: #2a6200; font-weight: 700; font-size: 14px; margin-bottom: 10px; }
   .etapa2-ok i { font-size: 20px; }
   .etapa2-tag { display: inline-flex; align-items: center; gap: 6px; margin: 0 auto 10px; padding: 6px 14px; border-radius: 999px; background: #0E2A3D; color: #BCFF48; font-size: 12.5px; font-weight: 700; letter-spacing: .02em; }
   .etapa2-head h2 { font-size: 19px; margin-bottom: 6px; }
   .etapa2-head p { font-size: 13px; color: var(--text2); line-height: 1.6; max-width: 520px; margin: 0 auto; }
-  .link-depois { background: none; border: none; color: var(--text3); font-size: 12.5px; text-decoration: underline; cursor: pointer; font-family: inherit; }
+  .link-depois { background: var(--bg); border: none; padding: 6px 14px; border-radius: 999px; color: var(--text3); font-size: 12.5px; text-decoration: underline; cursor: pointer; font-family: inherit; }
   #vagaNoScreen { display: none; text-align: center; padding: 3rem 1.5rem; }
   #vagaNoScreen h2 { font-size: 18px; margin-bottom: 8px; }
   #vagaNoScreen p { color: var(--text2); font-size: 13.5px; line-height: 1.7; max-width: 440px; margin: 0 auto; }
