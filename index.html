@@ -5861,7 +5861,8 @@ let monFormEditId = null;
 
 function monRosterNomes() {
   const set = new Set([
-    ...Object.keys(gestorProfiles),
+    // Quem só participa da 360 (ex.: SMS) tem login, mas não é gestor: fica fora da lista.
+    ...Object.keys(gestorProfiles).filter(n => gestorProfiles[n].role !== 'participante'),
     ...pdis.map(p=>p.gestor_nome).filter(Boolean),
     ...monitorias.map(m=>m.gestor_nome).filter(Boolean),
   ]);
