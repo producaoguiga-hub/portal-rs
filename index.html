@@ -6898,21 +6898,27 @@ function pdiLinkFieldHtml(raw, simpleLabel) {
   if (!raw) return '—';
   const trimmed = raw.trim();
   if (/^https?:\/\/\S+$/i.test(trimmed)) {
-    return `<a href="${trimmed}" target="_blank" rel="noopener">${simpleLabel || 'Abrir link'}</a>`;
+    return `<a href="${escHtml(trimmed)}" target="_blank" rel="noopener">${simpleLabel || 'Abrir link'}</a>`;
   }
   const lines = trimmed.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-  if (lines.length <= 1) return trimmed;
+  if (lines.length <= 1) return escHtml(trimmed);
+  const a = u => `<a href="${escHtml(u)}" target="_blank" rel="noopener">${escHtml(u)}</a>`;
   return `<div class="pdi-link-block">${lines.map(line => {
     const urlMatch = line.match(/https?:\/\/\S+/i);
-    const labelMatch = line.match(/^([^:]{1,30}):\s*(.*)$/);
+    // Linha que começa com o próprio link: o "https:" não é rótulo (antes saía "https: //..." + o link de novo).
+    const labelMatch = urlMatch && urlMatch.index === 0 ? null : line.match(/^([^:]{1,30}):\s*(.*)$/);
     if (labelMatch && urlMatch) {
-      const rest = labelMatch[2].trim();
-      const before = rest.slice(0, rest.indexOf(urlMatch[0])).trim();
-      return `<div class="pdi-link-line"><b>${labelMatch[1]}:</b> ${before?before+' ':''}<a href="${urlMatch[0]}" target="_blank" rel="noopener">${urlMatch[0]}</a></div>`;
+      const rest = labelMatch[2].trim(), i = rest.indexOf(urlMatch[0]);
+      const before = i > 0 ? rest.slice(0, i).trim() : '';
+      const after = i >= 0 ? rest.slice(i + urlMatch[0].length).trim() : '';
+      return `<div class="pdi-link-line"><b>${escHtml(labelMatch[1])}:</b> ${before ? escHtml(before) + ' ' : ''}${a(urlMatch[0])}${after ? ' ' + escHtml(after) : ''}</div>`;
     }
-    if (urlMatch) return `<div class="pdi-link-line"><a href="${urlMatch[0]}" target="_blank" rel="noopener">${urlMatch[0]}</a></div>`;
-    if (labelMatch) return `<div class="pdi-link-line"><b>${labelMatch[1]}:</b> ${labelMatch[2]}</div>`;
-    return `<div class="pdi-link-line">${line}</div>`;
+    if (urlMatch) {
+      const before = line.slice(0, urlMatch.index).trim(), after = line.slice(urlMatch.index + urlMatch[0].length).trim();
+      return `<div class="pdi-link-line">${before ? escHtml(before) + ' ' : ''}${a(urlMatch[0])}${after ? ' ' + escHtml(after) : ''}</div>`;
+    }
+    if (labelMatch) return `<div class="pdi-link-line"><b>${escHtml(labelMatch[1])}:</b> ${escHtml(labelMatch[2])}</div>`;
+    return `<div class="pdi-link-line">${escHtml(line)}</div>`;
   }).join('')}</div>`;
 }
 
